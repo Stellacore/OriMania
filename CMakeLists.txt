@@ -32,7 +32,7 @@ set(aProjName "OriMania")
 set(aProjVersion "0.1.0") # Set this based on features, updates and patches
 set(aProjLib "${aProjName}Lib")
 include(./cmake/func_setReleaseTag.cmake)
-setReleaseTag(OriManiaSourceIdentity)
+setReleaseTag(aProjSourceIdentity)
 
 project(
 	${aProjName}
@@ -65,8 +65,8 @@ set(BUILD_FLAGS_FOR_CLANG
 	""
 	)
 set(BUILD_FLAGS_FOR_GCC
-	"-DOriMania_Project_Version=\"${OriManiaProjVersion}\""
-	"-DOriMania_Source_Identity=\"${OriManiaSourceIdentity}\""
+	"-DOriMania_Project_Version=\"${aProjVersion}\""
+	"-DOriMania_Source_Identity=\"${aProjSourceIdentity}\""
 	#
 	-pthread
 	-fomit-frame-pointer
