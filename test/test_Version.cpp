@@ -23,37 +23,66 @@
 //
 
 
-#ifndef OriMania__INCL_
-#define OriMania__INCL_
-
 /*! \file
- * \brief Top level include file for all of OriMania utilities.
- *
- */
+\brief Unit tests (and example) code for OriMania version information.
+*/
 
 
-#include <string>
+#include "OriMania.hpp"
+
+#include <iostream>
+#include <sstream>
 
 
-/*! \brief Main namespace for OriMania project software.
- *
- * Example:
- * \snippet test_cmake.cpp DoxyExample01
- *
- */
-namespace om
+namespace
 {
-		//! Project version description
-		std::string
-		projectVersion
-			();
+	//! Examples for documentation
+	void
+	test0
+		( std::ostream & oss
+		)
+	{
+		// [DoxyExample01]
+		std::string const gotProjVersion{ om::projectVersion() };
+		std::string const gotSrcIdentity{ om::sourceIdentity() };
+		std::cout << "gotProjVersion: " << gotProjVersion << '\n';
+		std::cout << "gotSrcIdentity: " << gotSrcIdentity << '\n';
 
-		//! Project source code identification description
-		std::string
-		sourceIdentity
-			();
+		// [DoxyExample01]
 
-} // [om]
+		if (gotProjVersion.empty())
+		{
+			oss << "Failure of gotProjVersion test\n";
+		}
+		if (gotSrcIdentity.empty())
+		{
+			oss << "Failure of gotSrcIdentity test\n";
+		}
 
+	}
 
-#endif // OriMania__INCL_
+}
+
+//! Check behavior of NS
+int
+main
+	()
+{
+	int status{ 1 };
+	std::stringstream oss;
+
+	test0(oss);
+
+	if (oss.str().empty()) // Only pass if no errors were encountered
+	{
+		status = 0;
+	}
+	else
+	{
+		// else report error messages
+		std::cerr << "### FAILURE in test file: " << __FILE__ << std::endl;
+		std::cerr << oss.str();
+	}
+	return status;
+}
+

@@ -22,38 +22,21 @@
 // SOFTWARE.
 //
 
-
-#ifndef OriMania__INCL_
-#define OriMania__INCL_
-
 /*! \file
- * \brief Top level include file for all of OriMania utilities.
- *
- */
+\brief Implementation code for OriMania::NS::CN
+*/
 
 
-#include <string>
+#include "NSCN.hpp"
 
 
-/*! \brief Main namespace for OriMania project software.
- *
- * Example:
- * \snippet test_cmake.cpp DoxyExample01
- *
- */
 namespace om
 {
-		//! Project version description
-		std::string
-		projectVersion
-			();
+namespace NS
+{
 
-		//! Project source code identification description
-		std::string
-		sourceIdentity
-			();
 
+
+} // [NS]
 } // [om]
 
-
-#endif // OriMania__INCL_

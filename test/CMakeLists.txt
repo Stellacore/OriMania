@@ -33,14 +33,24 @@
 
 set(mainProgs
 
+	test_cmake # test build system
 	_ # template for test cases
-	test_cmake
+	test_Version # test project version info retrieval
 
 	)
 
 foreach(mainProg ${mainProgs})
 
 	add_executable(${mainProg} ${mainProg}.cpp)
+
+	target_compile_options(
+		${mainProg}
+		PRIVATE
+			$<$<CXX_COMPILER_ID:Clang>:${BUILD_FLAGS_FOR_CLANG}>
+			$<$<CXX_COMPILER_ID:GNU>:${BUILD_FLAGS_FOR_GCC}>
+			$<$<CXX_COMPILER_ID:MSVC>:${BUILD_FLAGS_FOR_VISUAL}>
+		)
+
 	target_include_directories(
 		${mainProg}
 		PUBLIC
@@ -48,12 +58,14 @@ foreach(mainProg ${mainProgs})
 		PRIVATE
 			${CMAKE_CURRENT_SOURCE_DIR}  # local test code includes
 		)
+
 	target_link_libraries(
 		${mainProg}
 		PRIVATE
 			engabra::engabra
-		##	${aProjLib}
+			${aProjLib}
 		)
+
 	add_test(NAME ${mainProg} COMMAND ${mainProg})
 
 endforeach(mainProg)

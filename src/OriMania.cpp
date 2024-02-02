@@ -22,38 +22,35 @@
 // SOFTWARE.
 //
 
-
-#ifndef OriMania__INCL_
-#define OriMania__INCL_
-
 /*! \file
- * \brief Top level include file for all of OriMania utilities.
- *
- */
+\brief Implementation code for OriMania::OriMania
+*/
 
 
-#include <string>
+#include "OriMania.hpp"
 
 
-/*! \brief Main namespace for OriMania project software.
- *
- * Example:
- * \snippet test_cmake.cpp DoxyExample01
- *
- */
 namespace om
 {
-		//! Project version description
-		std::string
-		projectVersion
-			();
 
-		//! Project source code identification description
-		std::string
-		sourceIdentity
-			();
+std::string
+projectVersion
+	()
+{
+	// Defined by build environment to identify project version
+	static std::string const prjVer = OriMania_Project_Version;
+	return prjVer;
+}
+
+std::string
+sourceIdentity
+	()
+{
+	// Defined by build environment to identify source used
+	static std::string const srcId = OriMania_Source_Identity;
+	return srcId;
+}
+
 
 } // [om]
 
-
-#endif // OriMania__INCL_

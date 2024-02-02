@@ -30,7 +30,9 @@ cmake_minimum_required(VERSION 3.13)
 
 set(aProjName "OriMania")
 set(aProjVersion "0.1.0") # Set this based on features, updates and patches
-## set(aProjLib "${aProjName}Lib")
+set(aProjLib "${aProjName}Lib")
+include(./cmake/func_setReleaseTag.cmake)
+setReleaseTag(OriManiaSourceIdentity)
 
 project(
 	${aProjName}
@@ -55,6 +57,37 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# ===
+# === Environment specific flags
+# ===
+
+set(BUILD_FLAGS_FOR_CLANG
+	""
+	)
+set(BUILD_FLAGS_FOR_GCC
+	"-DOriMania_Project_Version=\"${OriManiaProjVersion}\""
+	"-DOriMania_Source_Identity=\"${OriManiaSourceIdentity}\""
+	#
+	-pthread
+	-fomit-frame-pointer
+	-fno-operator-names
+	-fstrict-enums
+	#
+	-Wc++11-compat
+	-Wall
+	-Wextra
+	-Wuninitialized
+	-Winit-self
+	-fno-nonansi-builtins
+	-pedantic-errors
+	#
+	-fmax-errors=1  # keep template error message generation under control
+	)
+set(BUILD_FLAGS_FOR_VISUAL
+	""
+	)
+
+
 find_package(engabra REQUIRED NO_MODULE)
 message(engabra Found: ${engabra_FOUND})
 message(engabra Version: ${engabra_VERSION})
@@ -66,13 +99,14 @@ message(engabra Version: ${engabra_VERSION})
 # ===
 # === Documentation
 # ===
+
 add_subdirectory(doc) # project reference documentation
 
 # ===
 # === Library
 # ===
 
-## message("adding src library aProjLib: ${aProjLib}")
+message("adding src library aProjLib: ${aProjLib}")
 
 # set(EXPORT_ALIAS_NAME ${aProjLib}::${aProjLib})
 # set(EXPORT_TARGETS_NAME ${aProjLib}Targets)
@@ -81,7 +115,7 @@ add_subdirectory(doc) # project reference documentation
 # message("### EXPORT_TARGETS_NAME: " ${EXPORT_TARGETS_NAME})
 # message("### EXPORT_FILENAME: " ${EXPORT_FILENAME})
 
-## add_subdirectory(src)
+add_subdirectory(src)
 
 # ===
 # === Demonstrations
