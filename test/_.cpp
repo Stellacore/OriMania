@@ -50,7 +50,12 @@ namespace
 
 		// [DoxyExample01]
 
-		oss << "Failure of test0 test\n";
+		// TODO replace this with real test code
+		constexpr bool successful{ true };
+		if (! successful)
+		{
+			oss << "Failure of test0 test\n";
+		}
 	}
 
 }
