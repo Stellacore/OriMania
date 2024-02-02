@@ -23,29 +23,58 @@
 //
 
 
-#ifndef OriMania_NS_CN_INCL_
-#define OriMania_NS_CN_INCL_
-
 /*! \file
-\brief Contains ######
-
-Example:
-\snippet test_NS_CN.cpp DoxyExample01
-
+\brief Unit tests (and example) code for OriMania::NS::CN
 */
 
 
-namespace om
+#include "_.hpp" // template for header files
+
+#include "OriMania.hpp"
+
+#include <iostream>
+#include <sstream>
+
+
+namespace
 {
+	//! Examples for documentation
+	void
+	test0
+		( std::ostream & oss
+		)
+	{
+		using namespace om;
 
-// TODO - document
-//! Namespace for TODO
-namespace NS
+		// [DoxyExample01]
+
+		// [DoxyExample01]
+
+		oss << "Failure of test0 test\n";
+	}
+
+}
+
+//! Check behavior of NS
+int
+main
+	()
 {
+	int status{ 1 };
+	std::stringstream oss;
 
-} // [NS]
+	test0(oss);
 
-} // [om]
+	if (oss.str().empty()) // Only pass if no errors were encountered
+	{
+		status = 0;
+	}
+	else
+	{
+		// else report error messages
+		std::cerr << "### FAILURE in test file: " << __FILE__ << std::endl;
+		std::cerr << oss.str();
+	}
+	return status;
+}
 
-
-#endif // OriMania_NS_CN_INCL_

@@ -33,6 +33,7 @@
 
 set(mainProgs
 
+	_ # template for test cases
 	test_cmake
 
 	)
