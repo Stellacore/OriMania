@@ -1,0 +1,25 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: OriMania
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: Stellacore Corporation
+  - given-names: Dave
+    family-names: Knopp
+repository-code: 'https://github.com/Stellacore/OriMania'
+abstract: >-
+  Given six parameters comprising three angles and three
+  distances, determine the conventions for combining these
+  parameters that is most consistent with available
+  independent exterior orientation data.
+keywords:
+  - Sensor Calibration
+  - Photogrammetry
+  - Computer Vision
+  - Remote Sensing
+license: MIT
