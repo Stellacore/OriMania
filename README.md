@@ -147,7 +147,7 @@ defined 3D coordinate frame. (E.g. for cameras, this would be the exterior
 coordinate frame often attached to the optical system's entrance pupil).
 
 * Independent Reference ("Ind") frame - some arbitrary frame in which Sensor
-orientations can be established by a independent meanss.
+orientations can be established by a independent means.
 
 ### Available data
 
@@ -160,7 +160,7 @@ convention by which they do so is not known.
 	attitude of a sensor with respect to the (arbitrary and unknown) Box
 	frame.
 
-	* Three distances: These (again in some combintation or another)
+	* Three distances: These (again in some combination or another)
 	represent the offset of a sensor with respect to the origin of the
 	(unspecified) Box coordinate frame.
 
