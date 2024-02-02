@@ -43,7 +43,7 @@ of 3 distance parameters and the known independent sensor exterior
 orientations.
 
 The math model is described
-[further below](Theoretical-Framework) and in this
+[further below](#Theoretical-Framework) and in this
 [theory document](./theory/OriManiaTheory.lyx).
 
 ## Operation
