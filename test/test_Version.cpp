@@ -45,8 +45,8 @@ namespace
 		// [DoxyExample01]
 		std::string const gotProjVersion{ om::projectVersion() };
 		std::string const gotSrcIdentity{ om::sourceIdentity() };
-		std::cout << "gotProjVersion: " << gotProjVersion << '\n';
-		std::cout << "gotSrcIdentity: " << gotSrcIdentity << '\n';
+		std::cout << "gotProjVersion: '" << gotProjVersion << "'\n";
+		std::cout << "gotSrcIdentity: '" << gotSrcIdentity << "'\n";
 
 		// [DoxyExample01]
 
