@@ -157,8 +157,387 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 Introduction
 \end_layout
 
+\begin_layout Standard
+Given six parameters comprising three angles and three distances, determine
+ the conventions for combining these parameters that is most consistent
+ with available independent exterior orientation data.
+\end_layout
+
+\begin_layout Standard
+OriMania explores brute force combinations of the 6 unknown parameters utilized
+ in the context with various common conventions for expressing rigid body
+ orientations.
+ It evaluates each candidate to determine which one(s) most closely match
+ independently determined relative orientation data.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
 \begin_layout Chapter
 Methodology
+\end_layout
+
+\begin_layout Section
+Transform Parameter Combinations
+\end_layout
+
+\begin_layout Standard
+Attitude may be expressed by a unitary spinor product of the form,
+\begin_inset Formula 
+\[
+e^{\gamma C}e^{\beta B}e^{\alpha A}
+\]
+
+\end_inset
+
+where each of the (spin) angle sizes, 
+\begin_inset Formula $\alpha,\beta,\gamma$
+\end_inset
+
+, correspond (in some order or another) with the three angle size values
+ available a priori, and each of the unitary bivector directions, 
+\begin_inset Formula $A,B,C$
+\end_inset
+
+, correspond with a plane of rotation.
+\end_layout
+
+\begin_layout Standard
+NOTE: Here it is assumed that the planes of rotation are associated with
+ standard Cartesian basis planes (and not, for example, some arbitrary combinati
+on of directions in space
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Some remote sensing systems utilize rotations about non orthogonal axes
+ associated with different individual sensor components.
+ E.g.
+ in solid state strap down inertial systems utilizing individual gyros and/or
+ individual angular rate sensors, the rotation axes may correspond with
+ those individual (and not mutually orthogonal) sensor spin axes instead
+ of with an integrated and shared coordinate system basis.
+ Such a specialized case is outside the scope of consideration addressed
+ herein.
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Subsection
+Attitude Convention Combinations
+\end_layout
+
+\begin_layout Standard
+Three (spin) angle values, 
+\begin_inset Formula $\left\{ \xi_{1},\xi_{2},\xi_{3}\right\} $
+\end_inset
+
+, are available and known to associate with the three rotation parameters,
+ 
+\begin_inset Formula $\left[\alpha,\beta,\gamma\right]$
+\end_inset
+
+, but it is not known in what order they correspond.
+\end_layout
+
+\begin_layout Standard
+It is assumed that unitary bivectors, 
+\begin_inset Formula $A$
+\end_inset
+
+, 
+\begin_inset Formula $B$
+\end_inset
+
+, and 
+\begin_inset Formula $C$
+\end_inset
+
+, correspond with coordinate system basis planes, 
+\begin_inset Formula $\left\{ e_{23,}e_{31},e_{12}\right\} $
+\end_inset
+
+, but again the association and order are unknown.
+\end_layout
+
+\begin_layout Standard
+In addition there is ambiguity in the chirality of the orientation for each
+ individual rotation.
+\end_layout
+
+\begin_layout Standard
+These possibilities can be expressed as follows:
+\end_layout
+
+\begin_layout Itemize
+Create a collection of sign signatures 
+\begin_inset Formula $\left\{ \pm,\pm,\pm\right\} $
+\end_inset
+
+ that may be applied to the angle sizes.
+ There are 8 unique signatures:
+\begin_inset Formula 
+\[
+\left\{ ---,\,--+,\,-+-,\,-++,\,+--,\,+-+,\,++-,\,+++\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Create a collection of combinations of angle size values from 
+\begin_inset Formula $\left\{ \xi_{1},\xi_{2},\xi_{3}\right\} $
+\end_inset
+
+.
+ The 6 non trivial cases include combintations of all three available data
+ values that may be assigned to the angle sizes, 
+\begin_inset Formula $\left\{ \alpha,\beta,\gamma\right\} $
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\left\{ \xi_{1}\xi_{2}\xi_{3},\,\xi_{1}\xi_{3}\xi_{2},\,\xi_{2}\xi_{3}\xi_{1},\,\xi_{2}\xi_{1}\xi_{3},\,\xi_{3}\xi_{1}\xi_{2},\,\xi_{3}\xi_{2}\xi_{1}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Create a collection of basis vector (positive) directions 
+\begin_inset Formula $\left\{ X,Y,Z\right\} $
+\end_inset
+
+, where each letter denotes one of the coordinate system basis planes, 
+\begin_inset Formula $\left\{ e_{23},e_{31},e_{12}\right\} $
+\end_inset
+
+.
+ Note that negative directions are not needed here since the plane direction
+ is coupled directly with the sign on the angle size.
+ Overall the combinations correspond with a 3-digit base three number for
+ which there are 27 exhaustive cases.
+ There of these, three cases can be eliminated as physically trivial.
+ This leaves the 24 basis plane combinations
+\begin_inset Formula 
+\begin{align*}
+\left\{ \cancel{XXX},\,XXY,\,XXZ\right\} \\
+\left\{ XYX,\,XYY,\,XYZ\right\} \\
+\left\{ XZX,\,XZY,\,XZZ\right\} 
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+\left\{ YXX,\,YXY,\,YXZ\right\} \\
+\left\{ YYX,\,\cancel{YYY},\,YYZ\right\} \\
+\left\{ YZX,\,YZY,\,YZZ\right\} 
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+\left\{ ZXX,\,ZXY,\,ZXZ\right\} \\
+\left\{ ZYX,\,ZYY,\,ZYZ\right\} \\
+\left\{ ZZX,\,ZZY,\,\cancel{ZZZ}\right\} 
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Overall, these cases represent 
+\begin_inset Formula $1152=8*6*24$
+\end_inset
+
+ candidate conventions for combining the attitude parameters.
+\end_layout
+
+\begin_layout Subsection
+Offset Convention Combinations
+\end_layout
+
+\begin_layout Standard
+The offset of each sensor may be expressed by a vector with three components
+ relative to a Cartesian frame basis, 
+\begin_inset Formula $\left\{ e_{1},e_{2},e_{3}\right\} .$
+\end_inset
+
+ E.g.,
+\begin_inset Formula 
+\[
+t=\tau_{1}e_{1}+\tau_{2}e_{2}+\tau_{3}e_{3}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Assume three parameters 
+\begin_inset Formula $\left\{ \zeta_{1},\zeta_{2},\zeta_{3}\right\} $
+\end_inset
+
+ are given that describe this offset (aka lever arm, eccentricity vector,
+ etc) but in an unknown manner, there are several candidate combinations
+ to consider.
+\end_layout
+
+\begin_layout Itemize
+Create a collection of sign signatures 
+\begin_inset Formula $\left\{ \pm,\pm,\pm\right\} $
+\end_inset
+
+ that may be applied to the angle sizes.
+ There are 8 unique signatures:
+\begin_inset Formula 
+\[
+\left\{ ---,\,--+,\,-+-,\,-++,\,+--,\,+-+,\,++-,\,+++\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Create a collection of candidate coordinate associations 
+\begin_inset Formula $\left\{ \zeta_{1},\zeta_{2},\zeta_{3}\right\} $
+\end_inset
+
+.
+ The 6 non trivial cases that each include all three combinations of data
+ values that may be assigned to the 
+\begin_inset Formula $\left\{ \tau_{1}\tau_{2}\tau_{3}\right\} $
+\end_inset
+
+ components of vector, 
+\begin_inset Formula $t$
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left\{ \zeta_{1}\zeta_{2}\zeta_{3},\,\zeta_{1}\zeta_{3}\zeta_{2},\,\zeta_{2}\zeta_{3}\zeta_{1},\,\zeta_{2}\zeta_{1}\zeta_{3},\,\zeta_{3}\zeta_{1}\zeta_{2},\,\zeta_{3}\zeta_{2}\zeta_{1}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Overall, there are 
+\begin_inset Formula $48=8*6$
+\end_inset
+
+ combinations to consider.
+\end_layout
+
+\begin_layout Subsection
+Transform Conventions
+\end_layout
+
+\begin_layout Standard
+A general rigid body transformation may be expressed as a combination of
+ translation and rotation.
+ Let the rotation be represented by unitary spinor 
+\begin_inset Formula $R=e^{\alpha A}e^{\beta B}e^{\gamma C}$
+\end_inset
+
+, and translation by the vector, 
+\begin_inset Formula $t$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+A canonical form for the overall exterior orientation is the 
+\begin_inset Quotes eld
+\end_inset
+
+translate then rotate
+\begin_inset Quotes erd
+\end_inset
+
+ convention,
+\begin_inset Formula 
+\[
+y=R\left(x-t_{x}\right)R^{\dagger}
+\]
+
+\end_inset
+
+In this convention, both the translation, 
+\begin_inset Formula $t$
+\end_inset
+
+, and rotation, 
+\begin_inset Formula $R$
+\end_inset
+
+, entities are expressed with respect to the transformation domain (e.g.
+ domain of 
+\begin_inset Formula $x$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+However, it is common to also utilize a hybrid domain convention
+\begin_inset Formula 
+\[
+y+t_{y}=RxR^{\dagger}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There are therefore 2 conventions to consider, 
+\begin_inset Formula $t=t_{x}$
+\end_inset
+
+ and 
+\begin_inset Formula $t=t_{y}$
+\end_inset
+
+, that must be considered for all of the above combinations of rotations
+ and offsets.
+\end_layout
+
+\begin_layout Subsection
+Summary
+\end_layout
+
+\begin_layout Standard
+Overall, there are 1152 attitude conventions, 48 offset conventions, and
+ 2 transformation conventions, for a total of 
+\begin_inset Formula $110,592=1152*48*2$
+\end_inset
+
+ total orientation conventions to explore.
 \end_layout
 
 \begin_layout Chapter
