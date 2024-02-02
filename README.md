@@ -25,7 +25,7 @@ they may be the results of a black box calibration process.
 or to provide other values for these parameters to the original
 application.
 
-* External orientation data are available for each sensor via 
+* External orientation data are available for each sensor via
 independent means. (E.g for cameras, such information might obtained from
 independent space resection or relative orientation operations). Here
 sensor exterior orientation is expressed with respect to some arbitrary
