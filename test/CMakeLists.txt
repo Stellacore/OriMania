@@ -64,7 +64,7 @@ foreach(mainProg ${mainProgs})
 	target_link_libraries(
 		${mainProg}
 		PRIVATE
-			engabra::engabra
+			Engabra::Engabra
 			${aProjLib}
 		)
 

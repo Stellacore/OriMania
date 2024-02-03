@@ -88,13 +88,13 @@ set(BUILD_FLAGS_FOR_VISUAL
 	)
 
 
-find_package(engabra REQUIRED NO_MODULE)
-message(engabra Found: ${engabra_FOUND})
-message(engabra Version: ${engabra_VERSION})
+find_package(Engabra REQUIRED NO_MODULE)
+message(Engabra Found: ${Engabra_FOUND})
+message(Engabra Version: ${Engabra_VERSION})
 
-# find_package(rigibra REQUIRED NO_MODULE)
-# message(rigibra Found: ${rigibra_FOUND})
-# message(rigibra Version: ${rigibra_VERSION})
+find_package(Rigibra REQUIRED NO_MODULE)
+message(Rigibra Found: ${Rigibra_FOUND})
+message(Rigibra Version: ${Rigibra_VERSION})
 
 # ===
 # === Documentation

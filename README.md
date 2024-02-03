@@ -88,7 +88,7 @@ utility.
 
 OriMania requirements include:
 
-* The [Engabra](https://github.com/Stellacore/engabra) geometric algebra
+* The [Engabra](https://github.com/Stellacore/Engabra) geometric algebra
 package.
 
 * The [Rigibra](https://github.com/Stellacore/Rigibra) rigid body
