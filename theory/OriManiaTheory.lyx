@@ -540,8 +540,242 @@ Overall, there are 1152 attitude conventions, 48 offset conventions, and
  total orientation conventions to explore.
 \end_layout
 
+\begin_layout Section
+Comparing Transformations
+\end_layout
+
+\begin_layout Standard
+Methods for comparing two rigid body transformations can vary depending
+ on purpose.
+\end_layout
+
+\begin_layout Subsection
+What Is 
+\begin_inset Quotes eld
+\end_inset
+
+Same
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+An obvious method of comparing transformations specified with 6 parameters
+ is to numerically compare the corresponding 6 values from each (e.g.
+ 
+\begin_inset Formula $\alpha_{1}$
+\end_inset
+
+ with 
+\begin_inset Formula $\alpha_{2}$
+\end_inset
+
+, 
+\begin_inset Formula $\beta_{1}$
+\end_inset
+
+ with 
+\begin_inset Formula $\beta_{2}$
+\end_inset
+
+, and so on).
+ However, the parameters represent heterogeneous phenomena (rotation vs
+ translation) and there may be different significance to each from one applicati
+on to another.
+\end_layout
+
+\begin_layout Standard
+One technique for putting the rotation and translation on somewhat equal
+ footing is to use the rotation parameters to transform a collection of
+ orthogonal vectors and then perform a vector comparison on the results
+ of the rotation using the same method as for comparing the translation
+ vector.
+ If the rotated vectors are of unit length, then this technique amounts
+ to comparing the elements of the rotation matrix representation of attitude.
+\end_layout
+
+\begin_layout Standard
+For some applications, an argument can be made for rotating test vectors
+ that have length comparable to the translation vector magnitude, or conversely
+ scaling the translation vector to unit magnitude before comparison.
+ Both of these scaling approaches amount to differential weighting of the
+ rotation and translation aspects of the transformations/orientations being
+ compared.
+\end_layout
+
+\begin_layout Standard
+One commonly useful approach is to weight the rotation test vectors such
+ that they represent a typical 
+\begin_inset Quotes eld
+\end_inset
+
+operational distance
+\begin_inset Quotes erd
+\end_inset
+
+ associated with the sensor.
+ E.g.
+ for camera sensors, a useful attitude weighting factor is to use the nominal
+ object range distance as the weight on rotation, and leave the translation
+ vectors at the lengths specified by the three a priori input values.
+\end_layout
+
+\begin_layout Standard
+This last approach (weighting rotation based on expected operational distances)
+ is often very useful in practical application contexts.
+ However, it requires providing application specific information (i.e.
+ the operating distance) that is not inherently available within the transformat
+ion data.
+\end_layout
+
+\begin_layout Subsection
+Similarity Metric
+\end_layout
+
+\begin_layout Standard
+For generality, assume arbitrary weight factors, 
+\begin_inset Formula $w_{r}$
+\end_inset
+
+ and 
+\begin_inset Formula $w_{t}$
+\end_inset
+
+, for rotation and translation respectively.
+ A metric of significance can be (arbitrarily) associated with a transformation
+ by assessing the 12 numeric values associated with rotation matrix elements
+ and translation vector components (with appropriate weighting).
+\end_layout
+
+\begin_layout Standard
+For comparing two rigid body transformations a practical approach is to
+ compare the relative transformation between the two.
+ Since the two original transformations are expected to be nearly similar,
+ the relative orientation between them meaningfully represents a kind of
+ 
+\begin_inset Quotes eld
+\end_inset
+
+residual transformation
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+residual error orientation
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Testing the similarity of two transformations then reduces to testing the
+ significance of their mutual residual error transformation.
+\end_layout
+
+\begin_layout Standard
+If the two transformations are equal, then the residual orientation is an
+ identity transformation.
+ Overall, the two orientations of interest can be said to differ from each
+ other to the same level that the residual transformation is different from
+ identity.
+\end_layout
+
+\begin_layout Standard
+E.g., let 
+\begin_inset Formula $\mathsf{R}$
+\end_inset
+
+ be the 3x3 rotation matrix, and 
+\begin_inset Formula $t$
+\end_inset
+
+ be the translation vector that are associated with the residual transformation.
+ A metric of significance can be associated with the collection of 12 values,
+\begin_inset Formula 
+\[
+\left\{ w_{r}\left(\mathsf{R}-\mathsf{I}\right)_{ij},w_{t}t_{k}\right\} \,;\,i,j,k=1,2,3
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since there are multiple (12) values involved, a next question is what statistic
+s are useful to represent the overall characteristics.
+ Common choices include:
+\end_layout
+
+\begin_layout Itemize
+Expected values - e.g.
+ a root mean squared value computed by taking the square root of the sum
+ of the squares of all 12 values.
+ Note that here the mean is computed via multiplication by 
+\begin_inset Formula $\frac{1}{12}$
+\end_inset
+
+ (and not 
+\begin_inset Formula $\frac{1}{11}$
+\end_inset
+
+) since the expected value (
+\begin_inset Formula $0$
+\end_inset
+
+) is already known, and need not be estimated from the sample data.
+\end_layout
+
+\begin_layout Itemize
+Maximum absolute value - this may be the most conservative statistic, since
+ it reflects a kind of 
+\begin_inset Quotes eld
+\end_inset
+
+worst case
+\begin_inset Quotes erd
+\end_inset
+
+ expectation.
+\end_layout
+
+\begin_layout Itemize
+Median value - e.g.
+ the midpoint of the 6th and 7th ranked values when the 12 values are sorted
+ in order.
+\end_layout
+
 \begin_layout Chapter
 Results
+\end_layout
+
+\begin_layout Standard
+The OriMania test program 
+\begin_inset Quotes eld
+\end_inset
+
+test_Analyse
+\begin_inset Quotes erd
+\end_inset
+
+ simulates several block box orientation cases.
+ For each, it uses the above algorithm to attempt recovery of the simulated
+ parameters.
+ The results are...
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO
+\end_layout
+
+\end_inset
+
+/TBD.
 \end_layout
 
 \end_body
