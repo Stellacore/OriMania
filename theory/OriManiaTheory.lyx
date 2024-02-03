@@ -327,13 +327,14 @@ Create a collection of basis vector (positive) directions
  is coupled directly with the sign on the angle size.
  Overall the combinations correspond with a 3-digit base three number for
  which there are 27 exhaustive cases.
- There of these, three cases can be eliminated as physically trivial.
- This leaves the 24 basis plane combinations
+ There of these, several cases can be eliminated as physically trivial (ones
+ with two (or more) successive rotations in the same plane).
+ This leaves the 12 basis plane combinations
 \begin_inset Formula 
 \begin{align*}
-\left\{ \cancel{XXX},\,XXY,\,XXZ\right\} \\
-\left\{ XYX,\,XYY,\,XYZ\right\} \\
-\left\{ XZX,\,XZY,\,XZZ\right\} 
+\left\{ \cancel{XXX},\,\cancel{XXY},\,\cancel{XXZ}\right\} \\
+\left\{ XYX,\,\cancel{XYY},\,XYZ\right\} \\
+\left\{ XZX,\,XZY,\,\cancel{XZZ}\right\} 
 \end{align*}
 
 \end_inset
@@ -341,9 +342,9 @@ Create a collection of basis vector (positive) directions
 
 \begin_inset Formula 
 \begin{align*}
-\left\{ YXX,\,YXY,\,YXZ\right\} \\
-\left\{ YYX,\,\cancel{YYY},\,YYZ\right\} \\
-\left\{ YZX,\,YZY,\,YZZ\right\} 
+\left\{ \cancel{YXX},\,YXY,\,YXZ\right\} \\
+\left\{ \cancel{YYX},\,\cancel{YYY},\,\cancel{YYZ}\right\} \\
+\left\{ YZX,\,YZY,\,\cancel{YZZ}\right\} 
 \end{align*}
 
 \end_inset
@@ -351,9 +352,9 @@ Create a collection of basis vector (positive) directions
 
 \begin_inset Formula 
 \begin{align*}
-\left\{ ZXX,\,ZXY,\,ZXZ\right\} \\
-\left\{ ZYX,\,ZYY,\,ZYZ\right\} \\
-\left\{ ZZX,\,ZZY,\,\cancel{ZZZ}\right\} 
+\left\{ \cancel{ZXX},\,ZXY,\,ZXZ\right\} \\
+\left\{ ZYX,\,\cancel{ZYY},\,ZYZ\right\} \\
+\left\{ \cancel{ZZX},\,\cancel{ZZY},\,\cancel{ZZZ}\right\} 
 \end{align*}
 
 \end_inset
@@ -363,7 +364,7 @@ Create a collection of basis vector (positive) directions
 
 \begin_layout Standard
 Overall, these cases represent 
-\begin_inset Formula $1152=8*6*24$
+\begin_inset Formula $576=8*6*12$
 \end_inset
 
  candidate conventions for combining the attitude parameters.
@@ -534,7 +535,7 @@ Summary
 \begin_layout Standard
 Overall, there are 1152 attitude conventions, 48 offset conventions, and
  2 transformation conventions, for a total of 
-\begin_inset Formula $110,592=1152*48*2$
+\begin_inset Formula $55,296=576*48*2$
 \end_inset
 
  total orientation conventions to explore.
