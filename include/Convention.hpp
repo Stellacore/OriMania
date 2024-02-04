@@ -35,6 +35,8 @@ Example:
 */
 
 
+#include <Rigibra>
+
 #include <array>
 #include <cstdint>
 #include <iomanip>
@@ -65,6 +67,58 @@ namespace om
 
 	//! Alias for tracking two different transformation orders
 	using TwoOrders = std::array<OrderTR, 2u>;
+
+	//! Alias for three distinct angle values (with unknown order and sign)
+	using ThreeAngles = std::array<double, 3u>;
+
+	//! Alias for three distinct offset values (with unknown order and sign)
+	using ThreeDistances = std::array<double, 3u>;
+
+	//! Grouping of parameters by angle and distance values
+	struct ParmGroup
+	{
+		//! Numeric angle values (radians) for which order/sign are unknown
+		ThreeAngles theAngles
+			{ engabra::g3::nan
+			, engabra::g3::nan
+			, engabra::g3::nan
+			};
+
+		//! Numeric distace values (meters) for which order/sign are unknown
+		ThreeDistances theDistances
+			{ engabra::g3::nan
+			, engabra::g3::nan
+			, engabra::g3::nan
+			};
+
+		//! Descriptive information about this instance
+		inline
+		std::string
+		infoString
+			( std::string const & title = {}
+			) const
+		{
+			std::ostringstream oss;
+			if (! title.empty())
+			{
+				oss << title << ' ';
+			}
+			using engabra::g3::io::fixed;
+			oss
+				<< "  Angles: "
+					<< fixed(theAngles[0], 1u, 9u)
+					<< fixed(theAngles[1], 1u, 9u)
+					<< fixed(theAngles[2], 1u, 9u)
+				<< "  Distances: "
+					<< fixed(theDistances[0], 1u, 6u)
+					<< fixed(theDistances[1], 1u, 6u)
+					<< fixed(theDistances[2], 1u, 6u)
+				;
+			return oss.str();
+		}
+
+
+	}; // ParmGroup
 
 //
 // Numeric encodings
@@ -353,11 +407,21 @@ namespace om
 			return conventions;
 		}
 
+		//! Transform with ParmGroup values consistent with this convention.
+		inline
+		rigibra::Transform
+		transformFor
+			( ParmGroup const & parmGroup
+			) const
+		{
+			return {};//TODO
+		}
+
 		//! Descriptive information about this instance
 		inline
 		std::string
 		infoString
-			( std::string const & title
+			( std::string const & title = {}
 			) const
 		{
 			std::ostringstream oss;
@@ -376,7 +440,6 @@ namespace om
 				;
 			return oss.str();
 		}
-
 
 	}; // Convention
 
@@ -410,6 +473,40 @@ namespace om
 	}
 
 } // [om]
+
+
+namespace
+{
+
+//
+// I/O
+//
+
+	//! Put convention infoString() output to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::Convention const & convention
+		)
+	{
+		ostrm << convention.infoString();
+		return ostrm;
+	}
+
+	//! Put ParmGroup infoString() output to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::ParmGroup const & parmGroup
+		)
+	{
+		ostrm << parmGroup.infoString();
+		return ostrm;
+	}
+
+} // [anon]
 
 #endif // OriMania_Convention_INCL_
 
