@@ -528,6 +528,28 @@ There are therefore 2 conventions to consider,
  and offsets.
 \end_layout
 
+\begin_layout Standard
+These are related as
+\begin_inset Formula 
+\begin{align*}
+y & =RxR^{\dagger}-t_{y}\\
+ & =RxR^{\dagger}-R^{\dagger}Rt_{y}R^{\dagger}R\\
+ & =R\left(x-Rt_{y}R^{\dagger}\right)R
+\end{align*}
+
+\end_inset
+
+so that
+\begin_inset Formula 
+\[
+t_{x}=Rt_{y}R^{\dagger}
+\]
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Summary
 \end_layout

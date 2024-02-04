@@ -68,11 +68,14 @@ namespace om
 	//! Alias for tracking two different transformation orders
 	using TwoOrders = std::array<OrderTR, 2u>;
 
+	//! Alias for three distinct offset values (with unknown order and sign)
+	using ThreeDistances = std::array<double, 3u>;
+
 	//! Alias for three distinct angle values (with unknown order and sign)
 	using ThreeAngles = std::array<double, 3u>;
 
-	//! Alias for three distinct offset values (with unknown order and sign)
-	using ThreeDistances = std::array<double, 3u>;
+	//! Alias for three distinct planes (e.g. basis for sequential rotation)
+	using ThreePlanes = std::array<engabra::g3::BiVector, 3u>;
 
 	//! Grouping of parameters by angle and distance values
 	struct ParmGroup
@@ -214,6 +217,38 @@ namespace om
 			oss << ' ' << +indices[nn];
 		}
 		return oss.str();
+	}
+
+//
+// Math utilities
+//
+
+	/*! \brief Generate rotation as sequence of three rotations.
+	 *
+	 * The return Attitude is computed as the sequence of rotations
+	 * as follows:
+	 * \arg spinC = exp(angleSize[0]*angleDir[0])
+	 * \arg spinB = exp(angleSize[1]*angleDir[1])
+	 * \arg spinA = exp(angleSize[2]*angleDir[2])
+	 * \arg spinNet = spinC * spinB * spinA
+	 *
+	 * The attitude associated with spinNet is returned.
+	 */
+	inline
+	rigibra::Attitude
+	attitudeFrom3AngleSequence
+		( ThreeAngles const & angleSizes
+		, ThreePlanes const & angleDirs
+		)
+	{
+		using namespace rigibra;
+		PhysAngle const physAngleC{ angleSizes[0] * angleDirs[0] };
+		PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
+		PhysAngle const physAngleA{ angleSizes[2] * angleDirs[2] };
+		Attitude const attC(physAngleC);
+		Attitude const attB(physAngleB);
+		Attitude const attA(physAngleA);
+		return (attC * attB * attA);
 	}
 
 //
@@ -414,7 +449,50 @@ namespace om
 			( ParmGroup const & parmGroup
 			) const
 		{
-			return {};//TODO
+			std::array<double, 3u> const & aVals = parmGroup.theAngles;
+			std::array<double, 3u> const & dVals = parmGroup.theDistances;
+
+			using namespace engabra::g3;
+
+			// gather signed distance values together
+			ThreeDistances const offset
+				{ theLocSigns[0] * dVals[theLocIndices[0]]
+				, theLocSigns[1] * dVals[theLocIndices[1]]
+				, theLocSigns[2] * dVals[theLocIndices[2]]
+				};
+
+			// gather angle sizes together
+			ThreeAngles const angleSizes
+				{ theAngSigns[0] * aVals[theAngIndices[0]]
+				, theAngSigns[1] * aVals[theAngIndices[1]]
+				, theAngSigns[2] * aVals[theAngIndices[2]]
+				};
+
+			// fixed set of cardinal planes (direction carried by angle sign)
+			static ThreePlanes
+				const & eVals{ e23, e31, e12 };
+
+			// gather angle directions together
+			ThreePlanes const angleDirs
+				{ eVals[theBivIndices[0]]
+				, eVals[theBivIndices[1]]
+				, eVals[theBivIndices[2]]
+				};
+
+			rigibra::Attitude const attR
+				{ attitudeFrom3AngleSequence(angleSizes, angleDirs) };
+
+			// to compute translation
+			// first, assume TranRot convention...
+			Vector tVec{ offset };
+			// ... unless inverse convention is needed
+			if (RotTran == theOrder)
+			{
+				// compute forward translation from inverse offset convention
+				Vector const ty{ offset };
+				tVec = attR(ty);
+			}
+			return rigibra::Transform{ tVec, attR };
 		}
 
 		//! Descriptive information about this instance

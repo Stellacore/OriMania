@@ -111,6 +111,34 @@ namespace
 		}
 	}
 
+	//! Check for transformation function availability
+	void
+	testTransforms
+		( std::ostream & oss
+		)
+	{
+		std::vector<om::Convention> const conventions
+			{ om::Convention::allConventions() };
+		om::ParmGroup const parmGroup
+			{ om::ThreeAngles{ -.7, .3, -.5 }
+			, om::ThreeAngles{ 10., -30., 20. }
+			};
+		for (om::Convention const & convention : conventions)
+		{
+			using namespace rigibra; // for Transform related capabilities
+			Transform const xfm{ convention.transformFor(parmGroup) };
+
+			if (! isValid(xfm))
+			{
+				oss << "Failure to construct valid transformation test\n";
+				oss << "convention: " << convention << '\n';
+				oss << " parmGroup: " << parmGroup << '\n';
+				oss << "       xfm: " << xfm << '\n';
+				break;
+			}
+		}
+	}
+
 }
 
 //! Check behavior of Convention handling
@@ -123,6 +151,7 @@ main
 
 	testPermuations(oss);
 	testKeys(oss);
+	testTransforms(oss);
 
 	if (oss.str().empty()) // Only pass if no errors were encountered
 	{
