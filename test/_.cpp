@@ -28,6 +28,8 @@
 */
 
 
+//TODO remove this and add test case header
+//#include "CN.hpp"
 #include "_.hpp" // template for header files
 
 #include "OriMania.hpp"
@@ -51,10 +53,11 @@ namespace
 		// [DoxyExample01]
 
 		// TODO replace this with real test code
-		constexpr bool successful{ true };
-		if (! successful)
+		std::string const fname(__FILE__);
+		bool const isTemplate{ (std::string::npos != fname.find("/_.cpp")) };
+		if (! isTemplate)
 		{
-			oss << "Failure of test0 test\n";
+			oss << "Failure to implement real test\n";
 		}
 	}
 
