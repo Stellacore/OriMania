@@ -33,31 +33,53 @@
 #include "OriMania.hpp"
 
 #include <iostream>
+#include <set>
 #include <sstream>
 
 
 namespace
 {
-	//! Examples for documentation
+	//! Check that number and uniqueness of conventions
 	void
-	test0
+	testPermuations
 		( std::ostream & oss
 		)
 	{
-		using namespace om;
+		constexpr std::size_t expNumConventions{ 55296u };
 
-		// [DoxyExample01]
-
-		// [DoxyExample01]
-
-		// TODO replace this with real test code
-		std::string const fname(__FILE__);
-		bool const isTemplate{ (std::string::npos != fname.find("/_.cpp")) };
-		if (! isTemplate)
+		// check for small data storage size
+		constexpr std::size_t expDataSize{ 3u + 3u + 3u + 3u + 6u + 2u };
+		std::size_t const gotDataSize{ sizeof(om::Convention) };
+		if (! (expDataSize == gotDataSize))
 		{
-			oss << "Failure to implement real test\n";
+			oss << "Failure of per convention data size test\n";
+			oss << "exp: " << expDataSize << '\n';
+			oss << "got: " << gotDataSize << '\n';
+		}
+
+		// generate all combinations of data sets
+		std::vector<om::Convention> const conventions
+			{ om::Convention::allConventions() };
+
+		// check number of conventions supported
+		if (! (expNumConventions == conventions.size()))
+		{
+			oss << "Failure to testConventions count test\n";
+			oss << "exp: " << expNumConventions << '\n';
+			oss << "got: " << conventions.size() << '\n';
+		}
+
+		// check if all are unique
+		std::set<om::Convention> const uniques
+			(conventions.cbegin(), conventions.cend());
+		if (! (uniques.size() == conventions.size()))
+		{
+			oss << "Failure of testConventions uniqueness test\n";
+			oss << "exp: " << conventions.size() << '\n';
+			oss << "got: " << uniques.size() << '\n';
 		}
 	}
+
 
 }
 
@@ -69,7 +91,7 @@ main
 	int status{ 1 };
 	std::stringstream oss;
 
-	test0(oss);
+	testPermuations(oss);
 
 	if (oss.str().empty()) // Only pass if no errors were encountered
 	{

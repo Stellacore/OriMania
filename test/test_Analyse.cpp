@@ -39,7 +39,6 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
-#include <set>
 #include <sstream>
 #include <vector>
 
@@ -90,50 +89,11 @@ std::cout << "keyPair: " << keyPair.first << ", " << keyPair.second << '\n';
 				Ori const & ori2wR = senWrtInd2.second;
 				Ori const & oriRw1{ inverse(ori1wR) };
 				Ori const & ori2w1{ ori2wR * oriRw1 };
+
+std::cout << "ori2w1: " << ori2w1 << '\n';
 			}
 		}
 		return roInds;
-	}
-
-	//! Check that number and uniqueness of conventions
-	void
-	testConventions
-		( std::ostream & oss
-		)
-	{
-		constexpr std::size_t expNumConventions{ 55296u };
-
-		// check for small data storage size
-		constexpr std::size_t expDataSize{ 3u + 3u + 3u + 3u + 6u + 2u };
-		std::size_t const gotDataSize{ sizeof(om::Convention) };
-		if (! (expDataSize == gotDataSize))
-		{
-			oss << "Failure of per convention data size test\n";
-			oss << "exp: " << expDataSize << '\n';
-			oss << "got: " << gotDataSize << '\n';
-		}
-
-		// generate all combinations of data sets
-		std::vector<om::Convention> const conventions
-			{ om::Convention::allConventions() };
-
-		// check number of conventions supported
-		if (! (expNumConventions == conventions.size()))
-		{
-			oss << "Failure to testConventions count test\n";
-			oss << "exp: " << expNumConventions << '\n';
-			oss << "got: " << conventions.size() << '\n';
-		}
-
-		// check if all are unique
-		std::set<om::Convention> const uniques
-			(conventions.cbegin(), conventions.cend());
-		if (! (uniques.size() == conventions.size()))
-		{
-			oss << "Failure of testConventions uniqueness test\n";
-			oss << "exp: " << conventions.size() << '\n';
-			oss << "got: " << uniques.size() << '\n';
-		}
 	}
 
 	//! Check convention extraction from simulated data
@@ -197,7 +157,6 @@ main
 	int status{ 1 };
 	std::stringstream oss;
 
-	testConventions(oss);
 	testSim(oss);
 
 	if (oss.str().empty()) // Only pass if no errors were encountered
