@@ -65,6 +65,7 @@ foreach(mainProg ${mainProgs})
 		${mainProg}
 		PRIVATE
 			Engabra::Engabra
+			Rigibra::Rigibra
 			${aProjLib}
 		)
 
