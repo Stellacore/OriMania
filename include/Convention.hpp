@@ -46,6 +46,10 @@ Example:
 namespace om
 {
 
+//
+// Supporting Types
+//
+
 	//! Transformation convention: translate then rotate or v.v.
 	enum OrderTR
 	{
@@ -53,7 +57,20 @@ namespace om
 		, RotTran // rotation expressed in domain, translation in range
 	};
 
-	//! Convert transform order to numeric values (e.g. for sorting)
+	//! Alias for tracking values of three +/- signs
+	using ThreeSigns = std::array<std::int8_t, 3u>;
+
+	//! Alias for tracking permutation of three (small) index values
+	using ThreeIndices = std::array<std::uint8_t, 3u>;
+
+	//! Alias for tracking two different transformation orders
+	using TwoOrders = std::array<OrderTR, 2u>;
+
+//
+// Numeric encodings
+//
+
+	//! Convert transform order to numeric values (e.g. for sorting) [0,1]
 	inline
 	std::size_t
 	numberFor
@@ -63,35 +80,7 @@ namespace om
 		return static_cast<std::size_t>(order);
 	}
 
-	//! String representation of three signs
-	inline
-	std::string
-	orderOf
-		( OrderTR const & order
-		)
-	{
-		std::ostringstream oss;
-		oss << +order;
-		/*
-		switch (order)
-		{
-			case TranRot:
-				oss << "TR";
-				break;
-			case RotTran:
-				oss << "RT";
-				break;
-		}
-		*/
-		return oss.str();
-	}
-
-
-	using ThreeSigns = std::array<std::int8_t, 3u>;
-	using ThreeIndices = std::array<std::uint8_t, 3u>;
-	using TwoOrders = std::array<OrderTR, 2u>;
-
-	//! Convert sign collection to numeric values (e.g. for sorting)
+	//! Convert sign collection to numeric values (e.g. for sorting) [0,7]
 	inline
 	std::size_t
 	numberFor
@@ -105,7 +94,7 @@ namespace om
 			);
 	}
 
-	//! Convert index collection to numeric values (e.g. for sorting)
+	//! Convert index collection to numeric values (e.g. for sorting) [0,26]
 	inline
 	std::size_t
 	numberFor
@@ -119,10 +108,34 @@ namespace om
 			);
 	}
 
+//
+// Info/formatting
+//
+
 	//! String representation of three signs
 	inline
 	std::string
-	signsOf
+	infoStringOrders
+		( OrderTR const & order
+		)
+	{
+		std::ostringstream oss;
+		switch (order)
+		{
+			case TranRot:
+				oss << "TR";
+				break;
+			case RotTran:
+				oss << "RT";
+				break;
+		}
+		return oss.str();
+	}
+
+	//! String representation of three signs
+	inline
+	std::string
+	infoStringSigns
 		( ThreeSigns const & signs
 		)
 	{
@@ -137,7 +150,7 @@ namespace om
 	//! String representation of three indices
 	inline
 	std::string
-	indicesOf
+	infoStringIndices
 		( ThreeIndices const & indices
 		)
 	{
@@ -149,18 +162,25 @@ namespace om
 		return oss.str();
 	}
 
+//
+// Conventions for transformation parameters
+//
+
 	//! Candidate convention associated with 6 orientation values
 	struct Convention
 	{
-		// ---, --+, -+-, -++, +--, +-+, ++-, +++
+		//! Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
 		ThreeSigns theAngSigns;
-		// 012, 021, 120, 102, 201, 210
+
+		//! Permutations: 012, 021, 120, 102, 201, 210
 		ThreeIndices theAngIndices;
-		// ---, --+, -+-, -++, +--, +-+, ++-, +++
+
+		//! Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
 		ThreeSigns theLocSigns;
-		// 012, 021, 120, 102, 201, 210
+
+		//! Permutations: 012, 021, 120, 102, 201, 210
 		ThreeIndices theLocIndices;
-		/*
+		/*! Permutations: 010,012,020,021, 101,102,120,121, 201,202,210,212
 		 * ---, 001, 002  |  ---, ..., ...
 		 * 010, 011, 012  |  010, ..., 012
 		 * 020, 021, 022  |  020, 021, ...
@@ -172,7 +192,8 @@ namespace om
 		 * 220, 221, ---  |  ..., ..., ---
 		 */
 		ThreeIndices theBivIndices;
-		// TranRot, RotTran
+
+		//! Permutations: TranRot, RotTran
 		OrderTR theOrder;
 
 		//! Assign a number to each convention (for easy tracking))
@@ -192,29 +213,18 @@ namespace om
 				);
 		}
 
-		//! Descriptive information about this instance
+		/*TODO
+		//! Create Convention from number - inverse of asNumber() method.
 		inline
-		std::string
-		infoString
-			( std::string const & title
-			) const
+		static
+		Convention
+		fromNumber
+			( std::size_t const & number
+			)
 		{
-			std::ostringstream oss;
-			if (! title.empty())
-			{
-				oss << title << ' ';
-			}
-			oss
-				<< "  Ang+/-: " << signsOf(theAngSigns)
-				<< "  AngNdx: " << indicesOf(theAngIndices)
-				<< "  Loc+/-: " << signsOf(theLocSigns)
-				<< "  LocNdx: " << indicesOf(theLocIndices)
-				<< "  BivNdx: " << indicesOf(theBivIndices)
-				<< "  Order: " << orderOf(theOrder)
-				<< "  Number: " << asNumber()
-				;
-			return oss.str();
+			return {}; // TODO - needs supporting decoding functions
 		}
+		*/
 
 		//! All combinations of signs for three elements
 		inline
@@ -343,7 +353,36 @@ namespace om
 			return conventions;
 		}
 
+		//! Descriptive information about this instance
+		inline
+		std::string
+		infoString
+			( std::string const & title
+			) const
+		{
+			std::ostringstream oss;
+			if (! title.empty())
+			{
+				oss << title << ' ';
+			}
+			oss
+				<< "  Ang+/-: " << infoStringSigns(theAngSigns)
+				<< "  AngNdx: " << infoStringIndices(theAngIndices)
+				<< "  Loc+/-: " << infoStringSigns(theLocSigns)
+				<< "  LocNdx: " << infoStringIndices(theLocIndices)
+				<< "  BivNdx: " << infoStringIndices(theBivIndices)
+				<< "   Order: " << infoStringOrders(theOrder)
+				<< "  Number: " << asNumber()
+				;
+			return oss.str();
+		}
+
+
 	}; // Convention
+
+//
+// Comparision operators
+//
 
 	//! True if all corresponding items of A are less than those of B
 	inline
@@ -370,8 +409,7 @@ namespace om
 			);
 	}
 
-
 } // [om]
 
-
 #endif // OriMania_Convention_INCL_
+
