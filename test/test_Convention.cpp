@@ -33,6 +33,7 @@
 #include "OriMania.hpp"
 
 #include <iostream>
+#include <map>
 #include <set>
 #include <sstream>
 
@@ -80,6 +81,35 @@ namespace
 		}
 	}
 
+	//! Check key generation for conventions
+	void
+	testKeys
+		( std::ostream & oss
+		)
+	{
+		// generate all combinations of data sets
+		std::vector<om::Convention> const conventions
+			{ om::Convention::allConventions() };
+
+		// store in map using asNumber() as key
+		using Key = std::size_t;
+		std::map<Key, om::Convention> keyCons;
+		for (om::Convention const & convention : conventions)
+		{
+			keyCons.emplace_hint
+				( keyCons.end()
+				, std::make_pair(convention.asNumber(), convention)
+				);
+		}
+
+		// check number of unique keys matches number of conventions
+		if (! (conventions.size() == keyCons.size()))
+		{
+			oss << "Failure of convention/keyCon size test\n";
+			oss << "conventions.size(): " << conventions.size() << '\n';
+			oss << "    keyCons.size(): " << keyCons.size() << '\n';
+		}
+	}
 
 }
 
@@ -92,6 +122,7 @@ main
 	std::stringstream oss;
 
 	testPermuations(oss);
+	testKeys(oss);
 
 	if (oss.str().empty()) // Only pass if no errors were encountered
 	{
