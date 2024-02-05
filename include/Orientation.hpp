@@ -101,9 +101,9 @@ namespace om
 				oss << title << " ";
 			}
 			oss
-				<< "from: " << from()
+				<< "(Into): " << into()
 				<< "  "
-				<< "into: " << into()
+				<< "Wrt(From): " << from()
 				;
 			return oss.str();
 		}
