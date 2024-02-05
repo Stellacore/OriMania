@@ -557,38 +557,5 @@ namespace om
 } // [om]
 
 
-namespace
-{
-
-//
-// I/O
-//
-
-	//! Put convention infoString() output to stream.
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, om::Convention const & convention
-		)
-	{
-		ostrm << convention.infoString();
-		return ostrm;
-	}
-
-	//! Put ParmGroup infoString() output to stream.
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, om::ParmGroup const & parmGroup
-		)
-	{
-		ostrm << parmGroup.infoString();
-		return ostrm;
-	}
-
-} // [anon]
-
 #endif // OriMania_Convention_INCL_
 

@@ -181,21 +181,4 @@ std::cout
 
 } // [om]
 
-namespace
-{
-
-	//! Put KeyPair.infoString() to stream.
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, om::KeyPair const & keyPair
-		)
-	{
-		ostrm << keyPair.infoString();
-		return ostrm;
-	}
-
-} // [anon]
-
 #endif // OriMania_Orientation_INCL_

@@ -29,8 +29,7 @@
 
 
 #include "Convention.hpp"
-
-#include "OriMania.hpp"
+#include "io.hpp"
 
 #include <iostream>
 #include <map>

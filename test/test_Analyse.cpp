@@ -28,9 +28,9 @@
 */
 
 
-#include "Orientation.hpp"
 #include "Convention.hpp"
-//#include "OriMania.hpp"
+#include "io.hpp"
+#include "Orientation.hpp"
 
 #include <Rigibra>
 
@@ -236,58 +236,6 @@ namespace sim
 	}
 
 } // [sim]
-
-namespace
-{
-	//! \brief Put collection of exterior orientations to stream.
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, std::map<om::SenKey, om::SenOri> const & keyOris
-		)
-	{
-		using namespace om;
-		std::size_t recCount{ 0u };
-		for (std::map<SenKey, SenOri>::value_type const & keyOri : keyOris)
-		{
-			if (0u < (recCount++))
-			{
-				ostrm << '\n';
-			}
-			ostrm
-				<< " EO: " << keyOri.first
-				<< "  oriSenWrtRef: " << keyOri.second
-				;
-		}
-		return ostrm;
-	}
-
-	//! \brief Put collection of relative orientations to stream.
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, std::map<om::KeyPair, om::SenOri> const & keyRos
-		)
-	{
-		using namespace om;
-		std::size_t recCount{ 0u };
-		for (std::map<KeyPair, SenOri>::value_type const & keyRo : keyRos)
-		{
-			if (0u < (recCount++))
-			{
-				ostrm << '\n';
-			}
-			ostrm
-				<< " RO: " << keyRo.first
-				<< " " << keyRo.second
-				;
-		}
-		return ostrm;
-	}
-
-} // [anon]
 
 namespace
 {
