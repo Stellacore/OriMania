@@ -80,15 +80,15 @@ namespace om
 	//! Grouping of parameters by angle and distance values
 	struct ParmGroup
 	{
-		//! Numeric angle values (radians) for which order/sign are unknown
-		ThreeAngles theAngles
+		//! Numeric distace values (meters) for which order/sign are unknown
+		ThreeDistances theDistances
 			{ engabra::g3::nan
 			, engabra::g3::nan
 			, engabra::g3::nan
 			};
 
-		//! Numeric distace values (meters) for which order/sign are unknown
-		ThreeDistances theDistances
+		//! Numeric angle values (radians) for which order/sign are unknown
+		ThreeAngles theAngles
 			{ engabra::g3::nan
 			, engabra::g3::nan
 			, engabra::g3::nan
@@ -108,14 +108,14 @@ namespace om
 			}
 			using engabra::g3::io::fixed;
 			oss
-				<< "  Angles: "
-					<< fixed(theAngles[0], 1u, 9u)
-					<< fixed(theAngles[1], 1u, 9u)
-					<< fixed(theAngles[2], 1u, 9u)
 				<< "  Distances: "
 					<< fixed(theDistances[0], 1u, 6u)
 					<< fixed(theDistances[1], 1u, 6u)
 					<< fixed(theDistances[2], 1u, 6u)
+				<< "  Angles: "
+					<< fixed(theAngles[0], 1u, 9u)
+					<< fixed(theAngles[1], 1u, 9u)
+					<< fixed(theAngles[2], 1u, 9u)
 				;
 			return oss.str();
 		}
@@ -269,6 +269,7 @@ namespace om
 
 		//! Permutations: 012, 021, 120, 102, 201, 210
 		ThreeIndices theLocIndices;
+
 		/*! Permutations: 010,012,020,021, 101,102,120,121, 201,202,210,212
 		 * ---, 001, 002  |  ---, ..., ...
 		 * 010, 011, 012  |  010, ..., 012

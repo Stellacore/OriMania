@@ -46,8 +46,39 @@
 
 namespace sim
 {
+	//! A diverse selection of angle and distance parameters
+	static std::vector<om::ParmGroup> const sParmGroups
+		{ om::ParmGroup{ {   .0,   .0,   .0 }, { .000, .000, .000,} }
+		, om::ParmGroup{ { 60.1, 10.3, 21.1 }, { .617, .113, .229 } }
+		, om::ParmGroup{ { 10.7, 60.7, 31.1 }, { .127, .619, .317 } }
+		, om::ParmGroup{ { 30.7, 22.7, 61.3 }, { .331, .631, .239 } }
+		, om::ParmGroup{ { 10.1, 40.9, 50.3 }, { .109, .421, .523 } }
+		, om::ParmGroup{ { 41.9, 22.3, 52.1 }, { .431, .233, .541 } }
+		, om::ParmGroup{ { 40.1, 50.9, 31.3 }, { .433, .547, .337 } }
+		};
+		/* Angle-Distance order
+		{ om::ParmGroup{ { .000, .000, .000,}, {   .0,   .0,   .0 } }
+		, om::ParmGroup{ { .617, .113, .229 }, { 60.1, 10.3, 21.1 } }
+		, om::ParmGroup{ { .127, .619, .317 }, { 10.7, 60.7, 31.1 } }
+		, om::ParmGroup{ { .331, .631, .239 }, { 30.7, 22.7, 61.3 } }
+		, om::ParmGroup{ { .109, .421, .523 }, { 10.1, 40.9, 50.3 } }
+		, om::ParmGroup{ { .431, .233, .541 }, { 41.9, 22.3, 52.1 } }
+		, om::ParmGroup{ { .433, .547, .337 }, { 40.1, 50.9, 31.3 } }
+		};
+		*/
+
+	//! An arbitrarily set convention
+	static om::Convention const sConventionA
+		{ { -1, 1, -1 }
+		, { 1, 0, 2 }
+		, { -1,-1,  1 }
+		, { 2, 1, 0 }
+		, { 1, 2, 1 }
+		, om::RotTran
+		};
+
 	std::map<om::SenKey, om::SenOri>
-	simEOs
+	senExCals
 		()
 	{
 		std::map<om::SenKey, om::SenOri> oris;
@@ -82,6 +113,15 @@ namespace
 	{
 		using namespace om;
 
+std::cout << '\n';
+		for (om::ParmGroup const & parmGroup : sim::sParmGroups)
+		{
+			rigibra::Transform const xfm
+				{ sim::sConventionA.transformFor(parmGroup) };
+std::cout << "ParmGroup xfm: " << xfm << '\n';
+		}
+
+
 		//
 		// Simulate sensor data
 		//   1) Individual ori of each sensor in system 'Box' frame
@@ -89,7 +129,7 @@ namespace
 		//
 
 		// simulate arbitrary ExCal orientations
-		std::vector<rigibra::Transform> const senWrtBoxs{};
+		std::map<om::SenKey, om::SenOri> const senWrtBoxs{ sim::senExCals() };
 
 		// use the ExCal data to generate Independent EO data
 		std::map<om::SenKey, rigibra::Transform> const senWrtInds{};
@@ -101,16 +141,6 @@ namespace
 
 		// consider common conventions
 		std::vector<om::Convention> conventions{};
-
-		// compute BoxRo
-			// candidate for Sen1wBox
-			// candidate for Sen2wBox
-//			BoxRo = Sen2wBox * inverse(Sen1wBox);
-		// IndRo
-//			IndRo = Sen2wInd * inverse(Sen1wInd);
-
-		// compare and assign metric
-//		std::map<CHash, Metric>
 
 
 		// [DoxyExample01]
