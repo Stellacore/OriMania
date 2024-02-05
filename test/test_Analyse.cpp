@@ -46,24 +46,25 @@
 
 namespace sim
 {
+	using PG = om::ParmGroup;
 	//! A diverse selection of angle and distance parameters
-	static std::vector<om::ParmGroup> const sParmGroups
-		{ om::ParmGroup{ {   .0,   .0,   .0 }, { .000, .000, .000,} }
-		, om::ParmGroup{ { 60.1, 10.3, 21.1 }, { .617, .113, .229 } }
-		, om::ParmGroup{ { 10.7, 60.7, 31.1 }, { .127, .619, .317 } }
-		, om::ParmGroup{ { 30.7, 22.7, 61.3 }, { .331, .631, .239 } }
-		, om::ParmGroup{ { 10.1, 40.9, 50.3 }, { .109, .421, .523 } }
-		, om::ParmGroup{ { 41.9, 22.3, 52.1 }, { .431, .233, .541 } }
-		, om::ParmGroup{ { 40.1, 50.9, 31.3 }, { .433, .547, .337 } }
+	static std::map<om::SenKey, om::ParmGroup> const sKeyGroups
+		{ { "pg0", PG{ {   .0,   .0,   .0 }, { .000, .000, .000,} } }
+		, { "pg1", PG{ { 60.1, 10.3, 21.1 }, { .617, .113, .229 } } }
+		, { "pg2", PG{ { 10.7, 60.7, 31.1 }, { .127, .619, .317 } } }
+		, { "pg3", PG{ { 30.7, 22.7, 61.3 }, { .331, .631, .239 } } }
+		, { "pg4", PG{ { 10.1, 40.9, 50.3 }, { .109, .421, .523 } } }
+		, { "pg5", PG{ { 41.9, 22.3, 52.1 }, { .431, .233, .541 } } }
+		, { "pg6", PG{ { 40.1, 50.9, 31.3 }, { .433, .547, .337 } } }
 		};
 		/* Angle-Distance order
-		{ om::ParmGroup{ { .000, .000, .000,}, {   .0,   .0,   .0 } }
-		, om::ParmGroup{ { .617, .113, .229 }, { 60.1, 10.3, 21.1 } }
-		, om::ParmGroup{ { .127, .619, .317 }, { 10.7, 60.7, 31.1 } }
-		, om::ParmGroup{ { .331, .631, .239 }, { 30.7, 22.7, 61.3 } }
-		, om::ParmGroup{ { .109, .421, .523 }, { 10.1, 40.9, 50.3 } }
-		, om::ParmGroup{ { .431, .233, .541 }, { 41.9, 22.3, 52.1 } }
-		, om::ParmGroup{ { .433, .547, .337 }, { 40.1, 50.9, 31.3 } }
+		{ PG{ { .000, .000, .000,}, {   .0,   .0,   .0 } }
+		, PG{ { .617, .113, .229 }, { 60.1, 10.3, 21.1 } }
+		, PG{ { .127, .619, .317 }, { 10.7, 60.7, 31.1 } }
+		, PG{ { .331, .631, .239 }, { 30.7, 22.7, 61.3 } }
+		, PG{ { .109, .421, .523 }, { 10.1, 40.9, 50.3 } }
+		, PG{ { .431, .233, .541 }, { 41.9, 22.3, 52.1 } }
+		, PG{ { .433, .547, .337 }, { 40.1, 50.9, 31.3 } }
 		};
 		*/
 
@@ -75,6 +76,12 @@ namespace sim
 		, { 2, 1, 0 }
 		, { 1, 2, 1 }
 		, om::RotTran
+		};
+
+	//! An arbitrary orientation for Box frame w.r.t. arbitrary Ref frame.
+	static rigibra::Transform const sXfmBoxWrtRef
+		{ rigibra::Location{ 1000., 2000., 3000. }
+		, rigibra::Attitude(rigibra::PhysAngle{ -.7, 1.5, 3. })
 		};
 
 	std::map<om::SenKey, om::SenOri>
@@ -113,46 +120,74 @@ namespace
 	{
 		using namespace om;
 
+		// simulate configuration of a payload system
+		// in which sensor ExCal data are using some unknown
+		// arbitrary convention (here sConventionA is assumed unknown)
 std::cout << '\n';
-		for (om::ParmGroup const & parmGroup : sim::sParmGroups)
+std::cout << "using convention: " << sim::sConventionA.asNumber() << '\n';
+		std::map<SenKey, SenOri> boxKeyOris;
+		for (std::map<SenKey, om::ParmGroup>::value_type
+			const & keyGroup : sim::sKeyGroups)
 		{
-			rigibra::Transform const xfm
-				{ sim::sConventionA.transformFor(parmGroup) };
-std::cout << "ParmGroup xfm: " << xfm << '\n';
+			rigibra::Transform const xSenWrtBox
+				{ sim::sConventionA.transformFor(keyGroup.second) };
+			boxKeyOris[keyGroup.first] = xSenWrtBox;
 		}
 
+		// simulate export of the camera orientation data relative
+		// to some arbitary Box orienation (sXfmBoxWrtRef)
+		using namespace rigibra;
+		std::map<SenKey, SenOri> refKeyOris;
+		for (std::map<SenKey, SenOri>::value_type
+			const & boxKeyOri : boxKeyOris)
+		{
+			SenKey const & key = boxKeyOri.first;
+			SenOri const & oriSenWrtBox = boxKeyOri.second;
+			SenOri const & oriBoxWrtRef = sim::sXfmBoxWrtRef;
+			SenOri const oriSenWrtRef{ oriSenWrtBox * oriBoxWrtRef };
+			refKeyOris[key] = oriSenWrtRef;
+		}
 
-		//
-		// Simulate sensor data
-		//   1) Individual ori of each sensor in system 'Box' frame
-		//   2) Relative orienation between objects in some arbitrary frame.
-		//
+		// report simulated independent orientations
+		std::ostringstream msgIndEOs;
+		msgIndEOs << "\nSimulated independent orientations:\n";
+		for (std::map<SenKey, SenOri>::value_type
+			const & refKeyOri : refKeyOris)
+		{
+			msgIndEOs
+				<< "RO: " << refKeyOri.first
+				<< "  oriSenWrtRef: " << refKeyOri.second
+				<< '\n';
+		}
+		msgIndEOs << '\n';
+		std::cout << msgIndEOs.str() << '\n';
 
-		// simulate arbitrary ExCal orientations
-		std::map<om::SenKey, om::SenOri> const senWrtBoxs{ sim::senExCals() };
+		// generate ROs from this
+		std::map<KeyPair, SenOri> const relKeyOris
+			{ om::relativeOrientationBetweens(refKeyOris) };
 
-		// use the ExCal data to generate Independent EO data
-		std::map<om::SenKey, rigibra::Transform> const senWrtInds{};
+		// report relative orientations computed from indpendent EOs
+		std::ostringstream msgROs;
+		msgROs << "\nRelative Orientations (in independent frame)\n";
+		for (std::map<KeyPair, SenOri>::value_type
+			const & relKeyOri : relKeyOris)
+		{
+			msgROs
+				<< "keyPair: " << relKeyOri.first
+				<< "  ro: " << relKeyOri.second
+				<< '\n';
+		}
+		std::cout << msgROs.str() << '\n';
 
-
-		// generate RO pairs
-		std::map<om::KeyPair, rigibra::Transform>
-			const roXforms{ relativeOrientationBetweens(senWrtInds) };
-
-		// consider common conventions
-		std::vector<om::Convention> conventions{};
-
-
-		// [DoxyExample01]
-
-		// [DoxyExample01]
 
 		// TODO replace this with real test code
-		constexpr bool successful{ false };
-		if (! successful)
+		std::string const fname(__FILE__);
+		bool const isTemplate{ (std::string::npos != fname.find("/_.cpp")) };
+		if (! isTemplate)
 		{
-			oss << "Failure of testSim implementation test\n";
+			oss << "Failure to implement real test\n";
 		}
+
 	}
 
 }
