@@ -111,6 +111,32 @@ namespace
 		}
 	}
 
+	using Hash = std::array<double, 9u>;
+
+	//! Create a hash that represents result of a transformation.
+	inline
+	Hash
+	hashfor
+		( rigibra::Transform const & xfm
+		)
+	{
+		Hash hVals;
+		using namespace engabra::g3;
+		Vector const y1{ xfm(e1) };
+		Vector const y2{ xfm(e2) };
+		Vector const y3{ xfm(e3) };
+		hVals[0] = y1[0];
+		hVals[1] = y1[1];
+		hVals[2] = y1[2];
+		hVals[3] = y2[0];
+		hVals[4] = y2[1];
+		hVals[5] = y2[2];
+		hVals[6] = y3[0];
+		hVals[7] = y3[1];
+		hVals[8] = y3[2];
+		return hVals;
+	}
+
 	//! Check for transformation function availability
 	void
 	testTransforms
@@ -123,11 +149,14 @@ namespace
 			{ om::ThreeAngles{ -.7, .3, -.5 }
 			, om::ThreeAngles{ 10., -30., 20. }
 			};
+
+		std::set<Hash> hashes; // use to check uniqueness
 		for (om::Convention const & convention : conventions)
 		{
 			using namespace rigibra; // for Transform related capabilities
 			Transform const xfm{ convention.transformFor(parmGroup) };
 
+			// check if transform is valid
 			if (! isValid(xfm))
 			{
 				oss << "Failure to construct valid transformation test\n";
@@ -136,6 +165,22 @@ namespace
 				oss << "       xfm: " << xfm << '\n';
 				break;
 			}
+
+			// transform 3 basis vectors and use result as indicator of
+			// transformation result (in order to check if they are all
+			// different from each other.
+			Hash const hash{ hashfor(xfm) };
+			hashes.emplace_hint(hashes.end(), hash);
+		}
+
+		// check how many of the transformations are unique (should be all)
+		std::size_t const expUnique{ conventions.size() };
+		std::size_t const gotUnique{ hashes.size() };
+		if (! (gotUnique == expUnique))
+		{
+			oss << "Failure of unique transform result test\n";
+			oss << "expUnique: " << expUnique << '\n';
+			oss << "gotUnique: " << gotUnique << '\n';
 		}
 	}
 
