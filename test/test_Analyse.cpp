@@ -142,6 +142,48 @@ namespace om
 		return differenceBetween(roBox, roInd);
 	}
 
+	//! Pair of (fitErrorValue, ConventionArrayIndex))
+	using FitNdxPair = std::pair<double, std::size_t>;
+
+	/*! \brief Fit error and allConventions index (ordered best[0] to worst).
+	 *
+	 * Uses every element of allConventions to transform each of the
+	 * two ParmGroup values (both transformed with same convention). For
+	 * each resulting pair of orientations (in black box frame) a relative
+	 * orientation, roBox, is computed and compared with the provided
+	 * independent relative orientation transform, relOri.
+	 *
+	 * For each convention case, the error between the roBox and roInd
+	 * transformations is computed. This fitError value is stored in the
+	 * first member of the returned pairs, and the index (of allConventions)
+	 * used for the computation is stored in the second member of the pair.
+	 *
+	 * The resulting collection is then sorted by fitError. Such that
+	 * the return structure:
+	 * \arg (returnCollection)[0].first -- is the smallest fit error found
+	 * \arg (returnCollection)[0].second -- is the index, ndx, to the member
+	 * of allConventions[ndx] that was used to obtain the fit error.
+	 */
+	std::vector<FitNdxPair>
+	bestFitConventions
+		( ParmGroup const & pg1
+		, ParmGroup const & pg2
+		, std::vector<Convention> const & allConvetions
+		, om::SenOri const & roInd
+		)
+	{
+		std::vector<FitNdxPair> fitConventionPairs;
+		for (std::size_t cNdx{0u} ; cNdx < allConvetions.size() ; ++cNdx)
+		{
+			Convention const & convention = allConvetions[cNdx];
+			double const fitError
+				{ om::fitErrorFor(pg1, pg2, convention, roInd) };
+			fitConventionPairs.emplace_back(std::make_pair(fitError, cNdx));
+		}
+		std::sort(fitConventionPairs.begin(), fitConventionPairs.end());
+		return fitConventionPairs;
+	}
+
 } // [om]
 
 namespace sim
@@ -179,7 +221,7 @@ namespace sim
 		)
 	{
 		using namespace om;
-		std::map<SenKey, SenOri> refKeyOris;
+		std::map<SenKey, SenOri> indKeyOris;
 		for (std::map<SenKey, SenOri>::value_type
 			const & boxKeyOri : boxKeyOris)
 		{
@@ -188,16 +230,67 @@ namespace sim
 			SenOri const & oriSenWrtBox = boxKeyOri.second;
 			SenOri const & oriBoxWrtRef = sim::sXfmBoxWrtRef;
 			SenOri const oriSenWrtRef{ oriSenWrtBox * oriBoxWrtRef };
-			refKeyOris[key] = oriSenWrtRef;
+			indKeyOris[key] = oriSenWrtRef;
 		}
-		return refKeyOris;
+		return indKeyOris;
 	}
 
 } // [sim]
 
 namespace
 {
+	//! \brief Put collection of exterior orientations to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::map<om::SenKey, om::SenOri> const & keyOris
+		)
+	{
+		using namespace om;
+		std::size_t recCount{ 0u };
+		for (std::map<SenKey, SenOri>::value_type const & keyOri : keyOris)
+		{
+			if (0u < (recCount++))
+			{
+				ostrm << '\n';
+			}
+			ostrm
+				<< " EO: " << keyOri.first
+				<< "  oriSenWrtRef: " << keyOri.second
+				;
+		}
+		return ostrm;
+	}
 
+	//! \brief Put collection of relative orientations to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::map<om::KeyPair, om::SenOri> const & keyRos
+		)
+	{
+		using namespace om;
+		std::size_t recCount{ 0u };
+		for (std::map<KeyPair, SenOri>::value_type const & keyRo : keyRos)
+		{
+			if (0u < (recCount++))
+			{
+				ostrm << '\n';
+			}
+			ostrm
+				<< " RO: " << keyRo.first
+				<< " " << keyRo.second
+				;
+		}
+		return ostrm;
+	}
+
+} // [anon]
+
+namespace
+{
 	//! Check convention extraction from simulated data
 	void
 	testSim
@@ -215,13 +308,12 @@ std::cout << "using convention: " << sim::sConventionA.asNumber() << '\n';
 			{ sim::boxKeyOris(sim::sKeyGroups, sim::sConventionA) };
 
 		// simulated exported indendent exterior body orientations
-		std::map<SenKey, SenOri> const refKeyOris
+		std::map<SenKey, SenOri> const indKeyOris
 			{ sim::independentKeyOris(boxKeyOris) };
 
 		// generate ROs from indepent exterior body orientations
 		std::map<KeyPair, SenOri> const relKeyOris
-			{ om::relativeOrientationBetweens(refKeyOris) };
-
+			{ om::relativeOrientationBetweens(indKeyOris) };
 
 
 		//
@@ -231,20 +323,24 @@ std::cout << "using convention: " << sim::sConventionA.asNumber() << '\n';
 		// report simulated independent orientations
 		std::ostringstream msgIndEOs;
 		msgIndEOs << "\nSimulated independent orientations:\n";
+		msgIndEOs << indKeyOris << '\n';
+		/*
 		for (std::map<SenKey, SenOri>::value_type
-			const & refKeyOri : refKeyOris)
+			const & indKeyOri : indKeyOris)
 		{
 			msgIndEOs
-				<< "RO: " << refKeyOri.first
-				<< "  oriSenWrtRef: " << refKeyOri.second
+				<< "RO: " << indKeyOri.first
+				<< "  oriSenWrtRef: " << indKeyOri.second
 				<< '\n';
 		}
-		msgIndEOs << '\n';
+		*/
 		std::cout << msgIndEOs.str() << '\n';
 
 		// report relative orientations computed from indpendent EOs
 		std::ostringstream msgROs;
 		msgROs << "\nRelative Orientations (in independent frame)\n";
+		msgROs << relKeyOris << '\n';
+		/*
 		for (std::map<KeyPair, SenOri>::value_type
 			const & relKeyOri : relKeyOris)
 		{
@@ -254,9 +350,10 @@ std::cout << "using convention: " << sim::sConventionA.asNumber() << '\n';
 				<< '\n';
 		}
 		std::cout << msgROs.str() << '\n';
+		*/
+
 
 		// compute consistency score vector for each relative orientation
-std::cout << '\n';
 		std::vector<Convention> const allCons{ Convention::allConventions() };
 		for (std::map<KeyPair, SenOri>::value_type
 			const & relKeyOri : relKeyOris)
@@ -276,44 +373,19 @@ std::cout << '\n';
 				ParmGroup const & pg1 = itFind1->second;
 				ParmGroup const & pg2 = itFind2->second;
 
-std::cout << "\nscore RO: "
-	<< "keyPair: " << keyPair
-	<< "\n " << keyPair.key1() << " " << pg1
-	<< "\n " << keyPair.key2() << " " << pg2
-	<< '\n';
+				std::vector<om::FitNdxPair> const fitConPairs
+					{ om::bestFitConventions(pg1, pg2, allCons, relOri) };
 
-				//! Fit error, convention array index
-				using FitNdxPair = std::pair<double, std::size_t>;
-				std::vector<FitNdxPair> fitConPairs;
-				for (std::size_t cNdx{0u} ; cNdx < allCons.size() ; ++cNdx)
-				{
-					Convention const & convention = allCons[cNdx];
-					double const fitErr
-						{ om::fitErrorFor(pg1, pg2, convention, relOri) };
-					fitConPairs.emplace_back(std::make_pair(fitErr, cNdx));
-				}
-				std::sort(fitConPairs.begin(), fitConPairs.end());
 
-std::size_t aFew{ 8u };
+std::size_t aFew{ 2u };
+std::cout << '\n';
 for (std::size_t nn{0u} ; nn < aFew ; ++nn)
 {
 	using namespace engabra::g3;
-	double const & fitErr = fitConPairs[nn].first;
+	double const & fitError = fitConPairs[nn].first;
 	Convention const & convention = allCons[fitConPairs[nn].second];
 	std::cout
-		<< " fitErr: " << io::fixed(fitErr)
-		<< "  convention: " << convention.asNumber()
-		<< '\n';
-}
-std::cout << " fitErr: ..." << '\n';
-std::size_t nMax{ fitConPairs.size() };
-for (std::size_t nn{nMax-aFew} ; nn < nMax-1u ; ++nn)
-{
-	using namespace engabra::g3;
-	double const & fitErr = fitConPairs[nn].first;
-	Convention const & convention = allCons[fitConPairs[nn].second];
-	std::cout
-		<< " fitErr: " << io::fixed(fitErr)
+		<< " fitError: " << io::fixed(fitError)
 		<< "  convention: " << convention.asNumber()
 		<< '\n';
 }
