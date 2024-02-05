@@ -258,19 +258,21 @@ namespace om
 	//! Candidate convention associated with 6 orientation values
 	struct Convention
 	{
-		//! Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
+		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
 		ThreeSigns theAngSigns;
 
-		//! Permutations: 012, 021, 120, 102, 201, 210
+		//! \brief Permutations: 012, 021, 120, 102, 201, 210
 		ThreeIndices theAngIndices;
 
-		//! Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
+		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
 		ThreeSigns theLocSigns;
 
-		//! Permutations: 012, 021, 120, 102, 201, 210
+		//! \brief Permutations: 012, 021, 120, 102, 201, 210
 		ThreeIndices theLocIndices;
 
-		/*! Permutations: 010,012,020,021, 101,102,120,121, 201,202,210,212
+		/*! \brief Permutes: 010,012,020,021, 101,102,120,121, 201,202,210,212.
+		 *
+		 * \verbatim
 		 * ---, 001, 002  |  ---, ..., ...
 		 * 010, 011, 012  |  010, ..., 012
 		 * 020, 021, 022  |  020, 021, ...
@@ -280,10 +282,11 @@ namespace om
 		 * 200, 201, 202  |  ..., 201, 202
 		 * 210, 211, 212  |  210, ..., 212
 		 * 220, 221, ---  |  ..., ..., ---
+		 * \endverbatim
 		 */
 		ThreeIndices theBivIndices;
 
-		//! Permutations: TranRot, RotTran
+		//! \brief Permutations: TranRot, RotTran
 		OrderTR theOrder;
 
 		//! Assign a number to each convention (for easy tracking))
