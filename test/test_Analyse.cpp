@@ -252,6 +252,7 @@ std::cout << '\n';
 			const & relKeyOri : relKeyOris)
 		{
 			KeyPair const & keyPair = relKeyOri.first;
+			SenOri const & relOri = relKeyOri.second;
 
 			// get parameter groups for these two keys
 			std::map<om::SenKey, om::ParmGroup>::const_iterator
@@ -265,33 +266,46 @@ std::cout << '\n';
 				ParmGroup const & pg1 = itFind1->second;
 				ParmGroup const & pg2 = itFind2->second;
 
-std::cout << "\nTODO score RO: "
+std::cout << "\nscore RO: "
 	<< "keyPair: " << keyPair
-	<< "\npg1: " << keyPair.key1() << " " << pg1
-	<< "\npg2: " << keyPair.key2() << " " << pg2
+	<< "\n " << keyPair.key1() << " " << pg1
+	<< "\n " << keyPair.key2() << " " << pg2
 	<< '\n';
 
-				std::vector<double> fitErrs;
-				fitErrs.reserve(allCons.size());
-				SenOri const & relOri = relKeyOri.second;
-				for (Convention const convention : allCons)
+				//! Fit error, convention array index
+				using FitNdxPair = std::pair<double, std::size_t>;
+				std::vector<FitNdxPair> fitConPairs;
+				for (std::size_t cNdx{0u} ; cNdx < allCons.size() ; ++cNdx)
 				{
+					Convention const & convention = allCons[cNdx];
 					double const fitErr
 						{ om::fitErrorFor(pg1, pg2, convention, relOri) };
-					fitErrs.emplace_back(fitErr);
+					fitConPairs.emplace_back(std::make_pair(fitErr, cNdx));
 				}
-				std::sort(fitErrs.begin(), fitErrs.end());
+				std::sort(fitConPairs.begin(), fitConPairs.end());
 
-for (std::size_t nn{0u} ; nn < 10u ; ++nn)
+std::size_t aFew{ 8u };
+for (std::size_t nn{0u} ; nn < aFew ; ++nn)
 {
 	using namespace engabra::g3;
-	std::cout << "fitErr: " << io::fixed(fitErrs[nn]) << '\n';
+	double const & fitErr = fitConPairs[nn].first;
+	Convention const & convention = allCons[fitConPairs[nn].second];
+	std::cout
+		<< " fitErr: " << io::fixed(fitErr)
+		<< "  convention: " << convention.asNumber()
+		<< '\n';
 }
-std::cout << "fitErr: ..." << '\n';
-for (std::size_t nn{fitErrs.size()-10u} ; nn < fitErrs.size()-1u ; ++nn)
+std::cout << " fitErr: ..." << '\n';
+std::size_t nMax{ fitConPairs.size() };
+for (std::size_t nn{nMax-aFew} ; nn < nMax-1u ; ++nn)
 {
 	using namespace engabra::g3;
-	std::cout << "fitErr: " << io::fixed(fitErrs[nn]) << '\n';
+	double const & fitErr = fitConPairs[nn].first;
+	Convention const & convention = allCons[fitConPairs[nn].second];
+	std::cout
+		<< " fitErr: " << io::fixed(fitErr)
+		<< "  convention: " << convention.asNumber()
+		<< '\n';
 }
 
 			}
