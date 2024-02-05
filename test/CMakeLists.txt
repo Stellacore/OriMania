@@ -39,6 +39,7 @@ set(mainProgs
 
 	test_Analyse # evaluate convention determination with simulated data
 	test_Convention # diverse conventions for representing orientations
+	test_Orientation # math operations involving orientation data
 
 	)
 

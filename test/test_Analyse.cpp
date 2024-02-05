@@ -28,6 +28,7 @@
 */
 
 
+#include "Orientation.hpp"
 #include "Convention.hpp"
 //#include "OriMania.hpp"
 
@@ -43,58 +44,35 @@
 #include <vector>
 
 
-namespace
+namespace sim
 {
-	using SenKey = std::string;
-
-	using Ori = rigibra::Transform;
-	std::map<SenKey, Ori>
+	std::map<om::SenKey, om::SenOri>
 	simEOs
 		()
 	{
-		std::map<SenKey, Ori> oris;
+		std::map<om::SenKey, om::SenOri> oris;
 		oris.emplace_hint
 			( oris.end()
-			, std::make_pair(SenKey("fake1"), rigibra::identity<Ori>())
+			, std::make_pair
+				(om::SenKey("fake1"), rigibra::identity<om::SenOri>())
 			);
 		oris.emplace_hint
 			( oris.end()
-			, std::make_pair(SenKey("fake2"), rigibra::identity<Ori>())
+			, std::make_pair
+				(om::SenKey("fake2"), rigibra::identity<om::SenOri>())
 			);
 		oris.emplace_hint
 			( oris.end()
-			, std::make_pair(SenKey("fake3"), rigibra::identity<Ori>())
+			, std::make_pair
+				(om::SenKey("fake3"), rigibra::identity<om::SenOri>())
 			);
 		return oris;
 	};
 
-	/*! \brief All combinations of (non trivial) relative orientations.
-	 *
-	 *
-	 */
-	std::map<std::pair<SenKey, SenKey>, Ori>
-	relativeOrientationBetweens
-		( std::map<SenKey, Ori> const & senWrtInds
-		)
-	{
-		std::map<std::pair<SenKey, SenKey>, Ori> roInds;
-		for (std::pair<SenKey, Ori> const senWrtInd1 : senWrtInds)
-		{
-			for (std::pair<SenKey, Ori> const senWrtInd2 : senWrtInds)
-			{
-				std::pair<SenKey, SenKey> const keyPair
-					{ senWrtInd1.first, senWrtInd2.first };
-std::cout << "keyPair: " << keyPair.first << ", " << keyPair.second << '\n';
-				Ori const & ori1wR = senWrtInd1.second;
-				Ori const & ori2wR = senWrtInd2.second;
-				Ori const & oriRw1{ inverse(ori1wR) };
-				Ori const & ori2w1{ ori2wR * oriRw1 };
+} // [sim]
 
-std::cout << "ori2w1: " << ori2w1 << '\n';
-			}
-		}
-		return roInds;
-	}
+namespace
+{
 
 	//! Check convention extraction from simulated data
 	void
@@ -114,11 +92,11 @@ std::cout << "ori2w1: " << ori2w1 << '\n';
 		std::vector<rigibra::Transform> const senWrtBoxs{};
 
 		// use the ExCal data to generate Independent EO data
-		std::map<SenKey, rigibra::Transform> const senWrtInds{};
+		std::map<om::SenKey, rigibra::Transform> const senWrtInds{};
 
 
 		// generate RO pairs
-		std::map<std::pair<SenKey, SenKey>, rigibra::Transform>
+		std::map<om::KeyPair, rigibra::Transform>
 			const roXforms{ relativeOrientationBetweens(senWrtInds) };
 
 		// consider common conventions
