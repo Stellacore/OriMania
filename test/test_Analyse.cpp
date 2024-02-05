@@ -49,13 +49,13 @@ namespace sim
 	using PG = om::ParmGroup;
 	//! A diverse selection of angle and distance parameters
 	static std::map<om::SenKey, om::ParmGroup> const sKeyGroups
-		{ { "pg0", PG{ {   .0,   .0,   .0 }, { .000, .000, .000,} } }
-		, { "pg1", PG{ { 60.1, 10.3, 21.1 }, { .617, .113, .229 } } }
-		, { "pg2", PG{ { 10.7, 60.7, 31.1 }, { .127, .619, .317 } } }
-		, { "pg3", PG{ { 30.7, 22.7, 61.3 }, { .331, .631, .239 } } }
-		, { "pg4", PG{ { 10.1, 40.9, 50.3 }, { .109, .421, .523 } } }
-		, { "pg5", PG{ { 41.9, 22.3, 52.1 }, { .431, .233, .541 } } }
-		, { "pg6", PG{ { 40.1, 50.9, 31.3 }, { .433, .547, .337 } } }
+		{ { "pg0", PG{ {    .0,    .0,    .0 }, {  .000,  .000,  .000,} } }
+		, { "pg1", PG{ { -60.1,  10.3,  21.1 }, {  .617, -.113, -.229 } } }
+		, { "pg2", PG{ {  10.7, -60.7,  31.1 }, { -.127,  .619, -.317 } } }
+		, { "pg3", PG{ {  30.7,  22.7, -61.3 }, { -.331, -.631,  .239 } } }
+		, { "pg4", PG{ {  10.1, -40.9, -50.3 }, { -.109,  .421,  .523 } } }
+		, { "pg5", PG{ { -41.9,  22.3, -52.1 }, {  .431, -.233,  .541 } } }
+		, { "pg6", PG{ { -40.1, -50.9,  31.3 }, {  .433,  .547, -.337 } } }
 		};
 		/* Angle-Distance order
 		{ PG{ { .000, .000, .000,}, {   .0,   .0,   .0 } }
@@ -70,10 +70,10 @@ namespace sim
 
 	//! An arbitrarily set convention
 	static om::Convention const sConventionA
-		{ { -1, 1, -1 }
+		{ {  1,  1, -1 }
 		, { 1, 0, 2 }
-		, { -1,-1,  1 }
-		, { 2, 1, 0 }
+		, {  1, -1,  1 }
+		, { 0, 1, 2 }
 		, { 1, 2, 1 }
 		, om::RotTran
 		};
@@ -108,6 +108,72 @@ namespace sim
 	};
 
 } // [sim]
+
+
+namespace om
+{
+	//! Statistic representing error between ori{1,2}. 
+	inline
+	double
+	differenceBetween
+		( SenOri const & ori1
+		, SenOri const & ori2
+		)
+	{
+		// Location
+		using namespace engabra::g3;
+		Vector const & loc1 = ori1.theLoc;
+		Vector const & loc2 = ori2.theLoc;
+
+		// compute weight for locations
+		double const aveMag{ .5 * (magnitude(loc1) + magnitude(loc2)) };
+		double wLoc{ 1. };
+		if (1. < aveMag)
+		{
+			wLoc = (1. / aveMag);
+		}
+
+		// weighted squared location residuals
+		double const residSqLoc{ (wLoc / 3.) * magSq(loc2 - loc1) };
+
+		// Attitude
+		using namespace rigibra;
+		Attitude const & att1 = ori1.theAtt;
+		Attitude const & att2 = ori2.theAtt;
+
+		// weight for attitudes
+		constexpr double wAtt{ 1. };
+
+		// weighted squared angle residuals
+		BiVector const biv1{ att1.spinAngle().theBiv };
+		BiVector const biv2{ att2.spinAngle().theBiv };
+		double const residSqAtt{ (wAtt / 3.) * magSq(biv2 - biv1) };
+
+		double const rase{ std::sqrt(.5 * (residSqLoc + residSqAtt)) };
+		return rase;
+	}
+
+	//! Error between roInd and black box RO computed from pg{1,2}.
+	inline
+	double
+	fitErrorFor
+		( ParmGroup const & pg1
+		, ParmGroup const & pg2
+		, Convention const & convention
+		, SenOri const & roInd
+		)
+	{
+		// generate forward transforms internal to black box frame
+		SenOri const ori1wB{ convention.transformFor(pg1) };
+		SenOri const ori2wB{ convention.transformFor(pg2) };
+		// compute relative orientation in black box frame
+		SenOri const oriBw1{ inverse(ori1wB) };
+		SenOri const roBox{ ori2wB * oriBw1 };
+		// compare black box and independent relative orientations
+		return differenceBetween(roBox, roInd);
+	}
+
+} // [om]
 
 namespace
 {
@@ -179,6 +245,58 @@ std::cout << "using convention: " << sim::sConventionA.asNumber() << '\n';
 		}
 		std::cout << msgROs.str() << '\n';
 
+		// compute consistency score vector for each relative orientation
+std::cout << '\n';
+		std::vector<Convention> const allCons{ Convention::allConventions() };
+		for (std::map<KeyPair, SenOri>::value_type
+			const & relKeyOri : relKeyOris)
+		{
+			KeyPair const & keyPair = relKeyOri.first;
+
+			// get parameter groups for these two keys
+			std::map<om::SenKey, om::ParmGroup>::const_iterator
+				const itFind1{ sim::sKeyGroups.find(keyPair.key1()) };
+			std::map<om::SenKey, om::ParmGroup>::const_iterator
+				const itFind2{ sim::sKeyGroups.find(keyPair.key2()) };
+			if ( (sim::sKeyGroups.end() != itFind1)
+			  && (sim::sKeyGroups.end() != itFind1)
+			   )
+			{
+				ParmGroup const & pg1 = itFind1->second;
+				ParmGroup const & pg2 = itFind2->second;
+
+std::cout << "\nTODO score RO: "
+	<< "keyPair: " << keyPair
+	<< "\npg1: " << keyPair.key1() << " " << pg1
+	<< "\npg2: " << keyPair.key2() << " " << pg2
+	<< '\n';
+
+				std::vector<double> fitErrs;
+				fitErrs.reserve(allCons.size());
+				SenOri const & relOri = relKeyOri.second;
+				for (Convention const convention : allCons)
+				{
+					double const fitErr
+						{ om::fitErrorFor(pg1, pg2, convention, relOri) };
+					fitErrs.emplace_back(fitErr);
+				}
+				std::sort(fitErrs.begin(), fitErrs.end());
+
+for (std::size_t nn{0u} ; nn < 10u ; ++nn)
+{
+	using namespace engabra::g3;
+	std::cout << "fitErr: " << io::fixed(fitErrs[nn]) << '\n';
+}
+std::cout << "fitErr: ..." << '\n';
+for (std::size_t nn{fitErrs.size()-10u} ; nn < fitErrs.size()-1u ; ++nn)
+{
+	using namespace engabra::g3;
+	std::cout << "fitErr: " << io::fixed(fitErrs[nn]) << '\n';
+}
+
+			}
+
+		}
 
 		// TODO replace this with real test code
 		std::string const fname(__FILE__);
