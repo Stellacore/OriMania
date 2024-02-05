@@ -36,18 +36,6 @@
 
 namespace
 {
-	//! encode num into string
-	inline
-	std::string
-	infoString
-		( std::size_t const & num
-		)
-	{
-		std::ostringstream oss;
-		oss << num;
-		return oss.str();
-	}
-
 	//! Check simple things
 	void
 	test0
@@ -103,7 +91,7 @@ namespace
 			loc = loc + locDel;
 			att = attDel * att;
 			SenOri const nextOri{ loc, att };;
-			SenKey const nextKey{ infoString(nn) };;
+			SenKey const nextKey{ keyFrom(nn) };;
 			senKeyOris.emplace_hint
 				(senKeyOris.end(), std::make_pair(nextKey, nextOri));
 

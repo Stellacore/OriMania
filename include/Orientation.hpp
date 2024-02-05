@@ -46,6 +46,18 @@ namespace om
 	//! Assume individual sensors are identified by arbitrary string values.
 	using SenKey = std::string;
 
+	//! encode numeric value into sensor key
+	inline
+	std::string
+	keyFrom
+		( std::size_t const & num
+		)
+	{
+		std::ostringstream oss;
+		oss << "Key_" << num;
+		return oss.str();
+	}
+
 	//! Pair of SenKey representing two members in pairwise relationship.
 	struct KeyPair
 	{
