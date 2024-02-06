@@ -113,14 +113,22 @@ namespace
 	 	// [DoxyExample01]
 
 		//
-		// Simulation of input data
+		// Simulation of external data
 		//
 
 		// Simulate: configuration of a payload system
 		// in which sensor ExCal data are using some unknown
 		// arbitrary convention (here sConventionA is assumed unknown)
+		// 
+		// NOTE: the conventions used to generate these data are the
+		//       unknown values to be determined by solution code below.
+		//
 		std::map<SenKey, SenOri> const boxKeyOris
 			{ om::sim::boxKeyOris(om::sim::sKeyGroups, om::sim::sConventionA) };
+
+		//
+		// "Load" input data
+		//
 
 		// Simulate: exported indendent exterior body orientations
 		std::map<SenKey, SenOri> const indKeyOris
