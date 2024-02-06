@@ -140,6 +140,7 @@ namespace om
 	 * \arg oriXw1 = inverse(ori1wX)
 	 * \arg Ro2w1 = ori2wX * oriXw1
 	 */
+	inline
 	std::map<KeyPair, SenOri>
 	relativeOrientationBetweens
 		( std::map<SenKey, SenOri> const & keyOris
