@@ -110,10 +110,83 @@ namespace om
 		return differenceBetween(roBox, roInd);
 	}
 
+	/*! \brief Sum-squared-errors (SSE) (across all ROs) by each convention.
+	 *
+	 * For each Convention (from allCons), compute the root average
+	 * squared error (RASE) associated with each RO. Sum these per-RO
+	 * RASE values into the SSE values for that Convention.
+	 *
+	 * The return collection contains SSE values in 1:1 correspondence
+	 * with the convention cases in allCons.
+	 */
+	inline
+	std::vector<double>
+	sseSumByConvention
+		( std::map<SenKey, ParmGroup> const & keyGroups
+		, std::map<KeyPair, SenOri> const & relKeyOris
+		, std::vector<Convention> const & allCons
+		)
+	{
+		// accumulation of fit errors, one for each convention in allCons
+		std::vector<double> sumFitErrors(allCons.size(), 0.);
+
+		// compute consistency score vector for each relative orientation
+		for (std::map<KeyPair, SenOri>::value_type
+			const & relKeyOri : relKeyOris)
+		{
+			// access data for this RO
+			KeyPair const & keyPair = relKeyOri.first;
+			SenOri const & relOri = relKeyOri.second;
+
+			// locate parameter groups for the two RO keys
+			std::map<SenKey, ParmGroup>::const_iterator
+				const itFind1{ keyGroups.find(keyPair.key1()) };
+			std::map<SenKey, ParmGroup>::const_iterator
+				const itFind2{ keyGroups.find(keyPair.key2()) };
+			if ( (keyGroups.end() != itFind1)
+			  && (keyGroups.end() != itFind1)
+			   )
+			{
+				ParmGroup const & pg1 = itFind1->second;
+				ParmGroup const & pg2 = itFind2->second;
+
+				// compute fit scores for all conventions
+				for (std::size_t cNdx{0u} ; cNdx < allCons.size() ; ++cNdx)
+				{
+					Convention const & convention = allCons[cNdx];
+					double const fitError
+						{ fitErrorFor(pg1, pg2, convention, relOri) };
+					sumFitErrors[cNdx] += fitError;
+				}
+			}
+		}
+
+		return sumFitErrors;
+	}
+
+
 	//! Pair of (fitErrorValue, ConventionArrayIndex))
 	using FitNdxPair = std::pair<double, std::size_t>;
 
-	/*! \brief Fit error and allConventions index (ordered best[0] to worst).
+	//! String with of FitNdxPair data with associated Convention
+	std::string
+	infoString
+		( om::FitNdxPair const & fitConPair
+		, std::vector<Convention> const & allConventions
+		)
+	{
+		std::ostringstream oss;
+		double const & fitError = fitConPair.first;
+		Convention const & convention = allConventions[fitConPair.second];
+		using engabra::g3::io::fixed;
+		oss
+			<< " fitError: " << fixed(fitError)
+			<< "  convention: " << convention.asNumber()
+			;
+		return oss.str();
+	}
+
+	/*! \brief Pairs of (fit error, allConventions index) (best at [0]).
 	 *
 	 * Uses every element of allConventions to transform each of the
 	 * two ParmGroup values (both transformed with same convention). For
@@ -134,34 +207,9 @@ namespace om
 	 * \arg (returnCollection)[0].second -- is the index, ndx, to the member
 	 * of allConventions[ndx] that was used to obtain the fit error.
 	 */
-	std::vector<FitNdxPair>
-	fitConventions
-		( ParmGroup const & pg1
-		, ParmGroup const & pg2
-		, std::vector<Convention> const & allConventions
-		, SenOri const & roInd
-		)
-	{
-		std::vector<FitNdxPair> fitConventionPairs;
-		for (std::size_t cNdx{0u} ; cNdx < allConventions.size() ; ++cNdx)
-		{
-			Convention const & convention = allConventions[cNdx];
-			double const fitError
-				{ fitErrorFor(pg1, pg2, convention, roInd) };
-			fitConventionPairs.emplace_back(std::make_pair(fitError, cNdx));
-		}
-		return fitConventionPairs;
-	}
-
-
-	/*! \brief TODO
-	 *
-	 *
-	 *
-	 */
 	inline
 	std::vector<FitNdxPair>
-	fitConventionPairs
+	bestFitConventionPairs
 		( std::map<SenKey, ParmGroup> const & keyGroups
 		, std::map<KeyPair, SenOri> const & relKeyOris
 		, std::vector<Convention> const & allCons
@@ -169,35 +217,26 @@ namespace om
 	{
 		std::vector<FitNdxPair> allFitConPairs;
 
-		// compute consistency score vector for each relative orientation
-		for (std::map<KeyPair, SenOri>::value_type
-			const & relKeyOri : relKeyOris)
+		// accumulation of fit errors, one for each convention in allCons
+		std::vector<double> const sumFitErrors
+			{ sseSumByConvention(keyGroups, relKeyOris, allCons) };
+
+		// normalize the scores by number of ROs
+		std::size_t const numROs{ relKeyOris.size() };
+		double const scale{ 1./static_cast<double>(numROs) };
+
+		// sort results to return best values
+		std::size_t const numFit{ sumFitErrors.size() };
+		allFitConPairs.reserve(numFit);
+		for (std::size_t nn{0u} ; nn < numFit ; ++nn)
 		{
-			KeyPair const & keyPair = relKeyOri.first;
-			SenOri const & relOri = relKeyOri.second;
-
-			// locate parameter groups for these two keys
-			std::map<SenKey, ParmGroup>::const_iterator
-				const itFind1{ keyGroups.find(keyPair.key1()) };
-			std::map<SenKey, ParmGroup>::const_iterator
-				const itFind2{ keyGroups.find(keyPair.key2()) };
-			if ( (keyGroups.end() != itFind1)
-			  && (keyGroups.end() != itFind1)
-			   )
-			{
-				ParmGroup const & pg1 = itFind1->second;
-				ParmGroup const & pg2 = itFind2->second;
-				std::vector<FitNdxPair> fitConPairs
-					{ fitConventions(pg1, pg2, allCons, relOri) };
-// TODO
-std::sort(fitConPairs.begin(), fitConPairs.end());
-allFitConPairs = fitConPairs;
-break;
-// TODO
-			}
-
-//TODO			allFitConPairs.emplace_back();
+			allFitConPairs.emplace_back
+				(std::make_pair(scale*sumFitErrors[nn], nn));
 		}
+
+		// sort by fit error
+		std::sort(allFitConPairs.begin(), allFitConPairs.end());
+
 		return allFitConPairs;
 	}
 
