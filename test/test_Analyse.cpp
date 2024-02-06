@@ -28,6 +28,7 @@
 */
 
 
+#include "Analysis.hpp"
 #include "Convention.hpp"
 #include "io.hpp"
 #include "Orientation.hpp"
@@ -44,114 +45,6 @@
 #include <map>
 #include <sstream>
 #include <vector>
-
-
-namespace om
-{
-	//! Statistic representing error between ori{1,2}. 
-	inline
-	double
-	differenceBetween
-		( SenOri const & ori1
-		, SenOri const & ori2
-		)
-	{
-		// Location
-		using namespace engabra::g3;
-		Vector const & loc1 = ori1.theLoc;
-		Vector const & loc2 = ori2.theLoc;
-
-		// compute weight for locations
-		double const aveMag{ .5 * (magnitude(loc1) + magnitude(loc2)) };
-		double wLoc{ 1. };
-		if (1. < aveMag)
-		{
-			wLoc = (1. / aveMag);
-		}
-
-		// weighted squared location residuals
-		double const residSqLoc{ (wLoc / 3.) * magSq(loc2 - loc1) };
-
-		// Attitude
-		using namespace rigibra;
-		Attitude const & att1 = ori1.theAtt;
-		Attitude const & att2 = ori2.theAtt;
-
-		// weight for attitudes
-		constexpr double wAtt{ 1. };
-
-		// weighted squared angle residuals
-		BiVector const biv1{ att1.spinAngle().theBiv };
-		BiVector const biv2{ att2.spinAngle().theBiv };
-		double const residSqAtt{ (wAtt / 3.) * magSq(biv2 - biv1) };
-
-		double const rase{ std::sqrt(.5 * (residSqLoc + residSqAtt)) };
-		return rase;
-	}
-
-	//! Error between roInd and black box RO computed from pg{1,2}.
-	inline
-	double
-	fitErrorFor
-		( ParmGroup const & pg1
-		, ParmGroup const & pg2
-		, Convention const & convention
-		, SenOri const & roInd
-		)
-	{
-		// generate forward transforms internal to black box frame
-		SenOri const ori1wB{ convention.transformFor(pg1) };
-		SenOri const ori2wB{ convention.transformFor(pg2) };
-		// compute relative orientation in black box frame
-		SenOri const oriBw1{ inverse(ori1wB) };
-		SenOri const roBox{ ori2wB * oriBw1 };
-		// compare black box and independent relative orientations
-		return differenceBetween(roBox, roInd);
-	}
-
-	//! Pair of (fitErrorValue, ConventionArrayIndex))
-	using FitNdxPair = std::pair<double, std::size_t>;
-
-	/*! \brief Fit error and allConventions index (ordered best[0] to worst).
-	 *
-	 * Uses every element of allConventions to transform each of the
-	 * two ParmGroup values (both transformed with same convention). For
-	 * each resulting pair of orientations (in black box frame) a relative
-	 * orientation, roBox, is computed and compared with the provided
-	 * independent relative orientation transform, relOri.
-	 *
-	 * For each convention case, the error between the roBox and roInd
-	 * transformations is computed. This fitError value is stored in the
-	 * first member of the returned pairs, and the index (of allConventions)
-	 * used for the computation is stored in the second member of the pair.
-	 *
-	 * The resulting collection is then sorted by fitError. Such that
-	 * the return structure:
-	 * \arg (returnCollection)[0].first -- is the smallest fit error found
-	 * \arg (returnCollection)[0].second -- is the index, ndx, to the member
-	 * of allConventions[ndx] that was used to obtain the fit error.
-	 */
-	std::vector<FitNdxPair>
-	bestFitConventions
-		( ParmGroup const & pg1
-		, ParmGroup const & pg2
-		, std::vector<Convention> const & allConvetions
-		, om::SenOri const & roInd
-		)
-	{
-		std::vector<FitNdxPair> fitConventionPairs;
-		for (std::size_t cNdx{0u} ; cNdx < allConvetions.size() ; ++cNdx)
-		{
-			Convention const & convention = allConvetions[cNdx];
-			double const fitError
-				{ om::fitErrorFor(pg1, pg2, convention, roInd) };
-			fitConventionPairs.emplace_back(std::make_pair(fitError, cNdx));
-		}
-		std::sort(fitConventionPairs.begin(), fitConventionPairs.end());
-		return fitConventionPairs;
-	}
-
-} // [om]
 
 
 namespace
@@ -194,48 +87,37 @@ std::cout << "using convention: " << om::sim::sConventionA.asNumber() << '\n';
 		std::ostringstream msgROs;
 		msgROs << "\nRelative Orientations (in independent frame)\n";
 		msgROs << relKeyOris << '\n';
+		std::cout << msgROs.str() << '\n';
 
-
-		// compute consistency score vector for each relative orientation
 		std::vector<Convention> const allCons{ Convention::allConventions() };
-		for (std::map<KeyPair, SenOri>::value_type
-			const & relKeyOri : relKeyOris)
+		std::vector<om::FitNdxPair> const fitConPairs
+			{ fitConventionPairs(om::sim::sKeyGroups, relKeyOris, allCons) };
+
+		// check if correct number are computed
+		if (! (allCons.size() == fitConPairs.size()))
 		{
-			KeyPair const & keyPair = relKeyOri.first;
-			SenOri const & relOri = relKeyOri.second;
-
-			// get parameter groups for these two keys
-			std::map<om::SenKey, om::ParmGroup>::const_iterator
-				const itFind1{ om::sim::sKeyGroups.find(keyPair.key1()) };
-			std::map<om::SenKey, om::ParmGroup>::const_iterator
-				const itFind2{ om::sim::sKeyGroups.find(keyPair.key2()) };
-			if ( (om::sim::sKeyGroups.end() != itFind1)
-			  && (om::sim::sKeyGroups.end() != itFind1)
-			   )
+			oss << "Failure of fitConPairs size test\n";
+			oss << "exp: " << allCons.size() << '\n';
+			oss << "got: " << fitConPairs.size() << '\n';
+		}
+		else
+		{
+			// report a few results
+			std::size_t aFew{ 2u };
+			std::cout << '\n';
+			for (std::size_t nn{0u} ; nn < aFew ; ++nn)
 			{
-				ParmGroup const & pg1 = itFind1->second;
-				ParmGroup const & pg2 = itFind2->second;
-
-				std::vector<om::FitNdxPair> const fitConPairs
-					{ om::bestFitConventions(pg1, pg2, allCons, relOri) };
-
-
-std::size_t aFew{ 2u };
-std::cout << '\n';
-for (std::size_t nn{0u} ; nn < aFew ; ++nn)
-{
-	using namespace engabra::g3;
-	double const & fitError = fitConPairs[nn].first;
-	Convention const & convention = allCons[fitConPairs[nn].second];
-	std::cout
-		<< " fitError: " << io::fixed(fitError)
-		<< "  convention: " << convention.asNumber()
-		<< '\n';
-}
-
+				using namespace engabra::g3;
+				double const & fitError = fitConPairs[nn].first;
+				Convention const & convention = allCons[fitConPairs[nn].second];
+				std::cout
+					<< " fitError: " << io::fixed(fitError)
+					<< "  convention: " << convention.asNumber()
+					<< '\n';
 			}
 
 		}
+
 
 		// TODO replace this with real test code
 		std::string const fname(__FILE__);
