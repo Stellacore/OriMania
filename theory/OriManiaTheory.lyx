@@ -157,12 +157,1274 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 Introduction
 \end_layout
 
+\begin_layout Standard
+Given six parameters comprising three angles and three distances, determine
+ the conventions for combining these parameters that is most consistent
+ with available independent exterior orientation data.
+\end_layout
+
+\begin_layout Standard
+OriMania explores brute force combinations of the 6 unknown parameters utilized
+ in the context with various common conventions for expressing rigid body
+ orientations.
+ It evaluates each candidate to determine which one(s) most closely match
+ independently determined relative orientation data.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
 \begin_layout Chapter
 Methodology
 \end_layout
 
+\begin_layout Section
+Transform Parameter Combinations
+\end_layout
+
+\begin_layout Standard
+Attitude may be expressed by a unitary spinor product of the form,
+\begin_inset Formula 
+\[
+e^{\gamma C}e^{\beta B}e^{\alpha A}
+\]
+
+\end_inset
+
+where each of the (spin) angle sizes, 
+\begin_inset Formula $\alpha,\beta,\gamma$
+\end_inset
+
+, correspond (in some order or another) with the three angle size values
+ available a priori, and each of the unitary bivector directions, 
+\begin_inset Formula $A,B,C$
+\end_inset
+
+, correspond with a plane of rotation.
+\end_layout
+
+\begin_layout Standard
+NOTE: Here it is assumed that the planes of rotation are associated with
+ standard Cartesian basis planes (and not, for example, some arbitrary combinati
+on of directions in space
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Some remote sensing systems utilize rotations about non orthogonal axes
+ associated with different individual sensor components.
+ E.g.
+ in solid state strap down inertial systems utilizing individual gyros and/or
+ individual angular rate sensors, the rotation axes may correspond with
+ those individual (and not mutually orthogonal) sensor spin axes instead
+ of with an integrated and shared coordinate system basis.
+ Such a specialized case is outside the scope of consideration addressed
+ herein.
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Subsection
+Attitude Convention Combinations
+\end_layout
+
+\begin_layout Standard
+Three (spin) angle values, 
+\begin_inset Formula $\left\{ \xi_{1},\xi_{2},\xi_{3}\right\} $
+\end_inset
+
+, are available and known to associate with the three rotation parameters,
+ 
+\begin_inset Formula $\left[\alpha,\beta,\gamma\right]$
+\end_inset
+
+, but it is not known in what order they correspond.
+\end_layout
+
+\begin_layout Standard
+It is assumed that unitary bivectors, 
+\begin_inset Formula $A$
+\end_inset
+
+, 
+\begin_inset Formula $B$
+\end_inset
+
+, and 
+\begin_inset Formula $C$
+\end_inset
+
+, correspond with coordinate system basis planes, 
+\begin_inset Formula $\left\{ e_{23,}e_{31},e_{12}\right\} $
+\end_inset
+
+, but again the association and order are unknown.
+\end_layout
+
+\begin_layout Standard
+In addition there is ambiguity in the chirality of the orientation for each
+ individual rotation.
+\end_layout
+
+\begin_layout Standard
+These possibilities can be expressed as follows:
+\end_layout
+
+\begin_layout Itemize
+Create a collection of sign signatures 
+\begin_inset Formula $\left\{ \pm,\pm,\pm\right\} $
+\end_inset
+
+ that may be applied to the angle sizes.
+ There are 8 unique signatures:
+\begin_inset Formula 
+\[
+\left\{ ---,\,--+,\,-+-,\,-++,\,+--,\,+-+,\,++-,\,+++\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Create a collection of combinations of angle size values from 
+\begin_inset Formula $\left\{ \xi_{1},\xi_{2},\xi_{3}\right\} $
+\end_inset
+
+.
+ The 6 non trivial cases include combintations of all three available data
+ values that may be assigned to the angle sizes, 
+\begin_inset Formula $\left\{ \alpha,\beta,\gamma\right\} $
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\left\{ \xi_{1}\xi_{2}\xi_{3},\,\xi_{1}\xi_{3}\xi_{2},\,\xi_{2}\xi_{3}\xi_{1},\,\xi_{2}\xi_{1}\xi_{3},\,\xi_{3}\xi_{1}\xi_{2},\,\xi_{3}\xi_{2}\xi_{1}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Create a collection of basis vector (positive) directions 
+\begin_inset Formula $\left\{ X,Y,Z\right\} $
+\end_inset
+
+, where each letter denotes one of the coordinate system basis planes, 
+\begin_inset Formula $\left\{ e_{23},e_{31},e_{12}\right\} $
+\end_inset
+
+.
+ Note that negative directions are not needed here since the plane direction
+ is coupled directly with the sign on the angle size.
+ Overall the combinations correspond with a 3-digit base three number for
+ which there are 27 exhaustive cases.
+ There of these, several cases can be eliminated as physically trivial (ones
+ with two (or more) successive rotations in the same plane).
+ This leaves the 12 basis plane combinations
+\begin_inset Formula 
+\begin{align*}
+\left\{ \cancel{XXX},\,\cancel{XXY},\,\cancel{XXZ}\right\} \\
+\left\{ XYX,\,\cancel{XYY},\,XYZ\right\} \\
+\left\{ XZX,\,XZY,\,\cancel{XZZ}\right\} 
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+\left\{ \cancel{YXX},\,YXY,\,YXZ\right\} \\
+\left\{ \cancel{YYX},\,\cancel{YYY},\,\cancel{YYZ}\right\} \\
+\left\{ YZX,\,YZY,\,\cancel{YZZ}\right\} 
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+\left\{ \cancel{ZXX},\,ZXY,\,ZXZ\right\} \\
+\left\{ ZYX,\,\cancel{ZYY},\,ZYZ\right\} \\
+\left\{ \cancel{ZZX},\,\cancel{ZZY},\,\cancel{ZZZ}\right\} 
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Overall, these cases represent 
+\begin_inset Formula $576=8*6*12$
+\end_inset
+
+ candidate conventions for combining the attitude parameters.
+\end_layout
+
+\begin_layout Subsection
+Offset Convention Combinations
+\end_layout
+
+\begin_layout Standard
+The offset of each sensor may be expressed by a vector with three components
+ relative to a Cartesian frame basis, 
+\begin_inset Formula $\left\{ e_{1},e_{2},e_{3}\right\} .$
+\end_inset
+
+ E.g.,
+\begin_inset Formula 
+\[
+t=\tau_{1}e_{1}+\tau_{2}e_{2}+\tau_{3}e_{3}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Assume three parameters 
+\begin_inset Formula $\left\{ \zeta_{1},\zeta_{2},\zeta_{3}\right\} $
+\end_inset
+
+ are given that describe this offset (aka lever arm, eccentricity vector,
+ etc) but in an unknown manner, there are several candidate combinations
+ to consider.
+\end_layout
+
+\begin_layout Itemize
+Create a collection of sign signatures 
+\begin_inset Formula $\left\{ \pm,\pm,\pm\right\} $
+\end_inset
+
+ that may be applied to the angle sizes.
+ There are 8 unique signatures:
+\begin_inset Formula 
+\[
+\left\{ ---,\,--+,\,-+-,\,-++,\,+--,\,+-+,\,++-,\,+++\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Create a collection of candidate coordinate associations 
+\begin_inset Formula $\left\{ \zeta_{1},\zeta_{2},\zeta_{3}\right\} $
+\end_inset
+
+.
+ The 6 non trivial cases that each include all three combinations of data
+ values that may be assigned to the 
+\begin_inset Formula $\left\{ \tau_{1}\tau_{2}\tau_{3}\right\} $
+\end_inset
+
+ components of vector, 
+\begin_inset Formula $t$
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left\{ \zeta_{1}\zeta_{2}\zeta_{3},\,\zeta_{1}\zeta_{3}\zeta_{2},\,\zeta_{2}\zeta_{3}\zeta_{1},\,\zeta_{2}\zeta_{1}\zeta_{3},\,\zeta_{3}\zeta_{1}\zeta_{2},\,\zeta_{3}\zeta_{2}\zeta_{1}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Overall, there are 
+\begin_inset Formula $48=8*6$
+\end_inset
+
+ combinations to consider.
+\end_layout
+
+\begin_layout Subsection
+Transform Conventions
+\end_layout
+
+\begin_layout Standard
+A general rigid body transformation may be expressed as a combination of
+ translation and rotation.
+ Let the rotation be represented by unitary spinor 
+\begin_inset Formula $R=e^{\alpha A}e^{\beta B}e^{\gamma C}$
+\end_inset
+
+, and translation by the vector, 
+\begin_inset Formula $t$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+A canonical form for the overall exterior orientation is the 
+\begin_inset Quotes eld
+\end_inset
+
+translate then rotate
+\begin_inset Quotes erd
+\end_inset
+
+ convention,
+\begin_inset Formula 
+\[
+y=R\left(x-t_{x}\right)R^{\dagger}
+\]
+
+\end_inset
+
+In this convention, both the translation, 
+\begin_inset Formula $t$
+\end_inset
+
+, and rotation, 
+\begin_inset Formula $R$
+\end_inset
+
+, entities are expressed with respect to the transformation domain (e.g.
+ domain of 
+\begin_inset Formula $x$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+However, it is common to also utilize a hybrid domain convention
+\begin_inset Formula 
+\[
+y+t_{y}=RxR^{\dagger}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There are therefore 2 conventions to consider, 
+\begin_inset Formula $t=t_{x}$
+\end_inset
+
+ and 
+\begin_inset Formula $t=t_{y}$
+\end_inset
+
+, that must be considered for all of the above combinations of rotations
+ and offsets.
+\end_layout
+
+\begin_layout Standard
+These are related as
+\begin_inset Formula 
+\begin{align*}
+y & =RxR^{\dagger}-t_{y}\\
+ & =RxR^{\dagger}-R^{\dagger}Rt_{y}R^{\dagger}R\\
+ & =R\left(x-Rt_{y}R^{\dagger}\right)R
+\end{align*}
+
+\end_inset
+
+so that
+\begin_inset Formula 
+\[
+t_{x}=Rt_{y}R^{\dagger}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Summary
+\end_layout
+
+\begin_layout Standard
+Overall, there are 1152 attitude conventions, 48 offset conventions, and
+ 2 transformation conventions, for a total of 
+\begin_inset Formula $55,296=576*48*2$
+\end_inset
+
+ total orientation conventions to explore.
+\end_layout
+
+\begin_layout Section
+Comparing Transformations
+\end_layout
+
+\begin_layout Standard
+Methods for comparing two rigid body transformations can vary depending
+ on purpose.
+\end_layout
+
+\begin_layout Subsection
+What Is 
+\begin_inset Quotes eld
+\end_inset
+
+Same
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+An obvious method of comparing transformations specified with 6 parameters
+ is to numerically compare the corresponding 6 values from each (e.g.
+ 
+\begin_inset Formula $\alpha_{1}$
+\end_inset
+
+ with 
+\begin_inset Formula $\alpha_{2}$
+\end_inset
+
+, 
+\begin_inset Formula $\beta_{1}$
+\end_inset
+
+ with 
+\begin_inset Formula $\beta_{2}$
+\end_inset
+
+, and so on).
+ However, the parameters represent heterogeneous phenomena (rotation vs
+ translation) and there may be different significance to each from one applicati
+on to another.
+\end_layout
+
+\begin_layout Standard
+One technique for putting the rotation and translation on somewhat equal
+ footing is to use the rotation parameters to transform a collection of
+ orthogonal vectors and then perform a vector comparison on the results
+ of the rotation using the same method as for comparing the translation
+ vector.
+ If the rotated vectors are of unit length, then this technique amounts
+ to comparing the elements of the rotation matrix representation of attitude.
+\end_layout
+
+\begin_layout Standard
+For some applications, an argument can be made for rotating test vectors
+ that have length comparable to the translation vector magnitude, or conversely
+ scaling the translation vector to unit magnitude before comparison.
+ Both of these scaling approaches amount to differential weighting of the
+ rotation and translation aspects of the transformations/orientations being
+ compared.
+\end_layout
+
+\begin_layout Standard
+One commonly useful approach is to weight the rotation test vectors such
+ that they represent a typical 
+\begin_inset Quotes eld
+\end_inset
+
+operational distance
+\begin_inset Quotes erd
+\end_inset
+
+ associated with the sensor.
+ E.g.
+ for camera sensors, a useful attitude weighting factor is to use the nominal
+ object range distance as the weight on rotation, and leave the translation
+ vectors at the lengths specified by the three a priori input values.
+\end_layout
+
+\begin_layout Standard
+This last approach (weighting rotation based on expected operational distances)
+ is often very useful in practical application contexts.
+ However, it requires providing application specific information (i.e.
+ the operating distance) that is not inherently available within the transformat
+ion data.
+\end_layout
+
+\begin_layout Subsection
+Similarity Metric
+\end_layout
+
+\begin_layout Standard
+For generality, assume arbitrary weight factors, 
+\begin_inset Formula $w_{r}$
+\end_inset
+
+ and 
+\begin_inset Formula $w_{t}$
+\end_inset
+
+, for rotation and translation respectively.
+ A metric of significance can be (arbitrarily) associated with a transformation
+ by assessing the 12 numeric values associated with rotation matrix elements
+ and translation vector components (with appropriate weighting).
+\end_layout
+
+\begin_layout Standard
+For comparing two rigid body transformations a practical approach is to
+ compare the relative transformation between the two.
+ Since the two original transformations are expected to be nearly similar,
+ the relative orientation between them meaningfully represents a kind of
+ 
+\begin_inset Quotes eld
+\end_inset
+
+residual transformation
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+residual error orientation
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Testing the similarity of two transformations then reduces to testing the
+ significance of their mutual residual error transformation.
+\end_layout
+
+\begin_layout Standard
+If the two transformations are equal, then the residual orientation is an
+ identity transformation.
+ Overall, the two orientations of interest can be said to differ from each
+ other to the same level that the residual transformation is different from
+ identity.
+\end_layout
+
+\begin_layout Standard
+E.g., let 
+\begin_inset Formula $\mathsf{R}$
+\end_inset
+
+ be the 3x3 rotation matrix, and 
+\begin_inset Formula $t$
+\end_inset
+
+ be the translation vector that are associated with the residual transformation.
+ A metric of significance can be associated with the collection of 12 values,
+\begin_inset Formula 
+\[
+\left\{ w_{r}\left(\mathsf{R}-\mathsf{I}\right)_{ij},w_{t}t_{k}\right\} \,;\,i,j,k=1,2,3
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since there are multiple (12) values involved, a next question is what statistic
+s are useful to represent the overall characteristics.
+ Common choices include:
+\end_layout
+
+\begin_layout Itemize
+Expected values - e.g.
+ a root mean squared value computed by taking the square root of the sum
+ of the squares of all 12 values.
+ Note that here the mean is computed via multiplication by 
+\begin_inset Formula $\frac{1}{12}$
+\end_inset
+
+ (and not 
+\begin_inset Formula $\frac{1}{11}$
+\end_inset
+
+) since the expected value (
+\begin_inset Formula $0$
+\end_inset
+
+) is already known, and need not be estimated from the sample data.
+\end_layout
+
+\begin_layout Itemize
+Maximum absolute value - this may be the most conservative statistic, since
+ it reflects a kind of 
+\begin_inset Quotes eld
+\end_inset
+
+worst case
+\begin_inset Quotes erd
+\end_inset
+
+ expectation.
+\end_layout
+
+\begin_layout Itemize
+Median value - e.g.
+ the midpoint of the 6th and 7th ranked values when the 12 values are sorted
+ in order.
+\end_layout
+
+\begin_layout Section
+Generating Evaluation Cases
+\end_layout
+
+\begin_layout Standard
+For the case in which the 6 black box parameters can be specified arbitrarily
+ various sets of configuration parameters can be used to generate test data.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:Candidate-Configuration-Values"
+
+\end_inset
+
+Candidate Configuration Values
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular
+<lyxtabular version="3" rows="8" columns="7">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+case
+\backslash
+angles-offsets
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\zeta_{1}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\zeta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\zeta_{3}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\xi_{1}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\xi_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\xi_{3}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+#0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.000
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+#1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-60.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+10.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+21.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.617
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.113
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.229
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+#2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+10.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-60.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+31.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.127
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.619
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.317
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+#3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+30.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+22.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-61.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.331
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.631
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.239
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+#4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+10.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-40.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-50.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.109
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.421
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.523
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+#5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-41.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+22.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-52.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.431
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.233
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.541
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+#6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-40.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-50.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+31.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.433
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.547
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.337
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Useful data for offset parameters is a combination of prime numbers, perhaps
+ scaled to a magnitude characteristic to an application of interest.
+ In similar fashion, multiplicatively incongruent values should be used
+ for the angle configuration parameters.
+ E.g.
+ table
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Candidate-Configuration-Values"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ illustrates possible test values.
+ When there is an opportunity to load these values into a black box system,
+ these can be used to analyze the output conventions of a black box system.
+\end_layout
+
 \begin_layout Chapter
 Results
+\end_layout
+
+\begin_layout Standard
+The OriMania test program 
+\begin_inset Quotes eld
+\end_inset
+
+test_Analyse
+\begin_inset Quotes erd
+\end_inset
+
+ simulates several block box orientation cases.
+ For each, it uses the above algorithm to attempt recovery of the simulated
+ parameters.
+ The results are...
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO
+\end_layout
+
+\end_inset
+
+/TBD.
 \end_layout
 
 \end_body

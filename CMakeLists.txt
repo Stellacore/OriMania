@@ -30,7 +30,7 @@ cmake_minimum_required(VERSION 3.13)
 
 set(aProjName "OriMania")
 set(aProjVersion "0.1.0") # Set this based on features, updates and patches
-set(aProjLib "${aProjName}Lib")
+set(aProjLib "${aProjName}")
 include(./cmake/func_setReleaseTag.cmake)
 setReleaseTag(aProjSourceIdentity)
 
@@ -88,13 +88,13 @@ set(BUILD_FLAGS_FOR_VISUAL
 	)
 
 
-find_package(engabra REQUIRED NO_MODULE)
-message(engabra Found: ${engabra_FOUND})
-message(engabra Version: ${engabra_VERSION})
+find_package(Engabra REQUIRED NO_MODULE)
+message(Engabra Found: ${Engabra_FOUND})
+message(Engabra Version: ${Engabra_VERSION})
 
-# find_package(rigibra REQUIRED NO_MODULE)
-# message(rigibra Found: ${rigibra_FOUND})
-# message(rigibra Version: ${rigibra_VERSION})
+find_package(Rigibra REQUIRED NO_MODULE)
+message(Rigibra Found: ${Rigibra_FOUND})
+message(Rigibra Version: ${Rigibra_VERSION})
 
 # ===
 # === Documentation

@@ -22,67 +22,57 @@
 // SOFTWARE.
 //
 
-
 /*! \file
-\brief Unit tests (and example) code for OriMania::NS::CN
+\brief Implementation code for OriMania simulation capabilities.
 */
 
 
-//TODO remove this and add test case header
-//#include "CN.hpp"
-#include "_.hpp" // template for header files
-
-#include "OriMania.hpp"
-
-#include <iostream>
-#include <sstream>
+#include "Simulation.hpp"
 
 
-namespace
+namespace om
 {
-	//! Examples for documentation
-	void
-	test0
-		( std::ostream & oss
-		)
+namespace sim
+{
+
+std::map<om::SenKey, om::SenOri>
+boxKeyOris
+	( std::map<om::SenKey, om::ParmGroup> const & keyGroups
+	, om::Convention const & convention
+	)
+{
+	using namespace om;
+	std::map<SenKey, SenOri> keyOris;
+	for (std::map<SenKey, ParmGroup>::value_type
+		const & keyGroup : keyGroups)
 	{
-		using namespace om;
-
-		// [DoxyExample01]
-
-		// [DoxyExample01]
-
-		// TODO replace this with real test code
-		std::string const fname(__FILE__);
-		bool const isTemplate{ (std::string::npos != fname.find("/_.cpp")) };
-		if (! isTemplate)
-		{
-			oss << "Failure to implement real test\n";
-		}
+		rigibra::Transform const xSenWrtBox
+			{ convention.transformFor(keyGroup.second) };
+		keyOris[keyGroup.first] = xSenWrtBox;
 	}
-
+	return keyOris;
 }
 
-//! Check behavior of NS
-int
-main
-	()
+std::map<om::SenKey, om::SenOri>
+independentKeyOris
+	( std::map<om::SenKey, om::SenOri> const & boxKeyOris
+	)
 {
-	int status{ 1 };
-	std::stringstream oss;
-
-	test0(oss);
-
-	if (oss.str().empty()) // Only pass if no errors were encountered
+	using namespace om;
+	std::map<SenKey, SenOri> indKeyOris;
+	for (std::map<SenKey, SenOri>::value_type
+		const & boxKeyOri : boxKeyOris)
 	{
-		status = 0;
+		using namespace rigibra;
+		SenKey const & key = boxKeyOri.first;
+		SenOri const & oriSenWrtBox = boxKeyOri.second;
+		SenOri const & oriBoxWrtRef = om::sim::sXfmBoxWrtRef;
+		SenOri const oriSenWrtRef{ oriSenWrtBox * oriBoxWrtRef };
+		indKeyOris[key] = oriSenWrtRef;
 	}
-	else
-	{
-		// else report error messages
-		std::cerr << "### FAILURE in test file: " << __FILE__ << std::endl;
-		std::cerr << oss.str();
-	}
-	return status;
+	return indKeyOris;
 }
+
+} // [sim]
+} // [om]
 
