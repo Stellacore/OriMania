@@ -1,0 +1,27 @@
+
+
+Perhaps create subdirectory for main application programs
+
+	/app - e.g. OriAnalyse
+
+For load file format, perhaps include convention used. E.g. by either
+a code, or by explicit values of Convention instance.
+
+	Att: +++ 012  (6 bits)
+	Loc: +++ 012  (6 bits)
+	Biv: 012      (4 bits)
+	oTR: 0        (1 bit )
+	              === 17
+
+	Bits
+	1,1,1,2,2,2 = 9
+	1,1,1,2,2,2 = 9
+	2,2,2       = 6
+	1           = 1
+	            === 27
+
+	+++ 012 +++ 012 012 0
+	+++012+++0120120
+
+	ppp012ppp0120120
+
