@@ -32,6 +32,8 @@
 #include "io.hpp"
 #include "Orientation.hpp"
 
+#include "Simulation.hpp"
+
 #include <Rigibra>
 
 #include <algorithm>
@@ -42,41 +44,6 @@
 #include <map>
 #include <sstream>
 #include <vector>
-
-
-namespace sim
-{
-	using PG = om::ParmGroup;
-	//! A diverse selection of angle and distance parameters
-	static std::map<om::SenKey, om::ParmGroup> const sKeyGroups
-		{ { "pg0", PG{ {    .0,    .0,    .0 }, {  .000,  .000,  .000,} } }
-		, { "pg1", PG{ { -60.1,  10.3,  21.1 }, {  .617, -.113, -.229 } } }
-		, { "pg2", PG{ {  10.7, -60.7,  31.1 }, { -.127,  .619, -.317 } } }
-		, { "pg3", PG{ {  30.7,  22.7, -61.3 }, { -.331, -.631,  .239 } } }
-		, { "pg4", PG{ {  10.1, -40.9, -50.3 }, { -.109,  .421,  .523 } } }
-		, { "pg5", PG{ { -41.9,  22.3, -52.1 }, {  .431, -.233,  .541 } } }
-		, { "pg6", PG{ { -40.1, -50.9,  31.3 }, {  .433,  .547, -.337 } } }
-		};
-
-	// TODO - run test over many (all?) different conventions.
-	//! An arbitrarily set convention
-	static om::Convention const sConventionA
-		{ {  1,  1, -1 }
-		, { 1, 0, 2 }
-		, {  1, -1,  1 }
-		, { 0, 1, 2 }
-		, { 1, 2, 1 }
-		, om::RotTran
-		};
-
-	//! An arbitrary orientation for Box frame w.r.t. arbitrary Ref frame.
-	static rigibra::Transform const sXfmBoxWrtRef
-		{ rigibra::Location{ 1000., 2000., 3000. }
-		, rigibra::Attitude(rigibra::PhysAngle{ -.7, 1.5, 3. })
-		};
-
-
-} // [sim]
 
 
 namespace om
@@ -186,56 +153,6 @@ namespace om
 
 } // [om]
 
-namespace sim
-{
-	/*! \brief Simulate orientation of sensors wrt black box frame.
-	 *
-	 * uses
-	 */
-	std::map<om::SenKey, om::SenOri>
-	boxKeyOris
-		( std::map<om::SenKey, om::ParmGroup> const & keyGroups
-		, om::Convention const & convention
-		)
-	{
-		using namespace om;
-		std::map<SenKey, SenOri> keyOris;
-		for (std::map<SenKey, ParmGroup>::value_type
-			const & keyGroup : keyGroups)
-		{
-			rigibra::Transform const xSenWrtBox
-				{ convention.transformFor(keyGroup.second) };
-			keyOris[keyGroup.first] = xSenWrtBox;
-		}
-		return keyOris;
-	}
-
-	/*! \brief Simulate export of the body orientation data.
-	 *
-	 * Orientations are assumed relative to some arbitary black Box
-	 * orienation (sXfmBoxWrtRef)
-	 */
-	std::map<om::SenKey, om::SenOri>
-	independentKeyOris
-		( std::map<om::SenKey, om::SenOri> const & boxKeyOris
-		)
-	{
-		using namespace om;
-		std::map<SenKey, SenOri> indKeyOris;
-		for (std::map<SenKey, SenOri>::value_type
-			const & boxKeyOri : boxKeyOris)
-		{
-			using namespace rigibra;
-			SenKey const & key = boxKeyOri.first;
-			SenOri const & oriSenWrtBox = boxKeyOri.second;
-			SenOri const & oriBoxWrtRef = sim::sXfmBoxWrtRef;
-			SenOri const oriSenWrtRef{ oriSenWrtBox * oriBoxWrtRef };
-			indKeyOris[key] = oriSenWrtRef;
-		}
-		return indKeyOris;
-	}
-
-} // [sim]
 
 namespace
 {
@@ -251,54 +168,32 @@ namespace
 		// in which sensor ExCal data are using some unknown
 		// arbitrary convention (here sConventionA is assumed unknown)
 std::cout << '\n';
-std::cout << "using convention: " << sim::sConventionA.asNumber() << '\n';
+std::cout << "using convention: " << om::sim::sConventionA.asNumber() << '\n';
 		std::map<SenKey, SenOri> const boxKeyOris
-			{ sim::boxKeyOris(sim::sKeyGroups, sim::sConventionA) };
+			{ om::sim::boxKeyOris(om::sim::sKeyGroups, om::sim::sConventionA) };
 
 		// simulated exported indendent exterior body orientations
 		std::map<SenKey, SenOri> const indKeyOris
-			{ sim::independentKeyOris(boxKeyOris) };
+			{ om::sim::independentKeyOris(boxKeyOris) };
 
 		// generate ROs from indepent exterior body orientations
 		std::map<KeyPair, SenOri> const relKeyOris
 			{ om::relativeOrientationBetweens(indKeyOris) };
 
-
 		//
-		// report results
+		// report simulated data results
 		//
 
 		// report simulated independent orientations
 		std::ostringstream msgIndEOs;
 		msgIndEOs << "\nSimulated independent orientations:\n";
 		msgIndEOs << indKeyOris << '\n';
-		/*
-		for (std::map<SenKey, SenOri>::value_type
-			const & indKeyOri : indKeyOris)
-		{
-			msgIndEOs
-				<< "RO: " << indKeyOri.first
-				<< "  oriSenWrtRef: " << indKeyOri.second
-				<< '\n';
-		}
-		*/
 		std::cout << msgIndEOs.str() << '\n';
 
 		// report relative orientations computed from indpendent EOs
 		std::ostringstream msgROs;
 		msgROs << "\nRelative Orientations (in independent frame)\n";
 		msgROs << relKeyOris << '\n';
-		/*
-		for (std::map<KeyPair, SenOri>::value_type
-			const & relKeyOri : relKeyOris)
-		{
-			msgROs
-				<< "keyPair: " << relKeyOri.first
-				<< "  ro: " << relKeyOri.second
-				<< '\n';
-		}
-		std::cout << msgROs.str() << '\n';
-		*/
 
 
 		// compute consistency score vector for each relative orientation
@@ -311,11 +206,11 @@ std::cout << "using convention: " << sim::sConventionA.asNumber() << '\n';
 
 			// get parameter groups for these two keys
 			std::map<om::SenKey, om::ParmGroup>::const_iterator
-				const itFind1{ sim::sKeyGroups.find(keyPair.key1()) };
+				const itFind1{ om::sim::sKeyGroups.find(keyPair.key1()) };
 			std::map<om::SenKey, om::ParmGroup>::const_iterator
-				const itFind2{ sim::sKeyGroups.find(keyPair.key2()) };
-			if ( (sim::sKeyGroups.end() != itFind1)
-			  && (sim::sKeyGroups.end() != itFind1)
+				const itFind2{ om::sim::sKeyGroups.find(keyPair.key2()) };
+			if ( (om::sim::sKeyGroups.end() != itFind1)
+			  && (om::sim::sKeyGroups.end() != itFind1)
 			   )
 			{
 				ParmGroup const & pg1 = itFind1->second;
