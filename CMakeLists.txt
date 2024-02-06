@@ -30,7 +30,7 @@ cmake_minimum_required(VERSION 3.13)
 
 set(aProjName "OriMania")
 set(aProjVersion "0.1.0") # Set this based on features, updates and patches
-set(aProjLib "${aProjName}Lib")
+set(aProjLib "${aProjName}")
 include(./cmake/func_setReleaseTag.cmake)
 setReleaseTag(aProjSourceIdentity)
 
