@@ -47,6 +47,11 @@
 #include <vector>
 
 
+namespace om
+{
+
+} // [om]
+
 namespace
 {
 	//! \brief String containing first few and last few lines of fitConPairs
@@ -94,6 +99,10 @@ namespace
 		// if true report various simulation data values
 		constexpr bool show{ false };
 
+		//
+		// Simulation
+		//
+
 		// report configuration
 		if (show)
 		{
@@ -101,62 +110,78 @@ namespace
 			std::cout << "using convention: " << convention << '\n';
 		}
 
-		// simulate configuration of a payload system
+	 	// [DoxyExample01]
+
+		// Simulate: configuration of a payload system
 		// in which sensor ExCal data are using some unknown
 		// arbitrary convention (here sConventionA is assumed unknown)
 		std::map<SenKey, SenOri> const boxKeyOris
 			{ om::sim::boxKeyOris(om::sim::sKeyGroups, om::sim::sConventionA) };
 
-		// simulated exported indendent exterior body orientations
+		// Simulate: exported indendent exterior body orientations
 		std::map<SenKey, SenOri> const indKeyOris
 			{ om::sim::independentKeyOris(boxKeyOris) };
 
-		// generate ROs from indepent exterior body orientations
-		std::map<KeyPair, SenOri> const relKeyOris
-			{ om::relativeOrientationBetweens(indKeyOris) };
+		//
+		// Check solution process
+		//
 
-		// report simulated data results
-		if (show)
+		// Get block box parameter groupings
+		// (here from simulation data, but in general should load these)
+		std::map<om::SenKey, om::ParmGroup>
+			const & keyGroups = om::sim::sKeyGroups;
+
+		// Compute fit error for each convention index
+		std::vector<Convention> const allCons{ Convention::allConventions() };
+		std::vector<FitNdxPair> fitIndexPairs
+			{ fitIndexPairsFor(keyGroups, indKeyOris, allCons) };
+
+		// Find the convention with the smallest error
+		// (for test here sort full collection to assess significance
+		// of the best error in context of other values - e.g. prominence).
+		std::sort(fitIndexPairs.begin(), fitIndexPairs.end());
+		double prominenceFraction{ engabra::g3::nan };
+		if (2u < fitIndexPairs.size())
 		{
-			// report simulated independent orientations
-			std::ostringstream msgIndEOs;
-			msgIndEOs << "\nSimulated independent orientations:\n";
-			msgIndEOs << indKeyOris << '\n';
-			std::cout << msgIndEOs.str() << '\n';
-
-			// report relative orientations computed from indpendent EOs
-			std::ostringstream msgROs;
-			msgROs << "\nRelative Orientations (in independent frame)\n";
-			msgROs << relKeyOris << '\n';
-			std::cout << msgROs.str() << '\n';
+			// check prominence 
+			double const & currBest = fitIndexPairs[0].first;
+			double const & nextBest = fitIndexPairs[1].first;
+			double const & lastBest = fitIndexPairs.back().first;
+			if (std::numeric_limits<double>::epsilon() < lastBest)
+			{
+				prominenceFraction = (nextBest - currBest) / lastBest;
+			}
 		}
 
-		std::vector<Convention> const allCons{ Convention::allConventions() };
-		std::vector<om::FitNdxPair> const fitConPairs
-			{ bestFitConventionPairs
-				(om::sim::sKeyGroups, relKeyOris, allCons)
-			};
+	 	// [DoxyExample01]
 
 		// check if correct number are computed
-		if (! (allCons.size() == fitConPairs.size()))
+		if (! (allCons.size() == fitIndexPairs.size()))
 		{
-			oss << "Failure of fitConPairs size test\n";
+			oss << "Failure of fitIndexPairs size test\n";
 			oss << "exp: " << allCons.size() << '\n';
-			oss << "got: " << fitConPairs.size() << '\n';
+			oss << "got: " << fitIndexPairs.size() << '\n';
 		}
 		else
 		{
 			std::size_t const expConventionId{ convention.asNumber() };
 			std::size_t const gotConventionId
-				{ allCons[fitConPairs[0].second].asNumber() };
+				{ allCons[fitIndexPairs[0].second].asNumber() };
 			if (! (gotConventionId == expConventionId))
 			{
 				oss << "Failure of find best convention test\n";
 				oss << "exp: " << expConventionId << '\n';
 				oss << "got: " << gotConventionId << '\n';
 				oss << "\nSampling of Results\n";
-				oss << infoStringFitCons(fitConPairs, allCons) << '\n';
+				oss << infoStringFitCons(fitIndexPairs, allCons) << '\n';
+			}
 
+			constexpr double tolFrac{ .05 }; // inspection of simulation data
+			if (! (tolFrac < prominenceFraction))
+			{
+				oss << "Failure of prominence fraction test\n";
+				oss << "exp: more than fraction = " << tolFrac << '\n';
+				oss << "got: fraction = " << prominenceFraction << '\n';
 			}
 
 		} // check found convention

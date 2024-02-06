@@ -171,7 +171,7 @@ namespace om
 	//! String with of FitNdxPair data with associated Convention
 	std::string
 	infoString
-		( om::FitNdxPair const & fitConPair
+		( FitNdxPair const & fitConPair
 		, std::vector<Convention> const & allConventions
 		)
 	{
@@ -186,7 +186,7 @@ namespace om
 		return oss.str();
 	}
 
-	/*! \brief Pairs of (fit error, allConventions index) (best at [0]).
+	/*! \brief Convention error values and associated convention index.
 	 *
 	 * Uses every element of allConventions to transform each of the
 	 * two ParmGroup values (both transformed with same convention). For
@@ -209,9 +209,9 @@ namespace om
 	 */
 	inline
 	std::vector<FitNdxPair>
-	bestFitConventionPairs
+	fitIndexPairsFor
 		( std::map<SenKey, ParmGroup> const & keyGroups
-		, std::map<KeyPair, SenOri> const & relKeyOris
+		, std::map<KeyPair, SenOri> const & keyIndROs
 		, std::vector<Convention> const & allCons
 		)
 	{
@@ -219,13 +219,13 @@ namespace om
 
 		// accumulation of fit errors, one for each convention in allCons
 		std::vector<double> const sumFitErrors
-			{ sseSumByConvention(keyGroups, relKeyOris, allCons) };
+			{ sseSumByConvention(keyGroups, keyIndROs, allCons) };
 
 		// normalize the scores by number of ROs
-		std::size_t const numROs{ relKeyOris.size() };
+		std::size_t const numROs{ keyIndROs.size() };
 		double const scale{ 1./static_cast<double>(numROs) };
 
-		// sort results to return best values
+		// associate the errors with allCons collection index
 		std::size_t const numFit{ sumFitErrors.size() };
 		allFitConPairs.reserve(numFit);
 		for (std::size_t nn{0u} ; nn < numFit ; ++nn)
@@ -234,12 +234,58 @@ namespace om
 				(std::make_pair(scale*sumFitErrors[nn], nn));
 		}
 
-		// sort by fit error
-		std::sort(allFitConPairs.begin(), allFitConPairs.end());
-
 		return allFitConPairs;
 	}
 
+	/*! \brief Convention error values and associated convention index.
+	 *
+	 * The keyIndEOs argument provide exterior orientation (EO) values
+	 * for each body of interest. These independent EO values are used
+	 * to compute relative orientations, RoInd, for each possible
+	 * (non-trivial) combination of the independent EOs.
+	 *
+	 * Each member of the allConventions collection, is utilized in
+	 * conjunction with the keyGroup instances (with the keyGroup's
+	 * SenKey matching the respective indKeyOri SenKey values). Together
+	 * the ParmGroup and Convention instances are used to create
+	 * candidate relative orientations in an assumed black box frame,
+	 * i.e. RoBox transform. A goodness of fit metric (Sum-squared-error)
+	 * is computed by comparing the RoInd and RoBox transformations.
+	 *
+	 * The fit error and the associated allConventions index (with
+	 * which that fit error is computed) are placed into the return
+	 * value collection.
+	 *
+	 * NOTE: There must be two or more individual EOs in order to
+	 *       compare candidate ROs. If not, the return collection
+	 *       will be empty.
+	 *
+	 * Example
+	 * \snippet test_Analysis.cpp DoxyExample01
+	 */
+	inline
+	std::vector<FitNdxPair>
+	fitIndexPairsFor
+		( std::map<SenKey, ParmGroup> const & keyGroups
+		, std::map<SenKey, SenOri> const & keyIndEOs
+		, std::vector<Convention> const & allConventions
+		)
+	{
+		std::vector<FitNdxPair> fitNdxPairs;
+
+		if (1u < keyIndEOs.size())
+		{
+			// generate ROs from indepent exterior body orientations
+			std::map<KeyPair, SenOri> const keyIndROs
+				{ relativeOrientationBetweens(keyIndEOs) };
+
+			// core algorithm operating on the relative orientations
+			fitNdxPairs = fitIndexPairsFor
+				(keyGroups, keyIndROs, allConventions);
+		}
+
+		return fitNdxPairs;
+	}
 
 } // [om]
 
