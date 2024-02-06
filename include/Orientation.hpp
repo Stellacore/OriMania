@@ -27,7 +27,7 @@
 #define OriMania_Orientation_INCL_
 
 /*! \file
-\brief Contains ######
+\brief Types and functions for handling rigid body orientation data.
 
 Example:
 \snippet test_Orientation.cpp DoxyExample01

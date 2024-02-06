@@ -61,8 +61,8 @@ This information is provided via simple ASCII files of the form:
 	angle angle angle # Note: order arbitrary
 
 Given a file like this for two or more sensors, OriMania performs a brute
-for exploration of all common conventions of the 3 angle and 3 distance
-values if all combinations for specifying a rigid body orientation
+force exploration of all common conventions of the 3 angle and 3 distance
+values in all combinations that specify a rigid body orientation
 (e.g. translate then rotate, rotate then translate, roll pitch then yaw,
 yaw roll then pitch, yaw pitch yaw, and so on, and so on, etc.).
 

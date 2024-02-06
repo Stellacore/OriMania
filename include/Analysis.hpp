@@ -27,7 +27,7 @@
 #define OriMania_Analysis_INCL_
 
 /*! \file
-\brief Contains Functions for analyzing orentation relationships.
+\brief Functions for analyzing orentation relationships.
 
 Example:
 \snippet test_Analysis.cpp DoxyExample01
@@ -261,7 +261,7 @@ namespace om
 	 *       will be empty.
 	 *
 	 * Example
-	 * \snippet test_Analysis.cpp DoxyExample01
+	 * \snippet test_Analyse.cpp DoxyExample01
 	 */
 	inline
 	std::vector<FitNdxPair>

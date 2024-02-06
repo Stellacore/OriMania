@@ -112,6 +112,10 @@ namespace
 
 	 	// [DoxyExample01]
 
+		//
+		// Simulation of input data
+		//
+
 		// Simulate: configuration of a payload system
 		// in which sensor ExCal data are using some unknown
 		// arbitrary convention (here sConventionA is assumed unknown)
@@ -122,14 +126,14 @@ namespace
 		std::map<SenKey, SenOri> const indKeyOris
 			{ om::sim::independentKeyOris(boxKeyOris) };
 
-		//
-		// Check solution process
-		//
-
 		// Get block box parameter groupings
 		// (here from simulation data, but in general should load these)
 		std::map<om::SenKey, om::ParmGroup>
 			const & keyGroups = om::sim::sKeyGroups;
+
+		//
+		// Determine which parameter conventions best match input data
+		//
 
 		// Compute fit error for each convention index
 		std::vector<Convention> const allCons{ Convention::allConventions() };

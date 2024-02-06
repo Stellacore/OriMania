@@ -27,7 +27,7 @@
 #define OriMania_Convention_INCL_
 
 /*! \file
-\brief Contains ######
+\brief Structures and functions related to orientation parameter conventions.
 
 Example:
 \snippet test_Convention.cpp DoxyExample01

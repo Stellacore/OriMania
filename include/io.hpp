@@ -27,7 +27,7 @@
 #define OriMania_io_INCL_
 
 /*! \file
-\brief Contains ######
+\brief Functions for supporting basic input/output operations.
 
 Example:
 \snippet test_io.cpp DoxyExample01
