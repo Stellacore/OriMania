@@ -49,6 +49,38 @@
 
 namespace
 {
+	//! \brief String containing first few and last few lines of fitConPairs
+	inline
+	std::string
+	infoStringFitCons
+		( std::vector<om::FitNdxPair> const & fitConPairs
+		, std::vector<om::Convention> const & allCons
+		, std::size_t const & numBeg = 8u
+		, std::size_t const & numEnd = 2u
+		)
+	{
+		std::ostringstream oss;
+
+		// report a few results
+		oss << '\n';
+		for (std::size_t nn{0u} ; nn < numBeg ; ++nn)
+		{
+			oss
+				<< om::infoString(fitConPairs[nn], allCons)
+				<< '\n';
+		}
+		oss << " fitError: ..." << '\n';
+		for (std::size_t nn{fitConPairs.size()-1u-numEnd}
+			; nn < (fitConPairs.size() - 1u) ; ++nn)
+		{
+			oss
+				<< om::infoString(fitConPairs[nn], allCons)
+				<< '\n';
+		}
+
+		return oss.str();
+	}
+
 	//! Check convention extraction from simulated data
 	void
 	testSim
@@ -57,11 +89,21 @@ namespace
 	{
 		using namespace om;
 
+		om::Convention const convention{ om::sim::sConventionA };
+
+		// if true report various simulation data values
+		constexpr bool show{ false };
+
+		// report configuration
+		if (show)
+		{
+			std::cout << '\n';
+			std::cout << "using convention: " << convention << '\n';
+		}
+
 		// simulate configuration of a payload system
 		// in which sensor ExCal data are using some unknown
 		// arbitrary convention (here sConventionA is assumed unknown)
-std::cout << '\n';
-std::cout << "using convention: " << om::sim::sConventionA.asNumber() << '\n';
 		std::map<SenKey, SenOri> const boxKeyOris
 			{ om::sim::boxKeyOris(om::sim::sKeyGroups, om::sim::sConventionA) };
 
@@ -73,25 +115,27 @@ std::cout << "using convention: " << om::sim::sConventionA.asNumber() << '\n';
 		std::map<KeyPair, SenOri> const relKeyOris
 			{ om::relativeOrientationBetweens(indKeyOris) };
 
-		//
 		// report simulated data results
-		//
+		if (show)
+		{
+			// report simulated independent orientations
+			std::ostringstream msgIndEOs;
+			msgIndEOs << "\nSimulated independent orientations:\n";
+			msgIndEOs << indKeyOris << '\n';
+			std::cout << msgIndEOs.str() << '\n';
 
-		// report simulated independent orientations
-		std::ostringstream msgIndEOs;
-		msgIndEOs << "\nSimulated independent orientations:\n";
-		msgIndEOs << indKeyOris << '\n';
-		std::cout << msgIndEOs.str() << '\n';
-
-		// report relative orientations computed from indpendent EOs
-		std::ostringstream msgROs;
-		msgROs << "\nRelative Orientations (in independent frame)\n";
-		msgROs << relKeyOris << '\n';
-		std::cout << msgROs.str() << '\n';
+			// report relative orientations computed from indpendent EOs
+			std::ostringstream msgROs;
+			msgROs << "\nRelative Orientations (in independent frame)\n";
+			msgROs << relKeyOris << '\n';
+			std::cout << msgROs.str() << '\n';
+		}
 
 		std::vector<Convention> const allCons{ Convention::allConventions() };
 		std::vector<om::FitNdxPair> const fitConPairs
-			{ fitConventionPairs(om::sim::sKeyGroups, relKeyOris, allCons) };
+			{ bestFitConventionPairs
+				(om::sim::sKeyGroups, relKeyOris, allCons)
+			};
 
 		// check if correct number are computed
 		if (! (allCons.size() == fitConPairs.size()))
@@ -102,32 +146,22 @@ std::cout << "using convention: " << om::sim::sConventionA.asNumber() << '\n';
 		}
 		else
 		{
-			// report a few results
-			std::size_t aFew{ 2u };
-			std::cout << '\n';
-			for (std::size_t nn{0u} ; nn < aFew ; ++nn)
+			std::size_t const expConventionId{ convention.asNumber() };
+			std::size_t const gotConventionId
+				{ allCons[fitConPairs[0].second].asNumber() };
+			if (! (gotConventionId == expConventionId))
 			{
-				using namespace engabra::g3;
-				double const & fitError = fitConPairs[nn].first;
-				Convention const & convention = allCons[fitConPairs[nn].second];
-				std::cout
-					<< " fitError: " << io::fixed(fitError)
-					<< "  convention: " << convention.asNumber()
-					<< '\n';
+				oss << "Failure of find best convention test\n";
+				oss << "exp: " << expConventionId << '\n';
+				oss << "got: " << gotConventionId << '\n';
+				oss << "\nSampling of Results\n";
+				oss << infoStringFitCons(fitConPairs, allCons) << '\n';
+
 			}
 
-		}
+		} // check found convention
 
-
-		// TODO replace this with real test code
-		std::string const fname(__FILE__);
-		bool const isTemplate{ (std::string::npos != fname.find("/_.cpp")) };
-		if (! isTemplate)
-		{
-			oss << "Failure to implement real test\n";
-		}
-
-	}
+	} // testSim
 
 }
 
