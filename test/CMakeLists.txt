@@ -30,6 +30,7 @@
 # === Test Programs
 # ===
 
+set(testLibName "OriManiaTest")
 
 set(mainProgs
 
@@ -38,7 +39,30 @@ set(mainProgs
 	test_Version # test project version info retrieval
 
 	test_Analyse # evaluate convention determination with simulated data
+	test_Convention # diverse conventions for representing orientations
+	test_Orientation # math operations involving orientation data
 
+	)
+
+add_library(${testLibName}
+	
+	Simulation.cpp
+
+	)
+
+target_include_directories(
+	${testLibName}
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/../include # public interface
+	PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}  # local test code includes
+	)
+
+target_link_libraries(
+	${testLibName}
+	PRIVATE
+		Engabra::Engabra
+		Rigibra::Rigibra
 	)
 
 foreach(mainProg ${mainProgs})
@@ -66,6 +90,7 @@ foreach(mainProg ${mainProgs})
 		PRIVATE
 			Engabra::Engabra
 			Rigibra::Rigibra
+			${testLibName}
 			${aProjLib}
 		)
 
