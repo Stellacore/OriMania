@@ -273,10 +273,15 @@ infoStringFitConventions
 	)
 {
 	std::ostringstream oss;
+	std::size_t count{0u};
 	for (std::vector<om::FitNdxPair>::const_iterator
 		iter{ fitNdxBeg } ; fitNdxEnd != iter ; ++iter)
 	{
-		oss << om::infoString(*iter, allConventions) << '\n';
+		if (0 < count++)
+		{
+			oss << '\n';
+		}
+		oss << om::infoString(*iter, allConventions);
 	}
 	return oss.str();
 }
