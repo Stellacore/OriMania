@@ -168,25 +168,6 @@ namespace om
 	//! Pair of (fitErrorValue, ConventionArrayIndex))
 	using FitNdxPair = std::pair<double, std::size_t>;
 
-	//! String with of FitNdxPair data with associated Convention
-	inline
-	std::string
-	infoString
-		( FitNdxPair const & fitConPair
-		, std::vector<Convention> const & allConventions
-		)
-	{
-		std::ostringstream oss;
-		double const & fitError = fitConPair.first;
-		Convention const & convention = allConventions[fitConPair.second];
-		using engabra::g3::io::fixed;
-		oss
-			<< " fitError: " << fixed(fitError)
-			<< "  convention: " << convention.asNumber()
-			;
-		return oss.str();
-	}
-
 	/*! \brief Convention error values and associated convention index.
 	 *
 	 * Uses every element of allConventions to transform each of the

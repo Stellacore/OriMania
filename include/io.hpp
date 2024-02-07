@@ -206,6 +206,43 @@ namespace om
 		return indOris;
 	}
 
+	//! String with of FitNdxPair data with associated Convention
+	inline
+	std::string
+	infoString
+		( FitNdxPair const & fitConPair
+		, std::vector<Convention> const & allConventions
+		)
+	{
+		std::ostringstream oss;
+		double const & fitError = fitConPair.first;
+		Convention const & convention = allConventions[fitConPair.second];
+		using engabra::g3::io::fixed;
+		oss
+			<< " fitError: " << fixed(fitError)
+			<< "  convention: " << convention.asNumber()
+			;
+		return oss.str();
+	}
+
+	//! \brief String containing range of fitIndexPairs
+	inline
+	std::string
+	infoStringFitConventions
+		( std::vector<om::FitNdxPair>::const_iterator const & fitNdxBeg
+		, std::vector<om::FitNdxPair>::const_iterator const & fitNdxEnd
+		, std::vector<om::Convention> const & allConventions
+		)
+	{
+		std::ostringstream oss;
+		for (std::vector<om::FitNdxPair>::const_iterator
+			iter{ fitNdxBeg } ; fitNdxEnd != iter ; ++iter)
+		{
+			oss << om::infoString(*iter, allConventions) << '\n';
+		}
+		return oss.str();
+	}
+
 	//! \brief String containing first few and last few lines of fitIndexPairs
 	inline
 	std::string
@@ -218,20 +255,33 @@ namespace om
 	{
 		std::ostringstream oss;
 
-		// report a few results
-		oss << '\n';
-		for (std::size_t nn{0u} ; nn < showNumBeg ; ++nn)
+		std::size_t const ndxBegAll{ 0u };
+		std::size_t const ndxEndAll{ fitIndexPairs.size() };
+		if (! ((showNumBeg + showNumEnd) < ndxEndAll))
 		{
-			oss
-				<< om::infoString(fitIndexPairs[nn], allConventions)
-				<< '\n';
+			// not enough data values, just show entire collection
+			oss << infoStringFitConventions
+				(fitIndexPairs.begin(), fitIndexPairs.end(), allConventions);
 		}
-		oss << " fitError: ..." << '\n';
-		for (std::size_t nn{fitIndexPairs.size()-1u-showNumEnd}
-			; nn < (fitIndexPairs.size() - 1u) ; ++nn)
+		else
 		{
-			oss
-				<< om::infoString(fitIndexPairs[nn], allConventions)
+			// show begining and end in separate sections
+			std::size_t const ndxBeg1{ ndxBegAll };
+			std::size_t const ndxEnd1{ ndxBeg1 + showNumBeg };
+			std::size_t const ndxEnd2{ ndxEndAll };
+			std::size_t const ndxBeg2{ ndxEnd2 - showNumEnd };
+			oss << infoStringFitConventions
+					( fitIndexPairs.begin() + ndxBeg1
+					, fitIndexPairs.begin() + ndxEnd1
+					, allConventions
+					)
+				<< '\n';
+			oss << " : ..." << '\n';
+			oss << infoStringFitConventions
+					( fitIndexPairs.begin() + ndxBeg2
+					, fitIndexPairs.begin() + ndxEnd2
+					, allConventions
+					)
 				<< '\n';
 		}
 
