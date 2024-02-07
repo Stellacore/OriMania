@@ -1,0 +1,24 @@
+##
+## Independent exterior orientation (EO) data examples
+##
+
+# Orientation by sequential angle sizes and 3 offset values
+# Comments start with hash until end of line.
+
+# NOTE: All three records are required per each sensor.
+# Convention: <senKey> <convention> # interptation convention
+# Distances: <senKey> <dist1> <dist2> <dist3>  # 3 distance[m]
+# Angles: <senKey> <angle1> <angle2> <angle3>  # 3 angles[rad]
+
+Convention: pg2  -+- 021 +-- 102 210 0
+Distances:  pg2  10.7  -60.7   31.1 
+Angles:     pg2  -.127   .619  -.317
+
+Convention: pg3  -+- 021 +-- 102 210 0
+Distances:  pg3  30.7   22.7  -61.3 
+Angles:     pg3  -.331  -.631   .239
+
+Convention: pg4  -+- 021 +-- 102 210 0
+Distances:  pg4  10.1  -40.9  -50.3 
+Angles:     pg4  -.109   .421   .523
+
