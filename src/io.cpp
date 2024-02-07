@@ -174,6 +174,80 @@ loadIndEOs
 	return indOris;
 }
 
+std::map<SenKey, ParmGroup>
+loadParmGroups
+	( std::istream & istrm
+	)
+{
+	std::map<SenKey, ParmGroup> pgs;
+	std::string line;
+	std::string keyword;
+	std::string senKey;
+	std::set<SenKey> senKeys;
+	std::map<SenKey, ThreeDistances> keyDistances;
+	std::map<SenKey, ThreeAngles> keyAngles;
+	while (istrm.good() && (! istrm.eof()))
+	{
+		line.clear();
+		std::getline(istrm, line);
+		std::string const record
+			{ trimmed(withoutComment(line)) };
+		if (! record.empty())
+		{
+			std::istringstream iss(record);
+			iss >> keyword >> senKey;
+			if ("Distances:" == keyword)
+			{
+				ThreeDistances dists
+					{ engabra::g3::null<double>()
+					, engabra::g3::null<double>()
+					, engabra::g3::null<double>()
+					};
+				iss >> dists[0] >> dists[1] >> dists[2];
+				using namespace engabra::g3;
+				if (isValid(dists))
+				{
+					keyDistances[senKey] = dists;
+					senKeys.insert(senKey);
+				}
+			}
+			else
+			if ("Angles:" == keyword)
+			{
+				ThreeAngles angles
+					{ engabra::g3::null<double>()
+					, engabra::g3::null<double>()
+					, engabra::g3::null<double>()
+					};
+				iss >> angles[0] >> angles[1] >> angles[2];
+				using namespace engabra::g3;
+				if (isValid(angles))
+				{
+					keyAngles[senKey] = angles;
+					senKeys.insert(senKey);
+				}
+			}
+		} // record parsing
+	} // stream reading
+
+	for (SenKey const & senKey : senKeys)
+	{
+		std::map<SenKey, ThreeDistances>::const_iterator
+			const itDistance{ keyDistances.find(senKey) };
+		std::map<SenKey, ThreeAngles>::const_iterator
+			const itAngle{ keyAngles.find(senKey) };
+		if ( (keyDistances.end() != itDistance)
+		  && (keyAngles.end() != itAngle)
+		   )
+		{
+			ParmGroup const pg{ itDistance->second, itAngle->second };
+			pgs[senKey] = pg;
+		}
+	}
+
+	return pgs;
+}
+
 std::string
 infoString
 	( FitNdxPair const & fitConPair

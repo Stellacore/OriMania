@@ -70,13 +70,23 @@ namespace om
 // Data values loaders
 //
 
-	/*! \brief Orientation results from EO ascii file.
+	/*! \brief Orientation results from EO ascii data stream.
 	 *
 	 * Example file content and use:
-	 * \snippet test_io.cpp DoxyExample01
+	 * \snippet test_io.cpp DoxyExampleLoadIndEOs
 	 */
 	std::map<SenKey, SenOri>
 	loadIndEOs
+		( std::istream & istrm
+		);
+	
+	/*! \brief ParmGroup data values loaded from ascii data stream.
+	 *
+	 * Example file content and use:
+	 * \snippet test_io.cpp DoxyExampleLoadPG
+	 */
+	std::map<SenKey, ParmGroup>
+	loadParmGroups
 		( std::istream & istrm
 		);
 
@@ -119,6 +129,22 @@ namespace
 //
 // For Convention.hpp
 //
+
+	//! Put std::array data to stream
+	template <std::size_t Dim = 3u>
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::array<double, Dim> const & values
+		)
+	{
+		for (double const & value : values)
+		{
+			ostrm << ' ' << engabra::g3::io::fixed(value);
+		}
+		return ostrm;
+	}
 
 	//! Put convention infoString() output to stream.
 	inline
