@@ -30,6 +30,7 @@
 
 #include "OriMania.hpp"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -101,7 +102,25 @@ main
 	std::ifstream ifs(use.theIndEoPath);
 	std::map<SenKey, SenOri> const indKeyOris{ loadIndEOs(ifs) };
 
+	// report progress
 	std::cout << "num indEO sensors: " << indKeyOris.size() << '\n';
+	for (std::map<SenKey, SenOri>::const_iterator
+		iter{indKeyOris.begin()} ; indKeyOris.end() != iter ; ++iter)
+	{
+		std::cout << "\nIndependent EO: " << std::endl;
+		std::cout << "  senKey: " << iter->first << std::endl;
+		std::cout << "   indEO: " << iter->second << std::endl;
+	}
+
+	if (! (1u < indKeyOris.size()))
+	{
+		std::cerr << "\nFatal Error:\n";
+		std::cerr
+			<< "  Only loaded " << indKeyOris.size() << " indpendent EOs.\n"
+			<< "  Need at least two in order to form relative orientations!\n"
+			<< '\n';
+		return 2;
+	}
 
 //TODO - need function to load these from file
 	using PG = om::ParmGroup;
@@ -117,8 +136,14 @@ main
 		};
 
 	std::vector<om::Convention> const allCons{ Convention::allConventions() };
-	std::vector<om::FitNdxPair> const fitIndexPairs
+	std::vector<om::FitNdxPair> fitIndexPairs
 		{ fitIndexPairsFor(keyGroups, indKeyOris, allCons) };
+
+	// sort from best and worst
+	std::sort(fitIndexPairs.begin(), fitIndexPairs.end());
+
+	// display first and last fiew
+	std::cout << om::infoStringFitConventions(fitIndexPairs, allCons) << '\n';
 
 	return 0;
 }
