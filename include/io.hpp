@@ -28,7 +28,9 @@
 
 /*! \file
 \brief Functions for supporting basic input/output operations.
+*/
 
+/*
 Example:
 \snippet test_io.cpp DoxyExample01
 
