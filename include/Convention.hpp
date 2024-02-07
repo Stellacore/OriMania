@@ -314,11 +314,17 @@ namespace om
 	 */
 	struct ConventionString
 	{
+		//! Three offset vector sign conventions - e.g. "---", "++-", etc.
 		std::string theStrLocSigns;
+		//! Three offset vector indices {0,1,2} - e.g. "012", "201", etc
 		std::string theStrLocNdxs;
+		//! Three angle size sign conventions - e.g. "---", "++-", etc.
 		std::string theStrAngSigns;
+		//! Three angle size indices {0,1,2} - e.g. "012", "201", etc
 		std::string theStrAngNdxs;
+		//! Three angle direction indices {0,1,2} - e.g. "012", "201", etc
 		std::string theStrBivNdxs;
+		//! Integer value representing OrderTR enum item - e.g. "0", "1"
 		std::string theStrOrder;
 
 		//! Construct from canonical encoding.
