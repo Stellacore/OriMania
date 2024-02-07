@@ -100,7 +100,7 @@ namespace
 
 		// Simulate: exported indendent exterior body orientations
 		std::map<SenKey, SenOri> const indKeyOris
-			{ om::sim::independentKeyOris(boxKeyOris) };
+			{ om::sim::independentKeyOris(boxKeyOris, om::sim::sXfmBoxWrtRef) };
 
 		// Get block box parameter groupings
 		// (here from simulation data, but in general should load these)
@@ -134,6 +134,20 @@ namespace
 		}
 
 	 	// [DoxyExample01]
+
+		// show data values (e.g. for dev use)
+		constexpr bool showData{ false };
+		if (showData)
+		{
+			for (std::map<SenKey, SenOri>::value_type
+				const & indKeyOri : indKeyOris)
+			{
+				std::cout
+					<< "EO: " << indKeyOri.first
+					<< " " << indKeyOri.second
+					<< '\n';
+			}
+		}
 
 		// check if correct number are computed
 		if (! (allCons.size() == fitIndexPairs.size()))

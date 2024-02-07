@@ -28,7 +28,9 @@
 
 /*! \file
 \brief Functions for supporting basic input/output operations.
+*/
 
+/*
 Example:
 \snippet test_io.cpp DoxyExample01
 
@@ -47,6 +49,11 @@ Example:
 
 namespace om
 {
+
+//
+// String processing utilities
+//
+
 	//! Leading portion of string before endChar
 	std::string
 	withoutComment
@@ -61,15 +68,33 @@ namespace om
 		, std::string const & white = " \t"
 		);
 
-	/*! \brief Orientation results from EO ascii file.
+//
+// Data values loaders
+//
+
+	/*! \brief Orientation results from EO ascii data stream.
 	 *
 	 * Example file content and use:
-	 * \snippet test_io.cpp DoxyExample01
+	 * \snippet test_io.cpp DoxyExampleLoadIndEOs
 	 */
 	std::map<SenKey, SenOri>
 	loadIndEOs
 		( std::istream & istrm
 		);
+	
+	/*! \brief ParmGroup data values loaded from ascii data stream.
+	 *
+	 * Example file content and use:
+	 * \snippet test_io.cpp DoxyExampleLoadPG
+	 */
+	std::map<SenKey, ParmGroup>
+	loadParmGroups
+		( std::istream & istrm
+		);
+
+//
+// Descriptive strings for various items
+//
 
 	//! String with of FitNdxPair data with associated Convention
 	std::string
@@ -106,6 +131,22 @@ namespace
 //
 // For Convention.hpp
 //
+
+	//! Put std::array data to stream
+	template <std::size_t Dim = 3u>
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::array<double, Dim> const & values
+		)
+	{
+		for (double const & value : values)
+		{
+			ostrm << ' ' << engabra::g3::io::fixed(value);
+		}
+		return ostrm;
+	}
 
 	//! Put convention infoString() output to stream.
 	inline
