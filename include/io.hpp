@@ -35,6 +35,7 @@ Example:
 */
 
 
+#include "Analysis.hpp"
 #include "Convention.hpp"
 #include "Orientation.hpp"
 
@@ -204,6 +205,39 @@ namespace om
 
 		return indOris;
 	}
+
+	//! \brief String containing first few and last few lines of fitIndexPairs
+	inline
+	std::string
+	infoStringFitConventions
+		( std::vector<om::FitNdxPair> const & fitIndexPairs
+		, std::vector<om::Convention> const & allConventions
+		, std::size_t const & showNumBeg = 8u
+		, std::size_t const & showNumEnd = 2u
+		)
+	{
+		std::ostringstream oss;
+
+		// report a few results
+		oss << '\n';
+		for (std::size_t nn{0u} ; nn < showNumBeg ; ++nn)
+		{
+			oss
+				<< om::infoString(fitIndexPairs[nn], allConventions)
+				<< '\n';
+		}
+		oss << " fitError: ..." << '\n';
+		for (std::size_t nn{fitIndexPairs.size()-1u-showNumEnd}
+			; nn < (fitIndexPairs.size() - 1u) ; ++nn)
+		{
+			oss
+				<< om::infoString(fitIndexPairs[nn], allConventions)
+				<< '\n';
+		}
+
+		return oss.str();
+	}
+
 
 } // [om]
 
