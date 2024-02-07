@@ -151,9 +151,9 @@ namespace om
 			using engabra::g3::io::fixed;
 			oss
 				<< "  Distances: "
-					<< fixed(theDistances[0], 1u, 6u)
-					<< fixed(theDistances[1], 1u, 6u)
-					<< fixed(theDistances[2], 1u, 6u)
+					<< fixed(theDistances[0], 4u, 6u)
+					<< fixed(theDistances[1], 4u, 6u)
+					<< fixed(theDistances[2], 4u, 6u)
 				<< "  Angles: "
 					<< fixed(theAngles[0], 1u, 9u)
 					<< fixed(theAngles[1], 1u, 9u)
