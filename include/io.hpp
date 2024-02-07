@@ -35,6 +35,7 @@ Example:
 */
 
 
+#include "Analysis.hpp"
 #include "Convention.hpp"
 #include "Orientation.hpp"
 
@@ -49,6 +50,7 @@ namespace om
 	namespace priv
 	{
 		//! Leading portion of string before endChar
+		inline
 		std::string
 		activePartOf
 			( std::string const & line
@@ -69,6 +71,7 @@ namespace om
 		}
 
 		//! Portion of string with leading and trailing white space removed
+		inline
 		std::string
 		trimmed
 			( std::string const & full
@@ -131,13 +134,10 @@ namespace om
 				iss >> keyword >> senKey;
 				if ("Convention:" == keyword)
 				{
-					ConventionString cs;
-					iss
-						>> cs.theStrLocSigns >> cs.theStrLocNdxs
-						>> cs.theStrAngSigns >> cs.theStrAngNdxs
-						>> cs.theStrBivNdxs
-						>> cs.theStrOrder
-						;
+					std::string encoding;
+					std::getline(iss, encoding);
+					ConventionString const cs
+						{ ConventionString::from(encoding) };
 					if (cs.isValid())
 					{
 						Convention const convention{ cs.convention() };
@@ -202,6 +202,89 @@ namespace om
 
 		return indOris;
 	}
+
+	//! String with of FitNdxPair data with associated Convention
+	inline
+	std::string
+	infoString
+		( FitNdxPair const & fitConPair
+		, std::vector<Convention> const & allConventions
+		)
+	{
+		std::ostringstream oss;
+		double const & fitError = fitConPair.first;
+		Convention const & convention = allConventions[fitConPair.second];
+		using engabra::g3::io::fixed;
+		oss
+			<< " fitError: " << fixed(fitError)
+			<< "  convention: " << convention.asNumber()
+			;
+		return oss.str();
+	}
+
+	//! \brief String containing range of fitIndexPairs
+	inline
+	std::string
+	infoStringFitConventions
+		( std::vector<om::FitNdxPair>::const_iterator const & fitNdxBeg
+		, std::vector<om::FitNdxPair>::const_iterator const & fitNdxEnd
+		, std::vector<om::Convention> const & allConventions
+		)
+	{
+		std::ostringstream oss;
+		for (std::vector<om::FitNdxPair>::const_iterator
+			iter{ fitNdxBeg } ; fitNdxEnd != iter ; ++iter)
+		{
+			oss << om::infoString(*iter, allConventions) << '\n';
+		}
+		return oss.str();
+	}
+
+	//! \brief String containing first few and last few lines of fitIndexPairs
+	inline
+	std::string
+	infoStringFitConventions
+		( std::vector<om::FitNdxPair> const & fitIndexPairs
+		, std::vector<om::Convention> const & allConventions
+		, std::size_t const & showNumBeg = 8u
+		, std::size_t const & showNumEnd = 2u
+		)
+	{
+		std::ostringstream oss;
+
+		std::size_t const ndxBegAll{ 0u };
+		std::size_t const ndxEndAll{ fitIndexPairs.size() };
+		if (! ((showNumBeg + showNumEnd) < ndxEndAll))
+		{
+			// not enough data values, just show entire collection
+			oss << infoStringFitConventions
+				(fitIndexPairs.begin(), fitIndexPairs.end(), allConventions);
+		}
+		else
+		{
+			// show begining and end in separate sections
+			std::size_t const ndxBeg1{ ndxBegAll };
+			std::size_t const ndxEnd1{ ndxBeg1 + showNumBeg };
+			std::size_t const ndxEnd2{ ndxEndAll };
+			std::size_t const ndxBeg2{ ndxEnd2 - showNumEnd };
+			oss << infoStringFitConventions
+					( fitIndexPairs.begin() + ndxBeg1
+					, fitIndexPairs.begin() + ndxEnd1
+					, allConventions
+					)
+				<< '\n';
+			oss << " : ..." << '\n';
+			oss << infoStringFitConventions
+					( fitIndexPairs.begin() + ndxBeg2
+					, fitIndexPairs.begin() + ndxEnd2
+					, allConventions
+					)
+				<< '\n';
+		}
+
+		return oss.str();
+	}
+
 
 } // [om]
 

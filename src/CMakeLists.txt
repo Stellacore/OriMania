@@ -37,3 +37,10 @@ target_include_directories(
 		${CMAKE_CURRENT_SOURCE_DIR}/ # local source headers
 	)
 
+target_link_libraries(
+	${aProjLib}
+	PRIVATE
+		Engabra::Engabra
+		Rigibra::Rigibra
+	)
+

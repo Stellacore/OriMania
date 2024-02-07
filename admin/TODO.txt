@@ -1,11 +1,12 @@
 
 
-Perhaps create subdirectory for main application programs
+Add loader for ParmGroup
 
-	/app - e.g. OriAnalyse
+Factor larger implementations to src/*.cpp (e.g. load, io,)
 
-For load file format, perhaps include convention used. E.g. by either
-a code, or by explicit values of Convention instance.
+Resolve different report convention in app/OriAnalysis
+
+For Convention numeric ID encoding,
 
 	Att: +++ 012  (6 bits)
 	Loc: +++ 012  (6 bits)
@@ -19,9 +20,4 @@ a code, or by explicit values of Convention instance.
 	2,2,2       = 6
 	1           = 1
 	            === 27
-
-	+++ 012 +++ 012 012 0
-	+++012+++0120120
-
-	ppp012ppp0120120
 

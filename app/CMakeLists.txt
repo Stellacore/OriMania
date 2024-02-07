@@ -27,44 +27,15 @@
 ##
 
 # ===
-# === Test Programs
+# === Application Programs
 # ===
-
-set(testLibName "OriManiaTest")
 
 set(mainProgs
 
-	test_cmake # test build system
-	_ # template for test cases
-	test_Version # test project version info retrieval
-
-	test_Analysis # evaluate convention determination with simulated data
-	test_Convention # diverse conventions for representing orientations
-	test_io # input/output utility functions
-	test_Orientation # math operations involving orientation data
+	OriAnalysis # brute force solution for 3 angle sequence conventions
 
 	)
 
-add_library(${testLibName}
-	
-	Simulation.cpp
-
-	)
-
-target_include_directories(
-	${testLibName}
-	PUBLIC
-		${CMAKE_CURRENT_SOURCE_DIR}/../include # public interface
-	PRIVATE
-		${CMAKE_CURRENT_SOURCE_DIR}  # local test code includes
-	)
-
-target_link_libraries(
-	${testLibName}
-	PRIVATE
-		Engabra::Engabra
-		Rigibra::Rigibra
-	)
 
 foreach(mainProg ${mainProgs})
 
@@ -91,11 +62,8 @@ foreach(mainProg ${mainProgs})
 		PRIVATE
 			Engabra::Engabra
 			Rigibra::Rigibra
-			${testLibName}
 			${aProjLib}
 		)
-
-	add_test(NAME ${mainProg} COMMAND ${mainProg})
 
 endforeach(mainProg)
 

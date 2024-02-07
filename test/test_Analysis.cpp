@@ -54,38 +54,6 @@ namespace om
 
 namespace
 {
-	//! \brief String containing first few and last few lines of fitConPairs
-	inline
-	std::string
-	infoStringFitCons
-		( std::vector<om::FitNdxPair> const & fitConPairs
-		, std::vector<om::Convention> const & allCons
-		, std::size_t const & numBeg = 8u
-		, std::size_t const & numEnd = 2u
-		)
-	{
-		std::ostringstream oss;
-
-		// report a few results
-		oss << '\n';
-		for (std::size_t nn{0u} ; nn < numBeg ; ++nn)
-		{
-			oss
-				<< om::infoString(fitConPairs[nn], allCons)
-				<< '\n';
-		}
-		oss << " fitError: ..." << '\n';
-		for (std::size_t nn{fitConPairs.size()-1u-numEnd}
-			; nn < (fitConPairs.size() - 1u) ; ++nn)
-		{
-			oss
-				<< om::infoString(fitConPairs[nn], allCons)
-				<< '\n';
-		}
-
-		return oss.str();
-	}
-
 	//! Check convention extraction from simulated data
 	void
 	testSim
@@ -185,7 +153,7 @@ namespace
 				oss << "exp: " << expConventionId << '\n';
 				oss << "got: " << gotConventionId << '\n';
 				oss << "\nSampling of Results\n";
-				oss << infoStringFitCons(fitIndexPairs, allCons) << '\n';
+				oss << infoStringFitConventions(fitIndexPairs, allCons) << '\n';
 			}
 
 			constexpr double tolFrac{ .05 }; // inspection of simulation data
