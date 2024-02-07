@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <map>
 #include <vector>
 
@@ -43,6 +44,16 @@ namespace
 	struct Usage
 	{
 		std::filesystem::path theIndEoPath{};
+		std::filesystem::path theParmGroupPath{};
+
+		//! True if verboase output has been requested
+		inline
+		bool
+		isVerbose
+			() const
+		{
+			return true;
+		}
 
 		//! Check invocation arguments.
 		explicit
@@ -52,15 +63,16 @@ namespace
 			)
 		{
 			int narg{ 1 };
-			if (narg < argc)
+			if (2 < argc)
 			{
 				theIndEoPath = argv[narg++];
+				theParmGroupPath = argv[narg++];
 			}
 			else
 			{
 				std::cerr << '\n' << argv[0] << " Bad invocation:"
 					"\nUsage:"
-					"\n  <ProgName> <IndEoFile>"
+					"\n  <ProgName> <IndEoPath> <ParmGroupPath>"
 					"\n\n"
 					;
 			}
@@ -99,18 +111,9 @@ main
 
 	using namespace om;
 
-	std::ifstream ifs(use.theIndEoPath);
-	std::map<SenKey, SenOri> const indKeyOris{ loadIndEOs(ifs) };
-
-	// report progress
-	std::cout << "num indEO sensors: " << indKeyOris.size() << '\n';
-	for (std::map<SenKey, SenOri>::const_iterator
-		iter{indKeyOris.begin()} ; indKeyOris.end() != iter ; ++iter)
-	{
-		std::cout << "\nIndependent EO: " << std::endl;
-		std::cout << "  senKey: " << iter->first << std::endl;
-		std::cout << "   indEO: " << iter->second << std::endl;
-	}
+	// load indepenent EOs from specified file
+	std::ifstream ifsEO(use.theIndEoPath);
+	std::map<SenKey, SenOri> const indKeyOris{ loadIndEOs(ifsEO) };
 
 	if (! (1u < indKeyOris.size()))
 	{
@@ -122,28 +125,69 @@ main
 		return 2;
 	}
 
-//TODO - need function to load these from file
-	using PG = om::ParmGroup;
-	//! A diverse selection of angle and distance parameters
-	static std::map<om::SenKey, om::ParmGroup> const keyGroups
-		{ { "pg0", PG{ {    .0,    .0,    .0 }, {  .000,  .000,  .000,} } }
-		, { "pg1", PG{ { -60.1,  10.3,  21.1 }, {  .617, -.113, -.229 } } }
-		, { "pg2", PG{ {  10.7, -60.7,  31.1 }, { -.127,  .619, -.317 } } }
-		, { "pg3", PG{ {  30.7,  22.7, -61.3 }, { -.331, -.631,  .239 } } }
-		, { "pg4", PG{ {  10.1, -40.9, -50.3 }, { -.109,  .421,  .523 } } }
-		, { "pg5", PG{ { -41.9,  22.3, -52.1 }, {  .431, -.233,  .541 } } }
-		, { "pg6", PG{ { -40.1, -50.9,  31.3 }, {  .433,  .547, -.337 } } }
-		};
+	// load ParmGroups from specified file
+	std::ifstream ifsPG(use.theParmGroupPath);
+	std::map<om::SenKey, om::ParmGroup>
+		const keyPGs{ om::loadParmGroups(ifsPG) };
 
 	std::vector<om::Convention> const allCons{ Convention::allConventions() };
 	std::vector<om::FitNdxPair> fitIndexPairs
-		{ fitIndexPairsFor(keyGroups, indKeyOris, allCons) };
+		{ fitIndexPairsFor(keyPGs, indKeyOris, allCons) };
 
 	// sort from best and worst
 	std::sort(fitIndexPairs.begin(), fitIndexPairs.end());
 
-	// display first and last fiew
-	std::cout << om::infoStringFitConventions(fitIndexPairs, allCons) << '\n';
+	// report data encountered
+	if (use.isVerbose())
+	{
+		std::ostringstream msg;
+
+		// report independent EO values
+		msg << '\n';
+		msg << "Independent EO count: " << indKeyOris.size() << '\n';
+		for (std::map<SenKey, SenOri>::const_iterator
+			iter{indKeyOris.begin()} ; indKeyOris.end() != iter ; ++iter)
+		{
+			msg
+				<< std::setw(12u) << iter->first
+				<< ' ' << iter->second
+				<< '\n';
+		}
+
+		// report ParmGroup values
+		msg << '\n';
+		for (std::map<om::SenKey, om::ParmGroup>::value_type
+			const & keyPG : keyPGs)
+		{
+			msg << "PG: " << keyPG.first
+				<< " " << keyPG.second
+				<< '\n';
+		}
+
+		// display first and last several lines
+		msg << '\n';
+		msg << om::infoStringFitConventions(fitIndexPairs, allCons) << '\n';
+		msg << "===\n";
+
+		std::cout << msg.str();
+	}
+
+	// report results
+	if (! fitIndexPairs.empty())
+	{
+		std::size_t const numShow
+			{ std::min((std::size_t)5u, (std::size_t)fitIndexPairs.size()) };
+		std::cout << '\n';
+		std::cout << "Best fitting Conventions\n";
+		std::cout << om::infoStringFitConventions
+			(fitIndexPairs.begin(), fitIndexPairs.begin()+numShow, allCons)
+			<< '\n';
+		std::cout << '\n';
+	}
+	else
+	{
+		std::cerr << "Error: No results to report\n" << std::endl;
+	}
 
 	return 0;
 }
