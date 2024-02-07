@@ -10,6 +10,9 @@ set(srcFiles
 
 	OriMania.cpp
 
+	Convention.cpp
+	io.cpp
+
 	)
 
 message("### aProjLib: ${aProjLib}")
