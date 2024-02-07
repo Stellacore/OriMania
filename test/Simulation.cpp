@@ -56,6 +56,7 @@ boxKeyOris
 std::map<om::SenKey, om::SenOri>
 independentKeyOris
 	( std::map<om::SenKey, om::SenOri> const & boxKeyOris
+	, SenOri const & oriBoxWrtRef
 	)
 {
 	using namespace om;
@@ -66,7 +67,6 @@ independentKeyOris
 		using namespace rigibra;
 		SenKey const & key = boxKeyOri.first;
 		SenOri const & oriSenWrtBox = boxKeyOri.second;
-		SenOri const & oriBoxWrtRef = om::sim::sXfmBoxWrtRef;
 		SenOri const oriSenWrtRef{ oriSenWrtBox * oriBoxWrtRef };
 		indKeyOris[key] = oriSenWrtRef;
 	}

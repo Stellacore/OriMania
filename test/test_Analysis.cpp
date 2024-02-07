@@ -100,7 +100,16 @@ namespace
 
 		// Simulate: exported indendent exterior body orientations
 		std::map<SenKey, SenOri> const indKeyOris
-			{ om::sim::independentKeyOris(boxKeyOris) };
+			{ om::sim::independentKeyOris(boxKeyOris, om::sim::sXfmBoxWrtRef) };
+
+		for (std::map<SenKey, SenOri>::value_type
+			const & indKeyOri : indKeyOris)
+		{
+			std::cout
+				<< "EO: " << indKeyOri.first
+				<< " " << indKeyOri.second
+				<< '\n';
+		}
 
 		// Get block box parameter groupings
 		// (here from simulation data, but in general should load these)
