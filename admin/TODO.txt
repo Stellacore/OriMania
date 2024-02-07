@@ -6,15 +6,7 @@ Factor larger implementations to src/*.cpp (e.g. load, io,)
 
 Resolve different report convention in app/OriAnalysis
 
-Add Conventions ability to report +++... style strings (to/from string?)
-
-
-Perhaps create subdirectory for main application programs
-
-	/app - e.g. OriAnalysis
-
-For load file format, perhaps include convention used. E.g. by either
-a code, or by explicit values of Convention instance.
+For Convention numeric ID encoding,
 
 	Att: +++ 012  (6 bits)
 	Loc: +++ 012  (6 bits)
@@ -28,9 +20,4 @@ a code, or by explicit values of Convention instance.
 	2,2,2       = 6
 	1           = 1
 	            === 27
-
-	+++ 012 +++ 012 012 0
-	+++012+++0120120
-
-	ppp012ppp0120120
 

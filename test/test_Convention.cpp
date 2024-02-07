@@ -183,6 +183,36 @@ namespace
 		}
 	}
 
+	//! Check string en/de-coding of conventions
+	void
+	testEncode
+		( std::ostream & oss
+		)
+	{
+		std::string const expStr("+++ 012 +++ 012 012 0");
+		om::ConventionString const cs1{ om::ConventionString::from(expStr) };
+		std::string const gotStr{ cs1.stringEncoding() };
+		if (! (gotStr == expStr))
+		{
+			oss << "Failure of string encoding test\n";
+			oss << "exp: '" << expStr << "'\n";
+			oss << "got: '" << gotStr << "'\n";
+		}
+
+		om::Convention const convention{ cs1.convention() };
+		om::ConventionString const cs2
+			{ om::ConventionString::from(convention) };
+
+		if (! (cs2.stringEncoding() == cs1.stringEncoding()))
+		{
+			oss << "Failure of Convention reconstruction test\n";
+			oss << "cs1: " << cs1.stringEncoding() << '\n';
+			oss << "convention: " << convention << '\n';
+			oss << "cs2: " << cs2.stringEncoding() << '\n';
+		}
+
+	}
+
 }
 
 //! Check behavior of Convention handling
@@ -196,6 +226,7 @@ main
 	testPermuations(oss);
 	testKeys(oss);
 	testTransforms(oss);
+	testEncode(oss);
 
 	if (oss.str().empty()) // Only pass if no errors were encountered
 	{

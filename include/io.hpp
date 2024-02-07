@@ -134,13 +134,10 @@ namespace om
 				iss >> keyword >> senKey;
 				if ("Convention:" == keyword)
 				{
-					ConventionString cs;
-					iss
-						>> cs.theStrLocSigns >> cs.theStrLocNdxs
-						>> cs.theStrAngSigns >> cs.theStrAngNdxs
-						>> cs.theStrBivNdxs
-						>> cs.theStrOrder
-						;
+					std::string encoding;
+					std::getline(iss, encoding);
+					ConventionString const cs
+						{ ConventionString::from(encoding) };
 					if (cs.isValid())
 					{
 						Convention const convention{ cs.convention() };

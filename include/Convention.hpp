@@ -28,11 +28,13 @@
 
 /*! \file
 \brief Structures and functions related to orientation parameter conventions.
+*/
 
+/*
 Example:
 \snippet test_Convention.cpp DoxyExample01
-
 */
+
 
 
 #include <Rigibra>
@@ -543,9 +545,13 @@ namespace om
 
 	}; // Convention
 
-	/*! \brief Represent Convention as strings w/ to/from string ablities.
+	/*! \brief Represent Convention as string with to/from-string ablities.
 	 *
-	 * For internal use in i/o implementation.
+	 * The various individual conventions of Convention class members
+	 * are represented by strings. E.g. strings of '+' and '-' characters
+	 * for sign conventions, and strings of digits [0,1,2] for index
+	 * conventions. The enumeration OrderTR is represented as the
+	 * enumeration item value (integer cast of enum type).
 	 */
 	struct ConventionString
 	{
@@ -555,21 +561,6 @@ namespace om
 		std::string theStrAngNdxs;
 		std::string theStrBivNdxs;
 		std::string theStrOrder;
-
-		inline
-		bool
-		isValid
-			() const
-		{
-			return
-				(  (3u == theStrLocSigns.size())
-				&& (3u == theStrLocNdxs.size())
-				&& (3u == theStrAngSigns.size())
-				&& (3u == theStrAngNdxs.size())
-				&& (3u == theStrBivNdxs.size())
-				&& (1u == theStrOrder.size())
-				);
-		}
 
 		//! Convert string characters [-,+] into {-1.,+1.}
 		inline
@@ -678,27 +669,100 @@ namespace om
 			return order;
 		}
 
+		//! A '+' or '-' character depending on the sign of aByte
 		inline
-		Convention
-		convention
-			() const
+		static
+		std::string::value_type
+		pmCharFor
+			( int8_t const & aByte
+			)
 		{
-			/* -- strings to decode
-			std::string theStrLocSigns;
-			std::string theStrLocNdxs;
-			std::string theStrAngSigns;
-			std::string theStrAngNdxs;
-			std::string theStrBivNdxs;
-			std::string theStrOrder;
-			*/
-			ThreeSigns const locSigns{ threeSigns(theStrLocSigns) };
-			ThreeIndices const locNdxs{ threeIndices(theStrLocNdxs) };
-			ThreeSigns const angSigns{ threeSigns(theStrAngSigns) };
-			ThreeIndices const angNdxs{ threeIndices(theStrAngNdxs) };
-			ThreeIndices const bivNdxs{ threeIndices(theStrBivNdxs) };
-			OrderTR const order{ orderFrom(theStrOrder) };
+			std::string::value_type aChar{ '+' };
+			if (aByte < 0)
+			{
+				aChar = '-';
+			}
+			return aChar;
+		}
 
-			/* -- Convention members needed
+		//! String of +/- characters for signed integer values
+		inline
+		static
+		std::string
+		stringFrom
+			( ThreeSigns const & signInts
+			)
+		{
+			std::ostringstream oss;
+			//	using ThreeSigns = std::array<std::int8_t, 3u>;
+			oss
+				<< pmCharFor(signInts[0])
+				<< pmCharFor(signInts[1])
+				<< pmCharFor(signInts[2])
+				;
+			return oss.str();
+		}
+
+		//! String of [012] characters for unsigned integer values
+		inline
+		static
+		std::string
+		stringFrom
+			( ThreeIndices const & ndxInts
+			)
+		{
+			std::ostringstream oss;
+			//	using ThreeIndices = std::array<std::uint8_t, 3u>;
+			oss
+				<< static_cast<int>(ndxInts[0])
+				<< static_cast<int>(ndxInts[1])
+				<< static_cast<int>(ndxInts[2])
+				;
+			return oss.str();
+		}
+
+		//! String of [0...] characters for enum OrderTR type.
+		inline
+		static
+		std::string
+		stringFrom
+			( OrderTR const & order
+			)
+		{
+			std::ostringstream oss;
+			oss << static_cast<int>(order);
+			return oss.str();
+		}
+
+		//! Construct from canonical encoding.
+		inline
+		static
+		ConventionString
+		from
+			( Convention const & convention
+			)
+		{
+			std::string const strLocSigns
+				{ stringFrom(convention.theAngSigns) };
+			std::string const strLocNdxs
+				{ stringFrom(convention.theAngIndices) };
+			std::string const strAngSigns
+				{ stringFrom(convention.theLocSigns) };
+			std::string const strAngNdxs
+				{ stringFrom(convention.theLocIndices) };
+			std::string const strBivNdxs
+				{ stringFrom(convention.theBivIndices) };
+			std::string const strOrder
+				{ stringFrom(convention.theOrder) };
+			return ConventionString
+				{ strLocSigns
+				, strLocNdxs
+				, strAngSigns
+				, strAngNdxs
+				, strBivNdxs
+				, strOrder
+				};
+			/*
 			ThreeSigns theAngSigns;
 			ThreeIndices theAngIndices;
 			ThreeSigns theLocSigns;
@@ -706,6 +770,75 @@ namespace om
 			ThreeIndices theBivIndices;
 			OrderTR theOrder;
 			*/
+		}
+
+		//! Construct from canonical encoding.
+		inline
+		static
+		ConventionString
+		from
+			( std::string const & encoding
+			)
+		{
+			std::istringstream iss(encoding);
+			ConventionString cs;
+			iss
+				>> cs.theStrLocSigns >> cs.theStrLocNdxs
+				>> cs.theStrAngSigns >> cs.theStrAngNdxs
+				>> cs.theStrBivNdxs
+				>> cs.theStrOrder
+				;
+			return cs;
+		}
+
+		//! Canonical string encoding for a convention
+		inline
+		std::string
+		stringEncoding
+			(
+			) const
+		{
+			std::ostringstream oss;
+			oss
+				<< theStrLocSigns
+				<< ' ' << theStrLocNdxs
+				<< ' ' << theStrAngSigns
+				<< ' ' << theStrAngNdxs
+				<< ' ' << theStrBivNdxs
+				<< ' ' << theStrOrder
+				;
+			return oss.str();
+		}
+
+		//! True if all strings components are valid
+		inline
+		bool
+		isValid
+			() const
+		{
+			// quick check on length - could/should inspect contents as well
+			return
+				(  (3u == theStrLocSigns.size())
+				&& (3u == theStrLocNdxs.size())
+				&& (3u == theStrAngSigns.size())
+				&& (3u == theStrAngNdxs.size())
+				&& (3u == theStrBivNdxs.size())
+				&& (1u == theStrOrder.size())
+				);
+		}
+
+		//! Convention associated with current string values
+		inline
+		Convention
+		convention
+			() const
+		{
+			ThreeSigns const locSigns{ threeSigns(theStrLocSigns) };
+			ThreeIndices const locNdxs{ threeIndices(theStrLocNdxs) };
+			ThreeSigns const angSigns{ threeSigns(theStrAngSigns) };
+			ThreeIndices const angNdxs{ threeIndices(theStrAngNdxs) };
+			ThreeIndices const bivNdxs{ threeIndices(theStrBivNdxs) };
+			OrderTR const order{ orderFrom(theStrOrder) };
 			return Convention
 				{ locSigns, locNdxs, angSigns, angNdxs, bivNdxs, order };
 		}
