@@ -38,7 +38,7 @@ set(mainProgs
 	_ # template for test cases
 	test_Version # test project version info retrieval
 
-	test_Analyse # evaluate convention determination with simulated data
+	test_Analysis # evaluate convention determination with simulated data
 	test_Convention # diverse conventions for representing orientations
 	test_io # input/output utility functions
 	test_Orientation # math operations involving orientation data

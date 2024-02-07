@@ -261,7 +261,7 @@ namespace om
 	 *       will be empty.
 	 *
 	 * Example
-	 * \snippet test_Analyse.cpp DoxyExample01
+	 * \snippet test_Analysis.cpp DoxyExample01
 	 */
 	inline
 	std::vector<FitNdxPair>
