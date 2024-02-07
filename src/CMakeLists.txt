@@ -11,6 +11,7 @@ set(srcFiles
 	OriMania.cpp
 
 	Convention.cpp
+	io.cpp
 
 	)
 
