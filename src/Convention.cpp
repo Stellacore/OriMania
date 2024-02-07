@@ -141,6 +141,171 @@ namespace
 namespace om
 {
 
+namespace priv
+{
+
+	//! A '+' or '-' character depending on the sign of aByte
+	inline
+	std::string::value_type
+	pmCharFor
+		( int8_t const & aByte
+		)
+	{
+		std::string::value_type aChar{ '+' };
+		if (aByte < 0)
+		{
+			aChar = '-';
+		}
+		return aChar;
+	}
+
+
+	//! Convert string characters [-,+] into {-1.,+1.}
+	inline
+	double
+	signFrom
+		( std::string::value_type const & aChar
+		)
+	{
+		double value{ engabra::g3::null<double>() };
+		if ('-' == aChar)
+		{
+			value = -1.;
+		}
+		else
+		if ('+' == aChar)
+		{
+			value = 1.;
+		}
+		return value;
+	}
+
+	//! Convert string characters [012] int size_t types
+	inline
+	std::uint8_t
+	indexFrom
+		( std::string::value_type const & aChar
+		)
+	{
+		std::uint8_t ndx{ 255u };
+		if ('0' == aChar)
+		{
+			ndx = 0;
+		}
+		else
+		if ('1' == aChar)
+		{
+			ndx = 1;
+		}
+		else
+		if ('2' == aChar)
+		{
+			ndx = 2;
+		}
+		return ndx;
+	}
+
+} // [priv]
+
+
+
+//
+//==========================================================================
+// ConventionString encoding support
+//==========================================================================
+//
+
+std::string
+stringFrom
+	( om::ThreeSigns const & signInts
+	)
+{
+	std::ostringstream oss;
+	//	using ThreeSigns = std::array<std::int8_t, 3u>;
+	oss
+		<< priv::pmCharFor(signInts[0])
+		<< priv::pmCharFor(signInts[1])
+		<< priv::pmCharFor(signInts[2])
+		;
+	return oss.str();
+}
+
+std::string
+stringFrom
+	( ThreeIndices const & ndxInts
+	)
+{
+	std::ostringstream oss;
+	//	using ThreeIndices = std::array<std::uint8_t, 3u>;
+	oss
+		<< static_cast<int>(ndxInts[0])
+		<< static_cast<int>(ndxInts[1])
+		<< static_cast<int>(ndxInts[2])
+		;
+	return oss.str();
+}
+
+std::string
+stringFrom
+	( OrderTR const & order
+	)
+{
+	std::ostringstream oss;
+	oss << static_cast<int>(order);
+	return oss.str();
+}
+
+ThreeSigns
+threeSignsFrom
+	( std::string const & str
+	)
+{
+	ThreeSigns signs{ -128, -128, -128 };
+	if (3u == str.size())
+	{
+		signs[0] = priv::signFrom(str[0]);
+		signs[1] = priv::signFrom(str[1]);
+		signs[2] = priv::signFrom(str[2]);
+	}
+	return signs;
+}
+
+ThreeIndices
+threeIndicesFrom
+	( std::string const & str
+	)
+{
+	ThreeIndices ndxs{ 255u, 255u, 255u };
+	if (3u == str.size())
+	{
+		ndxs[0] = priv::indexFrom(str[0]);
+		ndxs[1] = priv::indexFrom(str[1]);
+		ndxs[2] = priv::indexFrom(str[2]);
+	}
+	return ndxs;
+}
+
+OrderTR
+orderTRFrom
+	( std::string const & str
+	)
+{
+	OrderTR order{ Unknown };
+	if (1u == str.size())
+	{
+		if ('0' == str[0])
+		{
+			order = TranRot;
+		}
+		else
+		if ('1' == str[0])
+		{
+			order = RotTran;
+		}
+	}
+	return order;
+}
+
 //
 //==========================================================================
 // Convention
@@ -368,162 +533,6 @@ Convention :: infoString
 // ConventionString
 //==========================================================================
 //
-
-/*
-// static
-double
-ConventionString :: signFrom
-	( std::string::value_type const & aChar
-	)
-{
-	double value{ engabra::g3::null<double>() };
-	if ('-' == aChar)
-	{
-		value = -1.;
-	}
-	else
-	if ('+' == aChar)
-	{
-		value = 1.;
-	}
-	return value;
-}
-
-// static
-std::uint8_t
-ConventionString :: indexFrom
-	( std::string::value_type const & aChar
-	)
-{
-	std::uint8_t ndx{ 255u };
-	if ('0' == aChar)
-	{
-		ndx = 0;
-	}
-	else
-	if ('1' == aChar)
-	{
-		ndx = 1;
-	}
-	else
-	if ('2' == aChar)
-	{
-		ndx = 2;
-	}
-	return ndx;
-}
-
-// static
-ThreeSigns
-ConventionString :: threeSigns
-	( std::string const & str
-	)
-{
-	ThreeSigns signs{ -128, -128, -128 };
-	if (3u == str.size())
-	{
-		signs[0] = signFrom(str[0]);
-		signs[1] = signFrom(str[1]);
-		signs[2] = signFrom(str[2]);
-	}
-	return signs;
-}
-
-// static
-ThreeIndices
-ConventionString :: threeIndices
-	( std::string const & str
-	)
-{
-	ThreeIndices ndxs{ 255u, 255u, 255u };
-	if (3u == str.size())
-	{
-		ndxs[0] = indexFrom(str[0]);
-		ndxs[1] = indexFrom(str[1]);
-		ndxs[2] = indexFrom(str[2]);
-	}
-	return ndxs;
-}
-
-// static
-OrderTR
-ConventionString :: orderFrom
-	( std::string const & str
-	)
-{
-	OrderTR order{ Unknown };
-	if (1u == str.size())
-	{
-		if ('0' == str[0])
-		{
-			order = TranRot;
-		}
-		else
-		if ('1' == str[0])
-		{
-			order = RotTran;
-		}
-	}
-	return order;
-}
-
-// static
-std::string::value_type
-ConventionString :: pmCharFor
-	( int8_t const & aByte
-	)
-{
-	std::string::value_type aChar{ '+' };
-	if (aByte < 0)
-	{
-		aChar = '-';
-	}
-	return aChar;
-}
-
-// static
-std::string
-ConventionString :: stringFrom
-	( ThreeSigns const & signInts
-	)
-{
-	std::ostringstream oss;
-	//	using ThreeSigns = std::array<std::int8_t, 3u>;
-	oss
-		<< pmCharFor(signInts[0])
-		<< pmCharFor(signInts[1])
-		<< pmCharFor(signInts[2])
-		;
-	return oss.str();
-}
-
-// static
-std::string
-ConventionString :: stringFrom
-	( ThreeIndices const & ndxInts
-	)
-{
-	std::ostringstream oss;
-	//	using ThreeIndices = std::array<std::uint8_t, 3u>;
-	oss
-		<< static_cast<int>(ndxInts[0])
-		<< static_cast<int>(ndxInts[1])
-		<< static_cast<int>(ndxInts[2])
-		;
-	return oss.str();
-}
-
-// static
-std::string
-ConventionString :: stringFrom
-	( OrderTR const & order
-	)
-{
-	std::ostringstream oss;
-	oss << static_cast<int>(order);
-	return oss.str();
-}
-*/
 
 // static
 ConventionString

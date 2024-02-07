@@ -1,4 +1,3 @@
-//
 // MIT License
 //
 // Copyright (c) 2024 Stellacore Corporation
@@ -80,169 +79,45 @@ namespace om
 	//! Alias for three distinct planes (e.g. basis for sequential rotation)
 	using ThreePlanes = std::array<engabra::g3::BiVector, 3u>;
 
-		//! A '+' or '-' character depending on the sign of aByte
-		inline
-		std::string::value_type
-		pmCharFor
-			( int8_t const & aByte
-			)
-		{
-			std::string::value_type aChar{ '+' };
-			if (aByte < 0)
-			{
-				aChar = '-';
-			}
-			return aChar;
-		}
+	//! String of +/- characters for signed integer values
+	std::string
+	stringFrom
+		( ThreeSigns const & signInts
+		);
 
-		//! String of +/- characters for signed integer values
-		inline
-		std::string
-		stringFrom
-			( ThreeSigns const & signInts
-			)
-		{
-			std::ostringstream oss;
-			//	using ThreeSigns = std::array<std::int8_t, 3u>;
-			oss
-				<< pmCharFor(signInts[0])
-				<< pmCharFor(signInts[1])
-				<< pmCharFor(signInts[2])
-				;
-			return oss.str();
-		}
+	//! String of [012] characters for unsigned integer values
+	std::string
+	stringFrom
+		( ThreeIndices const & ndxInts
+		);
 
-		//! String of [012] characters for unsigned integer values
-		inline
-		std::string
-		stringFrom
-			( ThreeIndices const & ndxInts
-			)
-		{
-			std::ostringstream oss;
-			//	using ThreeIndices = std::array<std::uint8_t, 3u>;
-			oss
-				<< static_cast<int>(ndxInts[0])
-				<< static_cast<int>(ndxInts[1])
-				<< static_cast<int>(ndxInts[2])
-				;
-			return oss.str();
-		}
+	//! String of [0...] characters for enum OrderTR type.
+	std::string
+	stringFrom
+		( OrderTR const & order
+		);
 
-		//! String of [0...] characters for enum OrderTR type.
-		inline
-		std::string
-		stringFrom
-			( OrderTR const & order
-			)
-		{
-			std::ostringstream oss;
-			oss << static_cast<int>(order);
-			return oss.str();
-		}
+	//! Convert string to three numeric index values
+	ThreeSigns
+	threeSignsFrom
+		( std::string const & str
+		);
 
-		//! Convert string characters [-,+] into {-1.,+1.}
-		inline
-		double
-		signFrom
-			( std::string::value_type const & aChar
-			)
-		{
-			double value{ engabra::g3::null<double>() };
-			if ('-' == aChar)
-			{
-				value = -1.;
-			}
-			else
-			if ('+' == aChar)
-			{
-				value = 1.;
-			}
-			return value;
-		}
+	//! Convert string to three numeric index values
+	ThreeIndices
+	threeIndicesFrom
+		( std::string const & str
+		);
 
-		//! Convert string characters [012] int size_t types
-		inline
-		std::uint8_t
-		indexFrom
-			( std::string::value_type const & aChar
-			)
-		{
-			std::uint8_t ndx{ 255u };
-			if ('0' == aChar)
-			{
-				ndx = 0;
-			}
-			else
-			if ('1' == aChar)
-			{
-				ndx = 1;
-			}
-			else
-			if ('2' == aChar)
-			{
-				ndx = 2;
-			}
-			return ndx;
-		}
+	//! Decode string character [01] to [TR,RT]
+	OrderTR
+	orderTRFrom
+		( std::string const & str
+		);
 
-		//! Convert string to three numeric index values
-		inline
-		ThreeSigns
-		threeSignsFrom
-			( std::string const & str
-			)
-		{
-			ThreeSigns signs{ -128, -128, -128 };
-			if (3u == str.size())
-			{
-				signs[0] = signFrom(str[0]);
-				signs[1] = signFrom(str[1]);
-				signs[2] = signFrom(str[2]);
-			}
-			return signs;
-		}
-
-		//! Convert string to three numeric index values
-		inline
-		ThreeIndices
-		threeIndicesFrom
-			( std::string const & str
-			)
-		{
-			ThreeIndices ndxs{ 255u, 255u, 255u };
-			if (3u == str.size())
-			{
-				ndxs[0] = indexFrom(str[0]);
-				ndxs[1] = indexFrom(str[1]);
-				ndxs[2] = indexFrom(str[2]);
-			}
-			return ndxs;
-		}
-
-		//! Decode string character [01] to [TR,RT]
-		inline
-		OrderTR
-		orderTRFrom
-			( std::string const & str
-			)
-		{
-			OrderTR order{ Unknown };
-			if (1u == str.size())
-			{
-				if ('0' == str[0])
-				{
-					order = TranRot;
-				}
-				else
-				if ('1' == str[0])
-				{
-					order = RotTran;
-				}
-			}
-			return order;
-		}
-
+//
+// ParmGroup
+//
 
 	//! Grouping of parameters by angle and distance values
 	struct ParmGroup
@@ -323,7 +198,7 @@ namespace om
 	}
 
 //
-// Conventions for transformation parameters
+// Convention for transformation parameters
 //
 
 	//! Candidate convention associated with 6 orientation values
@@ -424,6 +299,10 @@ namespace om
 			) const;
 
 	}; // Convention
+
+//
+// ConventionString en/de-coder
+//
 
 	/*! \brief Represent Convention as string with to/from-string ablities.
 	 *
