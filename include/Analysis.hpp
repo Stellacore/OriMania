@@ -169,6 +169,7 @@ namespace om
 	using FitNdxPair = std::pair<double, std::size_t>;
 
 	//! String with of FitNdxPair data with associated Convention
+	inline
 	std::string
 	infoString
 		( FitNdxPair const & fitConPair

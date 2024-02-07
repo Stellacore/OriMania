@@ -49,6 +49,7 @@ namespace om
 	namespace priv
 	{
 		//! Leading portion of string before endChar
+		inline
 		std::string
 		activePartOf
 			( std::string const & line
@@ -69,6 +70,7 @@ namespace om
 		}
 
 		//! Portion of string with leading and trailing white space removed
+		inline
 		std::string
 		trimmed
 			( std::string const & full
