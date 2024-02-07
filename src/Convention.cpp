@@ -30,10 +30,333 @@
 #include "Convention.hpp"
 
 
+namespace
+{
+
+//
+// Numeric encodings
+//
+
+	//! Convert transform order to numeric values (e.g. for sorting) [0,1]
+	inline
+	std::size_t
+	numberFor
+		( om::OrderTR const & order
+		)
+	{
+		return static_cast<std::size_t>(order);
+	}
+
+	//! Convert sign collection to numeric values (e.g. for sorting) [0,7]
+	inline
+	std::size_t
+	numberFor
+		( om::ThreeSigns const & signs
+		)
+	{
+		return
+			( 4u * (static_cast<std::size_t>(1u + signs[0]) / 2u)
+			+ 2u * (static_cast<std::size_t>(1u + signs[1]) / 2u)
+			+ 1u * (static_cast<std::size_t>(1u + signs[2]) / 2u)
+			);
+	}
+
+	//! Convert index collection to numeric values (e.g. for sorting) [0,26]
+	inline
+	std::size_t
+	numberFor
+		( om::ThreeIndices const & indices
+		)
+	{
+		return
+			( 9u * static_cast<std::size_t>(indices[0])
+			+ 3u * static_cast<std::size_t>(indices[1])
+			+ 1u * static_cast<std::size_t>(indices[2])
+			);
+	}
+
+//
+// Info/formatting
+//
+
+	//! String representation of three signs
+	inline
+	std::string
+	infoStringOrders
+		( om::OrderTR const & order
+		)
+	{
+		std::ostringstream oss;
+		using namespace om;
+		switch (order)
+		{
+			case TranRot:
+				oss << "TR";
+				break;
+			case RotTran:
+				oss << "RT";
+				break;
+			case Unknown:
+			default:
+				oss << "??";
+				break;
+		}
+		return oss.str();
+	}
+
+	//! String representation of three signs
+	inline
+	std::string
+	infoStringSigns
+		( om::ThreeSigns const & signs
+		)
+	{
+		std::ostringstream oss;
+		for (std::size_t nn{0u} ; nn < 3u ; ++nn)
+		{
+			oss << ' ' << std::setw(2u) << +signs[nn];
+		}
+		return oss.str();
+	}
+
+	//! String representation of three indices
+	inline
+	std::string
+	infoStringIndices
+		( om::ThreeIndices const & indices
+		)
+	{
+		std::ostringstream oss;
+		for (std::size_t nn{0u} ; nn < 3u ; ++nn)
+		{
+			oss << ' ' << +indices[nn];
+		}
+		return oss.str();
+	}
+
+
+} // [anon]
+
+
 namespace om
 {
 
 
+std::size_t
+Convention :: asNumber
+	() const
+{
+	return
+		( 1000000000000u
+		+   10000000000u * numberFor(theAngSigns) // 8
+		+     100000000u * numberFor(theAngIndices) // <32
+		+       1000000u * numberFor(theLocSigns) // 8
+		+         10000u * numberFor(theLocIndices) // <32
+		+           100u * numberFor(theBivIndices) // <32
+		+             1u * numberFor(theOrder) // 2
+		);
+}
+
+// static
+std::array<ThreeSigns, 8u>
+Convention :: allThreeSigns
+	()
+{
+	return
+		{ ThreeSigns{ -1, -1, -1 }
+		, ThreeSigns{ -1, -1,  1 }
+		, ThreeSigns{ -1,  1, -1 }
+		, ThreeSigns{ -1,  1,  1 }
+		, ThreeSigns{  1, -1, -1 }
+		, ThreeSigns{  1, -1,  1 }
+		, ThreeSigns{  1,  1, -1 }
+		, ThreeSigns{  1,  1,  1 }
+		};
+}
+
+// static
+std::array<ThreeIndices, 6u>
+Convention :: allThreeIndices
+	()
+{
+	return
+		{ ThreeIndices{ 0u, 1u, 2u }
+		, ThreeIndices{ 0u, 2u, 1u }
+		, ThreeIndices{ 1u, 0u, 2u }
+		, ThreeIndices{ 1u, 2u, 0u }
+		, ThreeIndices{ 2u, 1u, 0u }
+		, ThreeIndices{ 2u, 0u, 1u }
+		};
+}
+
+// static
+std::array<ThreeIndices, 12u>
+Convention :: allBivIndices
+	()
+{
+	return
+		{ ThreeIndices{ 0, 1, 0 }
+		, ThreeIndices{ 0, 1, 2 }
+		, ThreeIndices{ 0, 2, 0 }
+		, ThreeIndices{ 0, 2, 1 }
+		, ThreeIndices{ 1, 0, 1 }
+		, ThreeIndices{ 1, 0, 2 }
+		, ThreeIndices{ 1, 2, 0 }
+		, ThreeIndices{ 1, 2, 1 }
+		, ThreeIndices{ 2, 0, 1 }
+		, ThreeIndices{ 2, 0, 2 }
+		, ThreeIndices{ 2, 1, 0 }
+		, ThreeIndices{ 2, 1, 2 }
+		};
+}
+
+// static
+std::array<OrderTR, 2u>
+Convention :: allOrderTRs
+	()
+{
+	return
+		{ TranRot
+		, RotTran
+		};
+}
+
+// static
+std::vector<Convention>
+Convention :: allConventions
+	()
+{
+	std::vector<Convention> conventions;
+	conventions.reserve(55296);
+
+	// all combinations of each characteristic
+	std::array<ThreeSigns, 8u> const attSigns
+		{ Convention::allThreeSigns() };
+	std::array<ThreeIndices, 6u> const attNdxs
+		{ Convention::allThreeIndices() };
+	std::array<ThreeSigns, 8u> const locSigns
+		{ Convention::allThreeSigns() };
+	std::array<ThreeIndices, 6u> const locNdxs
+		{ Convention::allThreeIndices() };
+	std::array<ThreeIndices, 12u> const bivNdxs
+		{ Convention::allBivIndices() };
+	std::array<OrderTR, 2u> const orders
+		{ Convention::allOrderTRs() };
+
+	// brute force generation of all possible combinations
+	for (ThreeSigns const & attSign : attSigns)
+	{
+		for (ThreeIndices const & attNdx : attNdxs)
+		{
+			for (ThreeSigns const & locSign : locSigns)
+			{
+				for (ThreeIndices const & locNdx : locNdxs)
+				{
+					for (ThreeIndices const & bivNdx : bivNdxs)
+					{
+						for (OrderTR const & order : orders)
+						{
+							Convention const convention
+								{ attSign
+								, attNdx
+								, locSign
+								, locNdx
+								, bivNdx
+								, order
+								};
+							conventions.emplace_back(convention);
+						}
+					}
+				}
+			}
+		}
+	}
+	return conventions;
+}
+
+rigibra::Attitude
+Convention :: attitudeFor
+	( ParmGroup const & parmGroup
+	) const
+{
+	std::array<double, 3u> const & aVals = parmGroup.theAngles;
+
+	// gather angle sizes together
+	ThreeAngles const angleSizes
+		{ theAngSigns[0] * aVals[theAngIndices[0]]
+		, theAngSigns[1] * aVals[theAngIndices[1]]
+		, theAngSigns[2] * aVals[theAngIndices[2]]
+		};
+
+	// fixed set of cardinal planes (direction carried by angle sign)
+	using namespace engabra::g3;
+	static ThreePlanes
+		const & eVals{ e23, e31, e12 };
+
+	// gather angle directions together
+	ThreePlanes const angleDirs
+		{ eVals[theBivIndices[0]]
+		, eVals[theBivIndices[1]]
+		, eVals[theBivIndices[2]]
+		};
+
+	return attitudeFrom3AngleSequence(angleSizes, angleDirs);
+}
+
+
+rigibra::Transform
+Convention :: transformFor
+	( ParmGroup const & parmGroup
+	) const
+{
+	std::array<double, 3u> const & dVals = parmGroup.theDistances;
+
+	using namespace engabra::g3;
+
+	// gather signed distance values together
+	ThreeDistances const offset
+		{ theLocSigns[0] * dVals[theLocIndices[0]]
+		, theLocSigns[1] * dVals[theLocIndices[1]]
+		, theLocSigns[2] * dVals[theLocIndices[2]]
+		};
+
+	// determine attitude associated with parmGroup
+	rigibra::Attitude const attR(attitudeFor(parmGroup));
+
+	// to compute translation
+	// first, assume TranRot convention...
+	Vector tVec{ offset };
+	// ... unless inverse convention is needed
+	if (RotTran == theOrder)
+	{
+		// compute forward translation from inverse offset convention
+		Vector const ty{ offset };
+		tVec = attR(ty);
+	}
+	return rigibra::Transform{ tVec, attR };
+}
+
+std::string
+Convention :: infoString
+	( std::string const & title
+	) const
+{
+	std::ostringstream oss;
+	if (! title.empty())
+	{
+		oss << title << ' ';
+	}
+	oss
+		<< "  Ang+/-: " << infoStringSigns(theAngSigns)
+		<< "  AngNdx: " << infoStringIndices(theAngIndices)
+		<< "  Loc+/-: " << infoStringSigns(theLocSigns)
+		<< "  LocNdx: " << infoStringIndices(theLocIndices)
+		<< "  BivNdx: " << infoStringIndices(theBivIndices)
+		<< "   Order: " << infoStringOrders(theOrder)
+		<< "  Number: " << asNumber()
+		;
+	return oss.str();
+}
 
 } // [om]
 
