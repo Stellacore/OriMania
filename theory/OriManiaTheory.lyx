@@ -371,6 +371,81 @@ Overall, these cases represent
 \end_layout
 
 \begin_layout Subsection
+Angle Sequence Direction Combinations
+\end_layout
+
+\begin_layout Standard
+For the three angle sequence, the bivector directions of the successive
+ rotations are, 
+\begin_inset Formula $A$
+\end_inset
+
+, 
+\begin_inset Formula $B$
+\end_inset
+
+, 
+\begin_inset Formula $C$
+\end_inset
+
+.
+ The sequence is interpreted as, in this same lexicographic order - i.e.
+ first rotated in direction 
+\begin_inset Formula $A$
+\end_inset
+
+, then rotate about a rotated 
+\begin_inset Formula $B$
+\end_inset
+
+, and then rotate about rotated direction 
+\begin_inset Formula $C$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Note the potential confusion.
+ The in text (and software) form the directions are often written left to
+ right, as in 
+\begin_inset Formula $A$
+\end_inset
+
+, 
+\begin_inset Formula $B$
+\end_inset
+
+, and 
+\begin_inset Formula $C$
+\end_inset
+
+, or 
+\begin_inset Formula $\left\{ A,B,C\right\} $
+\end_inset
+
+.
+ However, in mathematical notation, the rotations are applied from right
+ to left as, such that the net rotation is represented by spinor, 
+\begin_inset Formula $e^{\omega\Omega}$
+\end_inset
+
+, where
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+e^{\omega\Omega} & =e^{\gamma C}e^{\beta B}e^{\alpha A}\\
+ & =e^{\gamma C}\left(e^{\beta B}\left(e^{\alpha A}\right)\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
 Offset Convention Combinations
 \end_layout
 

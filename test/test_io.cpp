@@ -99,12 +99,13 @@ namespace
 			// "  Convention: FakeSen1 +++ 012 +++ 012 012 0
 			// "  Angles:     FakeSen1 -.127  .619 -.317
 			// NOTE the 3 angle product convention
+			//      (ref om::attitudeFrom3AngleSequence())
 			Attitude const attA{ PhysAngle{ -.127 * e23 } };
 			Attitude const attB{ PhysAngle{  .619 * e31 } };
 			Attitude const attC{ PhysAngle{ -.317 * e12 } };
-			Attitude const att{ attA * attB * attC };
+			Attitude const att{ attC * attB * attA };
 			// form expected orientation
-			SenOri const expOri{ Location{ 10.7, -60.7, 31.1 }, att };
+			SenOri const expOri{ loc, att };
 
 			SenOri const & gotOri = itFirst->second;
 

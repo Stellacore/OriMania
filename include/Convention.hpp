@@ -247,12 +247,12 @@ namespace om
 		)
 	{
 		using namespace rigibra;
-		PhysAngle const physAngleC{ angleSizes[0] * angleDirs[0] };
+		PhysAngle const physAngleA{ angleSizes[0] * angleDirs[0] };
 		PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
-		PhysAngle const physAngleA{ angleSizes[2] * angleDirs[2] };
-		Attitude const attC(physAngleC);
-		Attitude const attB(physAngleB);
+		PhysAngle const physAngleC{ angleSizes[2] * angleDirs[2] };
 		Attitude const attA(physAngleA);
+		Attitude const attB(physAngleB);
+		Attitude const attC(physAngleC);
 		return (attC * attB * attA);
 	}
 
@@ -451,6 +451,38 @@ namespace om
 			return conventions;
 		}
 
+		//! Attitude associated with parmGroup given this convention.
+		inline
+		rigibra::Attitude
+		attitudeFor
+			( ParmGroup const & parmGroup
+			) const
+		{
+			std::array<double, 3u> const & aVals = parmGroup.theAngles;
+
+			// gather angle sizes together
+			ThreeAngles const angleSizes
+				{ theAngSigns[0] * aVals[theAngIndices[0]]
+				, theAngSigns[1] * aVals[theAngIndices[1]]
+				, theAngSigns[2] * aVals[theAngIndices[2]]
+				};
+
+			// fixed set of cardinal planes (direction carried by angle sign)
+			using namespace engabra::g3;
+			static ThreePlanes
+				const & eVals{ e23, e31, e12 };
+
+			// gather angle directions together
+			ThreePlanes const angleDirs
+				{ eVals[theBivIndices[0]]
+				, eVals[theBivIndices[1]]
+				, eVals[theBivIndices[2]]
+				};
+
+			return attitudeFrom3AngleSequence(angleSizes, angleDirs);
+		}
+
+
 		//! Transform with ParmGroup values consistent with this convention.
 		inline
 		rigibra::Transform
@@ -458,7 +490,6 @@ namespace om
 			( ParmGroup const & parmGroup
 			) const
 		{
-			std::array<double, 3u> const & aVals = parmGroup.theAngles;
 			std::array<double, 3u> const & dVals = parmGroup.theDistances;
 
 			using namespace engabra::g3;
@@ -470,26 +501,8 @@ namespace om
 				, theLocSigns[2] * dVals[theLocIndices[2]]
 				};
 
-			// gather angle sizes together
-			ThreeAngles const angleSizes
-				{ theAngSigns[0] * aVals[theAngIndices[0]]
-				, theAngSigns[1] * aVals[theAngIndices[1]]
-				, theAngSigns[2] * aVals[theAngIndices[2]]
-				};
-
-			// fixed set of cardinal planes (direction carried by angle sign)
-			static ThreePlanes
-				const & eVals{ e23, e31, e12 };
-
-			// gather angle directions together
-			ThreePlanes const angleDirs
-				{ eVals[theBivIndices[0]]
-				, eVals[theBivIndices[1]]
-				, eVals[theBivIndices[2]]
-				};
-
-			rigibra::Attitude const attR
-				{ attitudeFrom3AngleSequence(angleSizes, angleDirs) };
+			// determine attitude associated with parmGroup
+			rigibra::Attitude const attR(attitudeFor(parmGroup));
 
 			// to compute translation
 			// first, assume TranRot convention...
