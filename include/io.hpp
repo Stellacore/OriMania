@@ -47,6 +47,11 @@ Example:
 
 namespace om
 {
+
+//
+// String processing utilities
+//
+
 	//! Leading portion of string before endChar
 	std::string
 	withoutComment
@@ -61,6 +66,10 @@ namespace om
 		, std::string const & white = " \t"
 		);
 
+//
+// Data values loaders
+//
+
 	/*! \brief Orientation results from EO ascii file.
 	 *
 	 * Example file content and use:
@@ -70,6 +79,10 @@ namespace om
 	loadIndEOs
 		( std::istream & istrm
 		);
+
+//
+// Descriptive strings for various items
+//
 
 	//! String with of FitNdxPair data with associated Convention
 	std::string
