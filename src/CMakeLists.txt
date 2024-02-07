@@ -10,6 +10,9 @@ set(srcFiles
 
 	OriMania.cpp
 
+	Convention.cpp
+	io.cpp
+
 	)
 
 message("### aProjLib: ${aProjLib}")
@@ -35,5 +38,12 @@ target_include_directories(
 		$<INSTALL_INTERFACE:include/${OriManiaProjName}>
 	PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}/ # local source headers
+	)
+
+target_link_libraries(
+	${aProjLib}
+	PRIVATE
+		Engabra::Engabra
+		Rigibra::Rigibra
 	)
 

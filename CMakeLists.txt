@@ -118,6 +118,12 @@ message("adding src library aProjLib: ${aProjLib}")
 add_subdirectory(src)
 
 # ===
+# === Applications
+# ===
+
+add_subdirectory(app)
+
+# ===
 # === Demonstrations
 # ===
 

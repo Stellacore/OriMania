@@ -93,14 +93,18 @@ namespace sim
 		, om::Convention const & convention
 		);
 
-	/*! \brief Simulate export of the body orientation data.
+	/*! \brief Simulate export of the body orientation data in Ind frame.
 	 *
-	 * Orientations are assumed relative to some arbitary black Box
-	 * orienation (sXfmBoxWrtRef)
+	 * The boxKeyOris are assumed relative to some arbitary and unknown
+	 * "black box" (Box) reference frame. This function applies the
+	 * orienation oriBoxWrtRef to each of the input boxKeyOri orientations
+	 * and returns the resulting sensor orientions with respect to the
+	 * indepndent (Ind) frame (e.g. SenWrtInd).
 	 */
 	std::map<om::SenKey, om::SenOri>
 	independentKeyOris
 		( std::map<om::SenKey, om::SenOri> const & boxKeyOris
+		, SenOri const & oriBoxWrtRef = om::sim::sXfmBoxWrtRef
 		);
 
 } // [sim]

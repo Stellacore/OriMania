@@ -27,24 +27,101 @@
 #define OriMania_io_INCL_
 
 /*! \file
-\brief Contains ######
+\brief Functions for supporting basic input/output operations.
+*/
 
+/*
 Example:
 \snippet test_io.cpp DoxyExample01
 
 */
 
 
+#include "Analysis.hpp"
 #include "Convention.hpp"
 #include "Orientation.hpp"
 
-#include <map>
 #include <iostream>
+#include <map>
+#include <set>
+#include <sstream>
 
 
 namespace om
 {
+
+//
+// String processing utilities
+//
+
+	//! Leading portion of string before endChar
+	std::string
+	withoutComment
+		( std::string const & line
+		, std::string::value_type const & endChar = '#'
+		);
+
+	//! Portion of string with leading and trailing white space removed
+	std::string
+	trimmed
+		( std::string const & full
+		, std::string const & white = " \t"
+		);
+
+//
+// Data values loaders
+//
+
+	/*! \brief Orientation results from EO ascii data stream.
+	 *
+	 * Example file content and use:
+	 * \snippet test_io.cpp DoxyExampleLoadIndEOs
+	 */
+	std::map<SenKey, SenOri>
+	loadIndEOs
+		( std::istream & istrm
+		);
+	
+	/*! \brief ParmGroup data values loaded from ascii data stream.
+	 *
+	 * Example file content and use:
+	 * \snippet test_io.cpp DoxyExampleLoadPG
+	 */
+	std::map<SenKey, ParmGroup>
+	loadParmGroups
+		( std::istream & istrm
+		);
+
+//
+// Descriptive strings for various items
+//
+
+	//! String with of FitNdxPair data with associated Convention
+	std::string
+	infoString
+		( FitNdxPair const & fitConPair
+		, std::vector<Convention> const & allConventions
+		);
+
+	//! \brief String containing range of fitIndexPairs
+	std::string
+	infoStringFitConventions
+		( std::vector<om::FitNdxPair>::const_iterator const & fitNdxBeg
+		, std::vector<om::FitNdxPair>::const_iterator const & fitNdxEnd
+		, std::vector<om::Convention> const & allConventions
+		);
+
+	//! \brief String containing first few and last few lines of fitIndexPairs
+	std::string
+	infoStringFitConventions
+		( std::vector<om::FitNdxPair> const & fitIndexPairs
+		, std::vector<om::Convention> const & allConventions
+		, std::size_t const & showNumBeg = 8u
+		, std::size_t const & showNumEnd = 2u
+		);
+
 } // [om]
+
 
 // Place operator<<() overloads in global namespace
 
@@ -54,6 +131,22 @@ namespace
 //
 // For Convention.hpp
 //
+
+	//! Put std::array data to stream
+	template <std::size_t Dim = 3u>
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::array<double, Dim> const & values
+		)
+	{
+		for (double const & value : values)
+		{
+			ostrm << ' ' << engabra::g3::io::fixed(value);
+		}
+		return ostrm;
+	}
 
 	//! Put convention infoString() output to stream.
 	inline

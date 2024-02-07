@@ -1,4 +1,3 @@
-//
 // MIT License
 //
 // Copyright (c) 2024 Stellacore Corporation
@@ -27,12 +26,14 @@
 #define OriMania_Convention_INCL_
 
 /*! \file
-\brief Contains ######
+\brief Structures and functions related to orientation parameter conventions.
+*/
 
+/*
 Example:
 \snippet test_Convention.cpp DoxyExample01
-
 */
+
 
 
 #include <Rigibra>
@@ -57,6 +58,7 @@ namespace om
 	{
 		  TranRot // both expressed in domain
 		, RotTran // rotation expressed in domain, translation in range
+		, Unknown // not specified
 	};
 
 	//! Alias for tracking values of three +/- signs
@@ -76,6 +78,46 @@ namespace om
 
 	//! Alias for three distinct planes (e.g. basis for sequential rotation)
 	using ThreePlanes = std::array<engabra::g3::BiVector, 3u>;
+
+	//! String of +/- characters for signed integer values
+	std::string
+	stringFrom
+		( ThreeSigns const & signInts
+		);
+
+	//! String of [012] characters for unsigned integer values
+	std::string
+	stringFrom
+		( ThreeIndices const & ndxInts
+		);
+
+	//! String of [0...] characters for enum OrderTR type.
+	std::string
+	stringFrom
+		( OrderTR const & order
+		);
+
+	//! Convert string to three numeric index values
+	ThreeSigns
+	threeSignsFrom
+		( std::string const & str
+		);
+
+	//! Convert string to three numeric index values
+	ThreeIndices
+	threeIndicesFrom
+		( std::string const & str
+		);
+
+	//! Decode string character [01] to [TR,RT]
+	OrderTR
+	orderTRFrom
+		( std::string const & str
+		);
+
+//
+// ParmGroup
+//
 
 	//! Grouping of parameters by angle and distance values
 	struct ParmGroup
@@ -109,9 +151,9 @@ namespace om
 			using engabra::g3::io::fixed;
 			oss
 				<< "  Distances: "
-					<< fixed(theDistances[0], 1u, 6u)
-					<< fixed(theDistances[1], 1u, 6u)
-					<< fixed(theDistances[2], 1u, 6u)
+					<< fixed(theDistances[0], 4u, 6u)
+					<< fixed(theDistances[1], 4u, 6u)
+					<< fixed(theDistances[2], 4u, 6u)
 				<< "  Angles: "
 					<< fixed(theAngles[0], 1u, 9u)
 					<< fixed(theAngles[1], 1u, 9u)
@@ -122,102 +164,6 @@ namespace om
 
 
 	}; // ParmGroup
-
-//
-// Numeric encodings
-//
-
-	//! Convert transform order to numeric values (e.g. for sorting) [0,1]
-	inline
-	std::size_t
-	numberFor
-		( OrderTR const & order
-		)
-	{
-		return static_cast<std::size_t>(order);
-	}
-
-	//! Convert sign collection to numeric values (e.g. for sorting) [0,7]
-	inline
-	std::size_t
-	numberFor
-		( ThreeSigns const & signs
-		)
-	{
-		return
-			( 4u * (static_cast<std::size_t>(1u + signs[0]) / 2u)
-			+ 2u * (static_cast<std::size_t>(1u + signs[1]) / 2u)
-			+ 1u * (static_cast<std::size_t>(1u + signs[2]) / 2u)
-			);
-	}
-
-	//! Convert index collection to numeric values (e.g. for sorting) [0,26]
-	inline
-	std::size_t
-	numberFor
-		( ThreeIndices const & indices
-		)
-	{
-		return
-			( 9u * static_cast<std::size_t>(indices[0])
-			+ 3u * static_cast<std::size_t>(indices[1])
-			+ 1u * static_cast<std::size_t>(indices[2])
-			);
-	}
-
-//
-// Info/formatting
-//
-
-	//! String representation of three signs
-	inline
-	std::string
-	infoStringOrders
-		( OrderTR const & order
-		)
-	{
-		std::ostringstream oss;
-		switch (order)
-		{
-			case TranRot:
-				oss << "TR";
-				break;
-			case RotTran:
-				oss << "RT";
-				break;
-		}
-		return oss.str();
-	}
-
-	//! String representation of three signs
-	inline
-	std::string
-	infoStringSigns
-		( ThreeSigns const & signs
-		)
-	{
-		std::ostringstream oss;
-		for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-		{
-			oss << ' ' << std::setw(2u) << +signs[nn];
-		}
-		return oss.str();
-	}
-
-	//! String representation of three indices
-	inline
-	std::string
-	infoStringIndices
-		( ThreeIndices const & indices
-		)
-	{
-		std::ostringstream oss;
-		for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-		{
-			oss << ' ' << +indices[nn];
-		}
-		return oss.str();
-	}
 
 //
 // Math utilities
@@ -242,17 +188,17 @@ namespace om
 		)
 	{
 		using namespace rigibra;
-		PhysAngle const physAngleC{ angleSizes[0] * angleDirs[0] };
+		PhysAngle const physAngleA{ angleSizes[0] * angleDirs[0] };
 		PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
-		PhysAngle const physAngleA{ angleSizes[2] * angleDirs[2] };
-		Attitude const attC(physAngleC);
-		Attitude const attB(physAngleB);
+		PhysAngle const physAngleC{ angleSizes[2] * angleDirs[2] };
 		Attitude const attA(physAngleA);
+		Attitude const attB(physAngleB);
+		Attitude const attC(physAngleC);
 		return (attC * attB * attA);
 	}
 
 //
-// Conventions for transformation parameters
+// Convention for transformation parameters
 //
 
 	//! Candidate convention associated with 6 orientation values
@@ -290,21 +236,9 @@ namespace om
 		OrderTR theOrder;
 
 		//! Assign a number to each convention (for easy tracking))
-		inline
 		std::size_t
 		asNumber
-			() const
-		{
-			return
-				( 1000000000000u
-				+   10000000000u * numberFor(theAngSigns) // 8
-				+     100000000u * numberFor(theAngIndices) // <32
-				+       1000000u * numberFor(theLocSigns) // 8
-				+         10000u * numberFor(theLocIndices) // <32
-				+           100u * numberFor(theBivIndices) // <32
-				+             1u * numberFor(theOrder) // 2
-				);
-		}
+			() const;
 
 		/*TODO
 		//! Create Convention from number - inverse of asNumber() method.
@@ -314,216 +248,116 @@ namespace om
 		fromNumber
 			( std::size_t const & number
 			)
-		{
-			return {}; // TODO - needs supporting decoding functions
-		}
 		*/
 
 		//! All combinations of signs for three elements
-		inline
 		static
 		std::array<ThreeSigns, 8u>
 		allThreeSigns
-			()
-		{
-			return
-				{ ThreeSigns{ -1, -1, -1 }
-				, ThreeSigns{ -1, -1,  1 }
-				, ThreeSigns{ -1,  1, -1 }
-				, ThreeSigns{ -1,  1,  1 }
-				, ThreeSigns{  1, -1, -1 }
-				, ThreeSigns{  1, -1,  1 }
-				, ThreeSigns{  1,  1, -1 }
-				, ThreeSigns{  1,  1,  1 }
-				};
-		}
+			();
 
 		//! All combinations of unique indices for three element array
-		inline
 		static
 		std::array<ThreeIndices, 6u>
 		allThreeIndices
-			()
-		{
-			return
-				{ ThreeIndices{ 0u, 1u, 2u }
-				, ThreeIndices{ 0u, 2u, 1u }
-				, ThreeIndices{ 1u, 0u, 2u }
-				, ThreeIndices{ 1u, 2u, 0u }
-				, ThreeIndices{ 2u, 1u, 0u }
-				, ThreeIndices{ 2u, 0u, 1u }
-				};
-		}
+			();
 
 		//! All combinations of unique indices for three element array
-		inline
 		static
 		std::array<ThreeIndices, 12u>
 		allBivIndices
-			()
-		{
-			return
-				{ ThreeIndices{ 0, 1, 0 }
-				, ThreeIndices{ 0, 1, 2 }
-				, ThreeIndices{ 0, 2, 0 }
-				, ThreeIndices{ 0, 2, 1 }
-				, ThreeIndices{ 1, 0, 1 }
-				, ThreeIndices{ 1, 0, 2 }
-				, ThreeIndices{ 1, 2, 0 }
-				, ThreeIndices{ 1, 2, 1 }
-				, ThreeIndices{ 2, 0, 1 }
-				, ThreeIndices{ 2, 0, 2 }
-				, ThreeIndices{ 2, 1, 0 }
-				, ThreeIndices{ 2, 1, 2 }
-				};
-		}
+			();
 
 		//! All transformation translate/rotate conventions
-		inline
 		static
 		std::array<OrderTR, 2u>
 		allOrderTRs
-			()
-		{
-			return
-				{ TranRot
-				, RotTran
-				};
-		}
+			();
 
 		//! Collection of unique conventions that are supported overall
-		inline
 		static
 		std::vector<Convention>
 		allConventions
-			()
-		{
-			std::vector<Convention> conventions;
-			conventions.reserve(55296);
+			();
 
-			// all combinations of each characteristic
-			std::array<ThreeSigns, 8u> const attSigns
-				{ Convention::allThreeSigns() };
-			std::array<ThreeIndices, 6u> const attNdxs
-				{ Convention::allThreeIndices() };
-			std::array<ThreeSigns, 8u> const locSigns
-				{ Convention::allThreeSigns() };
-			std::array<ThreeIndices, 6u> const locNdxs
-				{ Convention::allThreeIndices() };
-			std::array<ThreeIndices, 12u> const bivNdxs
-				{ Convention::allBivIndices() };
-			std::array<OrderTR, 2u> const orders
-				{ Convention::allOrderTRs() };
-
-			// brute force generation of all possible combinations
-			for (ThreeSigns const & attSign : attSigns)
-			{
-				for (ThreeIndices const & attNdx : attNdxs)
-				{
-					for (ThreeSigns const & locSign : locSigns)
-					{
-						for (ThreeIndices const & locNdx : locNdxs)
-						{
-							for (ThreeIndices const & bivNdx : bivNdxs)
-							{
-								for (OrderTR const & order : orders)
-								{
-									Convention const convention
-										{ attSign
-										, attNdx
-										, locSign
-										, locNdx
-										, bivNdx
-										, order
-										};
-									conventions.emplace_back(convention);
-								}
-							}
-						}
-					}
-				}
-			}
-			return conventions;
-		}
+		//! Attitude associated with parmGroup given this convention.
+		rigibra::Attitude
+		attitudeFor
+			( ParmGroup const & parmGroup
+			) const;
 
 		//! Transform with ParmGroup values consistent with this convention.
-		inline
 		rigibra::Transform
 		transformFor
 			( ParmGroup const & parmGroup
-			) const
-		{
-			std::array<double, 3u> const & aVals = parmGroup.theAngles;
-			std::array<double, 3u> const & dVals = parmGroup.theDistances;
-
-			using namespace engabra::g3;
-
-			// gather signed distance values together
-			ThreeDistances const offset
-				{ theLocSigns[0] * dVals[theLocIndices[0]]
-				, theLocSigns[1] * dVals[theLocIndices[1]]
-				, theLocSigns[2] * dVals[theLocIndices[2]]
-				};
-
-			// gather angle sizes together
-			ThreeAngles const angleSizes
-				{ theAngSigns[0] * aVals[theAngIndices[0]]
-				, theAngSigns[1] * aVals[theAngIndices[1]]
-				, theAngSigns[2] * aVals[theAngIndices[2]]
-				};
-
-			// fixed set of cardinal planes (direction carried by angle sign)
-			static ThreePlanes
-				const & eVals{ e23, e31, e12 };
-
-			// gather angle directions together
-			ThreePlanes const angleDirs
-				{ eVals[theBivIndices[0]]
-				, eVals[theBivIndices[1]]
-				, eVals[theBivIndices[2]]
-				};
-
-			rigibra::Attitude const attR
-				{ attitudeFrom3AngleSequence(angleSizes, angleDirs) };
-
-			// to compute translation
-			// first, assume TranRot convention...
-			Vector tVec{ offset };
-			// ... unless inverse convention is needed
-			if (RotTran == theOrder)
-			{
-				// compute forward translation from inverse offset convention
-				Vector const ty{ offset };
-				tVec = attR(ty);
-			}
-			return rigibra::Transform{ tVec, attR };
-		}
+			) const;
 
 		//! Descriptive information about this instance
-		inline
 		std::string
 		infoString
 			( std::string const & title = {}
-			) const
-		{
-			std::ostringstream oss;
-			if (! title.empty())
-			{
-				oss << title << ' ';
-			}
-			oss
-				<< "  Ang+/-: " << infoStringSigns(theAngSigns)
-				<< "  AngNdx: " << infoStringIndices(theAngIndices)
-				<< "  Loc+/-: " << infoStringSigns(theLocSigns)
-				<< "  LocNdx: " << infoStringIndices(theLocIndices)
-				<< "  BivNdx: " << infoStringIndices(theBivIndices)
-				<< "   Order: " << infoStringOrders(theOrder)
-				<< "  Number: " << asNumber()
-				;
-			return oss.str();
-		}
+			) const;
 
 	}; // Convention
+
+//
+// ConventionString en/de-coder
+//
+
+	/*! \brief Represent Convention as string with to/from-string ablities.
+	 *
+	 * The various individual conventions of Convention class members
+	 * are represented by strings. E.g. strings of '+' and '-' characters
+	 * for sign conventions, and strings of digits [0,1,2] for index
+	 * conventions. The enumeration OrderTR is represented as the
+	 * enumeration item value (integer cast of enum type).
+	 */
+	struct ConventionString
+	{
+		//! Three offset vector sign conventions - e.g. "---", "++-", etc.
+		std::string theStrLocSigns;
+		//! Three offset vector indices {0,1,2} - e.g. "012", "201", etc
+		std::string theStrLocNdxs;
+		//! Three angle size sign conventions - e.g. "---", "++-", etc.
+		std::string theStrAngSigns;
+		//! Three angle size indices {0,1,2} - e.g. "012", "201", etc
+		std::string theStrAngNdxs;
+		//! Three angle direction indices {0,1,2} - e.g. "012", "201", etc
+		std::string theStrBivNdxs;
+		//! Integer value representing OrderTR enum item - e.g. "0", "1"
+		std::string theStrOrder;
+
+		//! Construct from canonical encoding.
+		static
+		ConventionString
+		from
+			( Convention const & convention
+			);
+
+		//! Construct from canonical encoding.
+		static
+		ConventionString
+		from
+			( std::string const & encoding
+			);
+
+		//! Canonical string encoding for a convention
+		std::string
+		stringEncoding
+			(
+			) const;
+
+		//! True if all strings components are valid
+		bool
+		isValid
+			() const;
+
+		//! Convention associated with current string values
+		Convention
+		convention
+			() const;
+
+	}; // ConventionString
 
 //
 // Comparision operators

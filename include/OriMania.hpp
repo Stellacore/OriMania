@@ -27,10 +27,18 @@
 #define OriMania__INCL_
 
 /*! \file
- * \brief Top level include file for all of OriMania utilities.
+ * \brief Top level include file for OriMania.
  *
+ * Provides project level functions and utilities.
  */
 
+
+// Include the key files
+
+#include "Analysis.hpp"
+#include "Convention.hpp"
+#include "io.hpp"
+#include "Orientation.hpp"
 
 #include <string>
 
