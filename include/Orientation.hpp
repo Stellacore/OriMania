@@ -35,96 +35,15 @@ Example:
 */
 
 
+#include "Key.hpp"
+
 #include <Rigibra>
 
 #include <map>
-#include <string>
 
 
 namespace om
 {
-	//! Assume individual sensors are identified by arbitrary string values.
-	using SenKey = std::string;
-
-	//! encode numeric value into sensor key
-	inline
-	std::string
-	keyFrom
-		( std::size_t const & num
-		)
-	{
-		std::ostringstream oss;
-		oss << "Key_" << num;
-		return oss.str();
-	}
-
-	//! Pair of SenKey representing two members in pairwise relationship.
-	struct KeyPair
-	{
-		SenKey theKeyFrom;
-		SenKey theKeyInto;
-
-		//! Same as from() to emphasize first in order for 2w1 notation
-		inline SenKey const & key1() const { return theKeyFrom; }
-
-		//! Same as into() to emphasize second in order for 2w1 notation
-		inline SenKey const & key2() const { return theKeyInto; }
-
-		//! Shorthand name access
-		inline
-		SenKey const &
-		from
-			() const
-		{
-			return theKeyFrom;
-		}
-
-		//! Shorthand name access
-		inline
-		SenKey const &
-		into
-			() const
-		{
-			return theKeyInto;
-		}
-
-		//! Descriptive information about this instance
-		inline
-		std::string
-		infoString
-			( std::string const & title = {}
-			) const
-		{
-			std::ostringstream oss;
-			if (! title.empty())
-			{
-				oss << title << " ";
-			}
-			oss
-				<< "(Into): " << into()
-				<< "  "
-				<< "Wrt(From): " << from()
-				;
-			return oss.str();
-		}
-
-	}; // KeyPair
-
-	//! Lexicographic comparision of keys
-	inline
-	bool
-	operator<
-		( KeyPair const & pairA
-		, KeyPair const & pairB
-		)
-	{
-		// use logic from std::pair
-		std::pair const sPairA{ pairA.theKeyFrom, pairA.theKeyInto };
-		std::pair const sPairB{ pairB.theKeyFrom, pairB.theKeyInto };
-		return (sPairA < sPairB);
-	}
-
-
 	//! Shorthand for classic 3D rigid body orientation transform.
 	using SenOri = rigibra::Transform;
 
@@ -164,14 +83,6 @@ namespace om
 				KeyPair const keyPair{ key1, key2 };
 				SenOri const oriRw1{ inverse(ori1wR) };
 				SenOri const ori2w1{ ori2wR * oriRw1 };
-
-/*
-std::cout
-	<< "key(1,2): " << keyPair.key1() << ", " << keyPair.key2()
-	<< "  "
-	<< "ori2w1: " << ori2w1
-	<< '\n';
-*/
 
 				ros.emplace_hint(ros.end(), std::make_pair(keyPair, ori2w1));
 			}

@@ -2,10 +2,6 @@
 
 Add loader for ParmGroup
 
-Factor larger implementations to src/*.cpp (e.g. load, io,)
-
-Resolve different report convention in app/OriAnalysis
-
 For Convention numeric ID encoding,
 
 	Att: +++ 012  (6 bits)
