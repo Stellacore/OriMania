@@ -80,6 +80,170 @@ namespace om
 	//! Alias for three distinct planes (e.g. basis for sequential rotation)
 	using ThreePlanes = std::array<engabra::g3::BiVector, 3u>;
 
+		//! A '+' or '-' character depending on the sign of aByte
+		inline
+		std::string::value_type
+		pmCharFor
+			( int8_t const & aByte
+			)
+		{
+			std::string::value_type aChar{ '+' };
+			if (aByte < 0)
+			{
+				aChar = '-';
+			}
+			return aChar;
+		}
+
+		//! String of +/- characters for signed integer values
+		inline
+		std::string
+		stringFrom
+			( ThreeSigns const & signInts
+			)
+		{
+			std::ostringstream oss;
+			//	using ThreeSigns = std::array<std::int8_t, 3u>;
+			oss
+				<< pmCharFor(signInts[0])
+				<< pmCharFor(signInts[1])
+				<< pmCharFor(signInts[2])
+				;
+			return oss.str();
+		}
+
+		//! String of [012] characters for unsigned integer values
+		inline
+		std::string
+		stringFrom
+			( ThreeIndices const & ndxInts
+			)
+		{
+			std::ostringstream oss;
+			//	using ThreeIndices = std::array<std::uint8_t, 3u>;
+			oss
+				<< static_cast<int>(ndxInts[0])
+				<< static_cast<int>(ndxInts[1])
+				<< static_cast<int>(ndxInts[2])
+				;
+			return oss.str();
+		}
+
+		//! String of [0...] characters for enum OrderTR type.
+		inline
+		std::string
+		stringFrom
+			( OrderTR const & order
+			)
+		{
+			std::ostringstream oss;
+			oss << static_cast<int>(order);
+			return oss.str();
+		}
+
+		//! Convert string characters [-,+] into {-1.,+1.}
+		inline
+		double
+		signFrom
+			( std::string::value_type const & aChar
+			)
+		{
+			double value{ engabra::g3::null<double>() };
+			if ('-' == aChar)
+			{
+				value = -1.;
+			}
+			else
+			if ('+' == aChar)
+			{
+				value = 1.;
+			}
+			return value;
+		}
+
+		//! Convert string characters [012] int size_t types
+		inline
+		std::uint8_t
+		indexFrom
+			( std::string::value_type const & aChar
+			)
+		{
+			std::uint8_t ndx{ 255u };
+			if ('0' == aChar)
+			{
+				ndx = 0;
+			}
+			else
+			if ('1' == aChar)
+			{
+				ndx = 1;
+			}
+			else
+			if ('2' == aChar)
+			{
+				ndx = 2;
+			}
+			return ndx;
+		}
+
+		//! Convert string to three numeric index values
+		inline
+		ThreeSigns
+		threeSignsFrom
+			( std::string const & str
+			)
+		{
+			ThreeSigns signs{ -128, -128, -128 };
+			if (3u == str.size())
+			{
+				signs[0] = signFrom(str[0]);
+				signs[1] = signFrom(str[1]);
+				signs[2] = signFrom(str[2]);
+			}
+			return signs;
+		}
+
+		//! Convert string to three numeric index values
+		inline
+		ThreeIndices
+		threeIndicesFrom
+			( std::string const & str
+			)
+		{
+			ThreeIndices ndxs{ 255u, 255u, 255u };
+			if (3u == str.size())
+			{
+				ndxs[0] = indexFrom(str[0]);
+				ndxs[1] = indexFrom(str[1]);
+				ndxs[2] = indexFrom(str[2]);
+			}
+			return ndxs;
+		}
+
+		//! Decode string character [01] to [TR,RT]
+		inline
+		OrderTR
+		orderTRFrom
+			( std::string const & str
+			)
+		{
+			OrderTR order{ Unknown };
+			if (1u == str.size())
+			{
+				if ('0' == str[0])
+				{
+					order = TranRot;
+				}
+				else
+				if ('1' == str[0])
+				{
+					order = RotTran;
+				}
+			}
+			return order;
+		}
+
+
 	//! Grouping of parameters by angle and distance values
 	struct ParmGroup
 	{
@@ -278,286 +442,35 @@ namespace om
 		std::string theStrBivNdxs;
 		std::string theStrOrder;
 
-		//! Convert string characters [-,+] into {-1.,+1.}
-		inline
-		static
-		double
-		signFrom
-			( std::string::value_type const & aChar
-			)
-		{
-			double value{ engabra::g3::null<double>() };
-			if ('-' == aChar)
-			{
-				value = -1.;
-			}
-			else
-			if ('+' == aChar)
-			{
-				value = 1.;
-			}
-			return value;
-		}
-
-		//! Convert string characters [012] int size_t types
-		inline
-		static
-		std::uint8_t
-		indexFrom
-			( std::string::value_type const & aChar
-			)
-		{
-			std::uint8_t ndx{ 255u };
-			if ('0' == aChar)
-			{
-				ndx = 0;
-			}
-			else
-			if ('1' == aChar)
-			{
-				ndx = 1;
-			}
-			else
-			if ('2' == aChar)
-			{
-				ndx = 2;
-			}
-			return ndx;
-		}
-
-		//! Convert string to three numeric index values
-		inline
-		static
-		ThreeSigns
-		threeSigns
-			( std::string const & str
-			)
-		{
-			ThreeSigns signs{ -128, -128, -128 };
-			if (3u == str.size())
-			{
-				signs[0] = signFrom(str[0]);
-				signs[1] = signFrom(str[1]);
-				signs[2] = signFrom(str[2]);
-			}
-			return signs;
-		}
-
-		//! Convert string to three numeric index values
-		inline
-		static
-		ThreeIndices
-		threeIndices
-			( std::string const & str
-			)
-		{
-			ThreeIndices ndxs{ 255u, 255u, 255u };
-			if (3u == str.size())
-			{
-				ndxs[0] = indexFrom(str[0]);
-				ndxs[1] = indexFrom(str[1]);
-				ndxs[2] = indexFrom(str[2]);
-			}
-			return ndxs;
-		}
-
-		//! Decode string character [01] to [TR,RT]
-		inline
-		static
-		OrderTR
-		orderFrom
-			( std::string const & str
-			)
-		{
-			OrderTR order{ Unknown };
-			if (1u == str.size())
-			{
-				if ('0' == str[0])
-				{
-					order = TranRot;
-				}
-				else
-				if ('1' == str[0])
-				{
-					order = RotTran;
-				}
-			}
-			return order;
-		}
-
-		//! A '+' or '-' character depending on the sign of aByte
-		inline
-		static
-		std::string::value_type
-		pmCharFor
-			( int8_t const & aByte
-			)
-		{
-			std::string::value_type aChar{ '+' };
-			if (aByte < 0)
-			{
-				aChar = '-';
-			}
-			return aChar;
-		}
-
-		//! String of +/- characters for signed integer values
-		inline
-		static
-		std::string
-		stringFrom
-			( ThreeSigns const & signInts
-			)
-		{
-			std::ostringstream oss;
-			//	using ThreeSigns = std::array<std::int8_t, 3u>;
-			oss
-				<< pmCharFor(signInts[0])
-				<< pmCharFor(signInts[1])
-				<< pmCharFor(signInts[2])
-				;
-			return oss.str();
-		}
-
-		//! String of [012] characters for unsigned integer values
-		inline
-		static
-		std::string
-		stringFrom
-			( ThreeIndices const & ndxInts
-			)
-		{
-			std::ostringstream oss;
-			//	using ThreeIndices = std::array<std::uint8_t, 3u>;
-			oss
-				<< static_cast<int>(ndxInts[0])
-				<< static_cast<int>(ndxInts[1])
-				<< static_cast<int>(ndxInts[2])
-				;
-			return oss.str();
-		}
-
-		//! String of [0...] characters for enum OrderTR type.
-		inline
-		static
-		std::string
-		stringFrom
-			( OrderTR const & order
-			)
-		{
-			std::ostringstream oss;
-			oss << static_cast<int>(order);
-			return oss.str();
-		}
-
 		//! Construct from canonical encoding.
-		inline
 		static
 		ConventionString
 		from
 			( Convention const & convention
-			)
-		{
-			std::string const strLocSigns
-				{ stringFrom(convention.theAngSigns) };
-			std::string const strLocNdxs
-				{ stringFrom(convention.theAngIndices) };
-			std::string const strAngSigns
-				{ stringFrom(convention.theLocSigns) };
-			std::string const strAngNdxs
-				{ stringFrom(convention.theLocIndices) };
-			std::string const strBivNdxs
-				{ stringFrom(convention.theBivIndices) };
-			std::string const strOrder
-				{ stringFrom(convention.theOrder) };
-			return ConventionString
-				{ strLocSigns
-				, strLocNdxs
-				, strAngSigns
-				, strAngNdxs
-				, strBivNdxs
-				, strOrder
-				};
-			/*
-			ThreeSigns theAngSigns;
-			ThreeIndices theAngIndices;
-			ThreeSigns theLocSigns;
-			ThreeIndices theLocIndices;
-			ThreeIndices theBivIndices;
-			OrderTR theOrder;
-			*/
-		}
+			);
 
 		//! Construct from canonical encoding.
-		inline
 		static
 		ConventionString
 		from
 			( std::string const & encoding
-			)
-		{
-			std::istringstream iss(encoding);
-			ConventionString cs;
-			iss
-				>> cs.theStrLocSigns >> cs.theStrLocNdxs
-				>> cs.theStrAngSigns >> cs.theStrAngNdxs
-				>> cs.theStrBivNdxs
-				>> cs.theStrOrder
-				;
-			return cs;
-		}
+			);
 
 		//! Canonical string encoding for a convention
-		inline
 		std::string
 		stringEncoding
 			(
-			) const
-		{
-			std::ostringstream oss;
-			oss
-				<< theStrLocSigns
-				<< ' ' << theStrLocNdxs
-				<< ' ' << theStrAngSigns
-				<< ' ' << theStrAngNdxs
-				<< ' ' << theStrBivNdxs
-				<< ' ' << theStrOrder
-				;
-			return oss.str();
-		}
+			) const;
 
 		//! True if all strings components are valid
-		inline
 		bool
 		isValid
-			() const
-		{
-			// quick check on length - could/should inspect contents as well
-			return
-				(  (3u == theStrLocSigns.size())
-				&& (3u == theStrLocNdxs.size())
-				&& (3u == theStrAngSigns.size())
-				&& (3u == theStrAngNdxs.size())
-				&& (3u == theStrBivNdxs.size())
-				&& (1u == theStrOrder.size())
-				);
-		}
+			() const;
 
 		//! Convention associated with current string values
-		inline
 		Convention
 		convention
-			() const
-		{
-			ThreeSigns const locSigns{ threeSigns(theStrLocSigns) };
-			ThreeIndices const locNdxs{ threeIndices(theStrLocNdxs) };
-			ThreeSigns const angSigns{ threeSigns(theStrAngSigns) };
-			ThreeIndices const angNdxs{ threeIndices(theStrAngNdxs) };
-			ThreeIndices const bivNdxs{ threeIndices(theStrBivNdxs) };
-			OrderTR const order{ orderFrom(theStrOrder) };
-			return Convention
-				{ locSigns, locNdxs, angSigns, angNdxs, bivNdxs, order };
-		}
+			() const;
 
 	}; // ConventionString
 
