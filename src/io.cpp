@@ -257,10 +257,12 @@ infoString
 	std::ostringstream oss;
 	double const & fitError = fitConPair.first;
 	Convention const & convention = allConventions[fitConPair.second];
+	ConventionString const cs{ ConventionString::from(convention) };
 	using engabra::g3::io::fixed;
 	oss
 		<< " fitError: " << fixed(fitError)
 		<< "  convention: " << convention.asNumber()
+		<< " '" << cs.stringEncoding() << "'"
 		;
 	return oss.str();
 }
@@ -322,8 +324,7 @@ infoStringFitConventions
 				( fitIndexPairs.begin() + ndxBeg2
 				, fitIndexPairs.begin() + ndxEnd2
 				, allConventions
-				)
-			<< '\n';
+				);
 	}
 
 	return oss.str();
