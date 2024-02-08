@@ -117,7 +117,7 @@ loadIndEOs
 				}
 			}
 			else
-			if ("Distances:" == keyword)
+			if ("Locations:" == keyword)
 			{
 				ThreeDistances dists
 					{ engabra::g3::null<double>()
