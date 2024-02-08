@@ -142,6 +142,16 @@ main
 	{
 		std::ostringstream msg;
 
+		// report ParmGroup values
+		msg << '\n';
+		for (std::map<om::SenKey, om::ParmGroup>::value_type
+			const & keyPG : keyPGs)
+		{
+			msg << "PG: " << keyPG.first
+				<< " " << keyPG.second
+				<< '\n';
+		}
+
 		// report independent EO values
 		msg << '\n';
 		msg << "Independent EO count: " << indKeyOris.size() << '\n';
@@ -154,13 +164,15 @@ main
 				<< '\n';
 		}
 
-		// report ParmGroup values
+		// report ind relative orientations
+		std::map<KeyPair, SenOri> const indKeyROs
+			{ relativeOrientationBetweens(indKeyOris) };
 		msg << '\n';
-		for (std::map<om::SenKey, om::ParmGroup>::value_type
-			const & keyPG : keyPGs)
+		for (std::map<KeyPair, SenOri>::value_type
+			const & indKeyRO : indKeyROs)
 		{
-			msg << "PG: " << keyPG.first
-				<< " " << keyPG.second
+			msg << indKeyRO.first
+				<< "  " << indKeyRO.second
 				<< '\n';
 		}
 
