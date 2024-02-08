@@ -65,14 +65,14 @@ namespace
 		om::Convention const convention{ om::sim::sConventionA };
 
 		// if true report various simulation data values
-		constexpr bool show{ false };
+		constexpr bool showData{ true };
 
 		//
 		// Simulation
 		//
 
 		// report configuration
-		if (show)
+		if (showData)
 		{
 			std::cout << '\n';
 			std::cout << "using convention: " << convention << '\n';
@@ -136,17 +136,33 @@ namespace
 	 	// [DoxyExample01]
 
 		// show data values (e.g. for dev use)
-		constexpr bool showData{ false };
 		if (showData)
 		{
+			std::ostringstream msg;
+
+			msg << '\n';
+			msg << "\nParmGroups in use:\n";
+			for (std::map<om::SenKey, om::ParmGroup>::value_type
+				const & keyGroup : keyGroups)
+			{
+				msg << keyGroup.first
+					<< " " << keyGroup.second
+					<< '\n';
+			}
+			msg << "\nIndpendent EOs:\n";
 			for (std::map<SenKey, SenOri>::value_type
 				const & indKeyOri : indKeyOris)
 			{
-				std::cout
-					<< "EO: " << indKeyOri.first
+				msg
+					<< indKeyOri.first
 					<< " " << indKeyOri.second
 					<< '\n';
 			}
+			msg << "\nSolution Sample:\n";
+			msg << infoStringFitConventions(fitIndexPairs, allCons) << '\n';
+			msg << '\n';
+
+			std::cout << msg.str();
 		}
 
 		// check if correct number are computed
