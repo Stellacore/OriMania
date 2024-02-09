@@ -90,14 +90,18 @@ namespace om
 		return rase;
 	}
 
-	//! Error between roInd and black box RO computed from pg{1,2}.
+	/*! \brief Relative orientation between two ParmGroups.
+	 *
+	 * Each ParmGroup argument is converted to a SenOri using the
+	 * same Convention. The two individual orientations are then
+	 * combined into a relative orientation of "2" with respect to "1".
+	 */
 	inline
-	double
-	fitErrorFor
+	SenOri
+	relativeOrientationFor
 		( ParmGroup const & pg1
 		, ParmGroup const & pg2
 		, Convention const & convention
-		, SenOri const & roInd
 		)
 	{
 		// generate forward transforms internal to black box frame
@@ -106,8 +110,7 @@ namespace om
 		// compute relative orientation in black box frame
 		SenOri const oriBw1{ inverse(ori1wB) };
 		SenOri const roBox{ ori2wB * oriBw1 };
-		// compare black box and independent relative orientations
-		return differenceBetween(roBox, roInd);
+		return roBox;
 	}
 
 	/*! \brief Sum-squared-errors (SSE) (across all ROs) by each convention.
@@ -154,8 +157,10 @@ namespace om
 				for (std::size_t cNdx{0u} ; cNdx < allCons.size() ; ++cNdx)
 				{
 					Convention const & convention = allCons[cNdx];
+					SenOri const roBox
+						{ relativeOrientationFor(pg1, pg2, convention) };
 					double const fitError
-						{ fitErrorFor(pg1, pg2, convention, relOri) };
+						{ differenceBetween(roBox, relOri) };
 					sumFitErrors[cNdx] += fitError;
 				}
 			}
