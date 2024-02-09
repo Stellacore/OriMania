@@ -115,6 +115,83 @@ namespace
 } // [anon]
 
 
+namespace rpt
+{
+
+	inline
+	std::string
+	stringInputs
+		( std::map<om::SenKey, om::ParmGroup> const & keyBoxPGs
+		, std::map<om::SenKey, om::SenOri> const & indKeyOris
+		)
+	{
+		std::ostringstream msg;
+
+		using namespace om;
+
+		// report ParmGroup values
+		msg << '\n';
+		msg << "Box ParmGroup count: " << keyBoxPGs.size() << '\n';
+		for (std::map<SenKey, ParmGroup>::value_type
+			const & keyPG : keyBoxPGs)
+		{
+			msg << "PG: " << keyPG.first
+				<< " " << keyPG.second
+				<< '\n';
+		}
+
+		// report independent EO values
+		msg << '\n';
+		msg << "Independent EO count: " << indKeyOris.size() << '\n';
+		for (std::map<SenKey, SenOri>::const_iterator
+			iter{indKeyOris.begin()} ; indKeyOris.end() != iter ; ++iter)
+		{
+			msg
+				<< std::setw(12u) << iter->first
+				<< ' ' << iter->second
+				<< '\n';
+		}
+
+		// report ind relative orientations
+		std::map<KeyPair, SenOri> const indKeyROs
+			{ relativeOrientationBetweens(indKeyOris) };
+		msg << '\n';
+		for (std::map<KeyPair, SenOri>::value_type
+			const & indKeyRO : indKeyROs)
+		{
+			msg << indKeyRO.first
+				<< "  " << indKeyRO.second
+				<< '\n';
+		}
+
+		return msg.str();
+	}
+
+	//! String sampling first several and last few solutions
+	inline
+	std::string
+	stringSolution
+		( std::vector<om::FitNdxPair> const & fitIndexPairs
+		, std::vector<om::Convention> const & allBoxCons
+		, std::size_t const & numBeg = 8u
+		, std::size_t const & numEnd = 2u
+		)
+	{
+		std::ostringstream msg;
+
+		using namespace om;
+
+		// display first and last several lines
+		msg << '\n';
+		msg << infoStringFitConventions
+			(fitIndexPairs, allBoxCons, numBeg, numEnd) << '\n';
+		msg << "===\n";
+
+		return msg.str();
+	}
+
+} // [rpt]
+
 /*! \brief Estimate payload sensor ExCal tranforms by analysing exported data.
  *
  * \arg Load independent EO's via om::loadIndEOs().
@@ -155,9 +232,17 @@ std::cout << "got keyIndPGs count: " << keyIndPGs.size() << '\n';
 std::cout << "got indKeyOris count: " << indKeyOris.size() << '\n';
 
 
-	std::vector<om::Convention> const allCons{ Convention::allConventions() };
+	// try all internal conventions
+	std::vector<om::Convention> const allBoxCons
+		{ Convention::allConventions() };
+
+// TODO factor conventions
+//	std::vector<om::Convention> const allIndCons
+//		{ Convention::allConventions() };
+
 	std::vector<om::FitNdxPair> fitIndexPairs
-		{ fitIndexPairsFor(keyBoxPGs, indKeyOris, allCons) };
+		{ fitIndexPairsFor(keyBoxPGs, indKeyOris, allBoxCons) };
+
 std::cout << "got fitIndexPairs count: " << fitIndexPairs.size() << '\n';
 
 	// sort from best and worst
@@ -166,50 +251,13 @@ std::cout << "got fitIndexPairs count: " << fitIndexPairs.size() << '\n';
 	// report data encountered
 	if (use.isVerbose())
 	{
-		std::ostringstream msg;
-
-		// report ParmGroup values
-		msg << '\n';
-		msg << "Box ParmGroup count: " << keyBoxPGs.size() << '\n';
-		for (std::map<om::SenKey, om::ParmGroup>::value_type
-			const & keyPG : keyBoxPGs)
-		{
-			msg << "PG: " << keyPG.first
-				<< " " << keyPG.second
-				<< '\n';
-		}
-
-		// report independent EO values
-		msg << '\n';
-		msg << "Independent EO count: " << indKeyOris.size() << '\n';
-		for (std::map<SenKey, SenOri>::const_iterator
-			iter{indKeyOris.begin()} ; indKeyOris.end() != iter ; ++iter)
-		{
-			msg
-				<< std::setw(12u) << iter->first
-				<< ' ' << iter->second
-				<< '\n';
-		}
-
-		// report ind relative orientations
-		std::map<KeyPair, SenOri> const indKeyROs
-			{ relativeOrientationBetweens(indKeyOris) };
-		msg << '\n';
-		for (std::map<KeyPair, SenOri>::value_type
-			const & indKeyRO : indKeyROs)
-		{
-			msg << indKeyRO.first
-				<< "  " << indKeyRO.second
-				<< '\n';
-		}
-
-		// display first and last several lines
-		msg << '\n';
-		msg << om::infoStringFitConventions(fitIndexPairs, allCons) << '\n';
-		msg << "===\n";
-
-		std::cout << msg.str();
+		std::cout << rpt::stringInputs(keyBoxPGs, indKeyOris);
+		std::cout << rpt::stringSolution(fitIndexPairs, allBoxCons);
 	}
+
+	//
+	// Results reporting
+	//
 
 	// report results
 	if (! fitIndexPairs.empty())
@@ -219,7 +267,7 @@ std::cout << "got fitIndexPairs count: " << fitIndexPairs.size() << '\n';
 		std::cout << '\n';
 		std::cout << "Best fitting Conventions\n";
 		std::cout << om::infoStringFitConventions
-			(fitIndexPairs.begin(), fitIndexPairs.begin()+numShow, allCons)
+			(fitIndexPairs.begin(), fitIndexPairs.begin()+numShow, allBoxCons)
 			<< '\n';
 		std::cout << '\n';
 	}
