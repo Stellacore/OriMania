@@ -112,6 +112,42 @@ namespace
 		return indKeyOris;
 	}
 
+	//! Fit error for a particular solution
+	struct ASoln
+	{
+		double const theFitError;
+		std::string theBoxCS;
+		std::string theIndCS;
+
+		//! Instance crated from arguments
+		static
+		ASoln
+		from
+			( om::FitNdxPair const & fitNdxPair
+			, std::vector<om::Convention> const & allBoxCons
+			, om::Convention const & currIndConv
+			)
+		{
+			double const & fitError = fitNdxPair.first;
+
+			// fetch Box conventions string
+			std::size_t const & bestBoxNdx = fitNdxPair.second;
+			om::Convention const & bestBoxConv{ allBoxCons[bestBoxNdx] };
+			om::ConventionString const csBox
+				{ om::ConventionString::from(bestBoxConv) };
+			std::string const boxCS{ csBox.stringEncoding() };
+
+			// get Ind conventions string
+			om::ConventionString const csInd
+				{ om::ConventionString::from(currIndConv) };
+			std::string const indCS{ csInd.stringEncoding() };
+
+			return ASoln{ fitError, boxCS, indCS };
+		}
+
+	}; // ASoln
+
+
 } // [anon]
 
 
@@ -217,36 +253,71 @@ main
 		const keyBoxPGs{ om::loadParmGroups(ifsBoxPG) };
 std::cout << "got keyBoxPGs count: " << keyBoxPGs.size() << '\n';
 
+	// try all internal conventions
+	std::vector<om::Convention> const allBoxCons
+		{ Convention::allConventions() };
+std::cout << "got allBoxCons count: " << allBoxCons.size() << std::endl;
+
+
 	// load exterior Ind parameter group from specified file
 	std::ifstream ifsIndPG(use.theIndPGPath);
 	std::map<om::SenKey, om::ParmGroup>
 		const keyIndPGs{ om::loadParmGroups(ifsIndPG) };
 std::cout << "got keyIndPGs count: " << keyIndPGs.size() << '\n';
 
-	// Generate Ind EO using current convention
-	om::ConventionString const cs
-		{ om::ConventionString::from("+++ 012 +++ 012 012 0") };
-	om::Convention const eoConvention{ cs.convention() };
-	std::map<SenKey, SenOri> const indKeyOris
-		{ indKeyOrisFor(keyIndPGs, eoConvention) };
-std::cout << "got indKeyOris count: " << indKeyOris.size() << '\n';
+	//! Conventions for Ind EO interpretations
+	om::ConventionOffset const indConvOffset{ { 1, 1, 1 }, { 0u, 1u, 2u } };
+	std::vector<om::Convention> const allIndEoCons
+		{ Convention::allConventionsFor(indConvOffset) };
+std::cout << "allIndEoCons.size() : " << allIndEoCons.size() << "\n";
+
+	std::vector<ASoln> solns;
+std::cout << "\nExpect Loops: " << allIndEoCons.size() << '\n';
+	for (om::Convention const & currIndEoCon : allIndEoCons)
+	{
+		std::map<SenKey, SenOri> const indKeyOris
+			{ indKeyOrisFor(keyIndPGs, currIndEoCon) };
+//std::cout << "got indKeyOris count: " << indKeyOris.size() << '\n';
+
+		std::vector<om::FitNdxPair> fitIndexPairs
+			{ fitIndexPairsFor(keyBoxPGs, indKeyOris, allBoxCons) };
+//std::cout << "got fitIndexPairs count: " << fitIndexPairs.size() << '\n';
+
+		// sort from best and worst
+		std::sort(fitIndexPairs.begin(), fitIndexPairs.end());
+
+		if (! fitIndexPairs.empty())
+		{
+			std::vector<om::FitNdxPair>::const_iterator
+				const itBeg{ fitIndexPairs.cbegin() };
+			ASoln const soln
+				{ ASoln::from
+					( *itBeg
+					, allBoxCons
+					, currIndEoCon // current one
+					)
+				};
+			solns.emplace_back(soln);
+
+			using engabra::g3::io::fixed;
+			std::cout
+				<< "fitError: " << fixed(soln.theFitError)
+				<< "  boxPGs: " << soln.theBoxCS
+				<< "  indPGs: " << soln.theIndCS
+				<< '\n';
+std::cout << std::flush;
+		}
+		else
+		{
+			std::cerr << "Error: No results to report\n" << std::endl;
+		}
+	}
 
 
-	// try all internal conventions
-	std::vector<om::Convention> const allBoxCons
-		{ Convention::allConventions() };
+return 3;//TODO
+std::map<SenKey, SenOri> const indKeyOris{};//TODO
+std::vector<om::FitNdxPair> fitIndexPairs{};//TODO
 
-// TODO factor conventions
-//	std::vector<om::Convention> const allIndCons
-//		{ Convention::allConventions() };
-
-	std::vector<om::FitNdxPair> fitIndexPairs
-		{ fitIndexPairsFor(keyBoxPGs, indKeyOris, allBoxCons) };
-
-std::cout << "got fitIndexPairs count: " << fitIndexPairs.size() << '\n';
-
-	// sort from best and worst
-	std::sort(fitIndexPairs.begin(), fitIndexPairs.end());
 
 	// report data encountered
 	if (use.isVerbose())
