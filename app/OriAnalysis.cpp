@@ -113,7 +113,7 @@ namespace
 	}
 
 	//! Fit error for a particular solution
-	struct ASoln
+	struct OneFitSoln
 	{
 		double const theFitError;
 		std::string theBoxCS;
@@ -121,7 +121,7 @@ namespace
 
 		//! Instance crated from arguments
 		static
-		ASoln
+		OneFitSoln
 		from
 			( om::FitNdxPair const & fitNdxPair
 			, std::vector<om::Convention> const & allBoxCons
@@ -142,10 +142,19 @@ namespace
 				{ om::ConventionString::from(currIndConv) };
 			std::string const indCS{ csInd.stringEncoding() };
 
-			return ASoln{ fitError, boxCS, indCS };
+			return OneFitSoln{ fitError, boxCS, indCS };
 		}
 
-	}; // ASoln
+	}; // OneFitSoln
+
+	//! Several OneFitSoln samples for a single Box convention solution
+	struct OneBoxSolnSamples
+	{
+		OneFitSoln the1st;
+		OneFitSoln the2nd;
+		OneFitSoln theEnd;
+
+	}; // OneBoxSolnSamples
 
 
 } // [anon]
@@ -271,7 +280,8 @@ std::cout << "got keyIndPGs count: " << keyIndPGs.size() << '\n';
 		{ Convention::allConventionsFor(indConvOffset) };
 std::cout << "allIndEoCons.size() : " << allIndEoCons.size() << "\n";
 
-	std::vector<ASoln> solns;
+	std::vector<OneBoxSolnSamples> boxSolnSamples;
+	std::vector<OneFitSoln> solns;
 std::cout << "\nExpect Loops: " << allIndEoCons.size() << '\n';
 	for (om::Convention const & currIndEoCon : allIndEoCons)
 	{
@@ -289,23 +299,41 @@ std::cout << "\nExpect Loops: " << allIndEoCons.size() << '\n';
 		if (! fitIndexPairs.empty())
 		{
 			std::vector<om::FitNdxPair>::const_iterator
-				const itBeg{ fitIndexPairs.cbegin() };
-			ASoln const soln
-				{ ASoln::from
-					( *itBeg
-					, allBoxCons
-					, currIndEoCon // current one
-					)
+				itPair{ fitIndexPairs.cbegin() };
+			om::FitNdxPair const ndxPair1st{ *itPair };
+			++itPair;
+			om::FitNdxPair const ndxPair2nd{ *itPair };
+			itPair = fitIndexPairs.cend();
+			--itPair;
+			om::FitNdxPair const ndxPairEnd{ *itPair };
+
+			OneBoxSolnSamples const boxSolnSample
+				{ OneFitSoln::from(ndxPair1st, allBoxCons, currIndEoCon)
+				, OneFitSoln::from(ndxPair2nd, allBoxCons, currIndEoCon)
+				, OneFitSoln::from(ndxPairEnd, allBoxCons, currIndEoCon)
 				};
-			solns.emplace_back(soln);
+			boxSolnSamples.emplace_back(boxSolnSample);
+			double const & fit1st = boxSolnSample.the1st.theFitError;
+			double const & fit2nd = boxSolnSample.the2nd.theFitError;
+			double const & fitEnd = boxSolnSample.theEnd.theFitError;
+			double const promFrac{ (fit2nd - fit1st) / fitEnd };
 
 			using engabra::g3::io::fixed;
 			std::cout
-				<< "fitError: " << fixed(soln.theFitError)
-				<< "  boxPGs: " << soln.theBoxCS
-				<< "  indPGs: " << soln.theIndCS
+				<< "fitError: " << fixed(fit1st)
+				<< "  boxPGs: " << boxSolnSample.the1st.theBoxCS
+				<< "  indPGs: " << boxSolnSample.the1st.theIndCS
+				<< "  2ndFit: " << fixed(fit2nd)
+				<< "  EndFit: " << fixed(fitEnd)
+				<< "  promFrac: " << fixed(promFrac)
 				<< '\n';
 std::cout << std::flush;
+/*
+if (15u < boxSolnSamples.size())
+{
+	break;
+}
+*/
 		}
 		else
 		{
