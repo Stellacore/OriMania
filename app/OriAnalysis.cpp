@@ -43,8 +43,8 @@ namespace
 	//! Check basic application usage
 	struct Usage
 	{
-		std::filesystem::path theIndEoPath{};
-		std::filesystem::path theParmGroupPath{};
+		std::filesystem::path theBoxPGPath{};
+		std::filesystem::path theIndPGPath{};
 
 		//! True if verboase output has been requested
 		inline
@@ -65,14 +65,14 @@ namespace
 			int narg{ 1 };
 			if (2 < argc)
 			{
-				theIndEoPath = argv[narg++];
-				theParmGroupPath = argv[narg++];
+				theBoxPGPath = argv[narg++];
+				theIndPGPath = argv[narg++];
 			}
 			else
 			{
 				std::cerr << '\n' << argv[0] << " Bad invocation:"
 					"\nUsage:"
-					"\n  <ProgName> <IndEoPath> <ParmGroupPath>"
+					"\n  <ProgName> <BoxPGPath> <IndPGPath>"
 					"\n\n"
 					;
 			}
@@ -84,10 +84,33 @@ namespace
 		isValid
 			() const
 		{
-			return std::filesystem::exists(theIndEoPath);
+			return
+				(  std::filesystem::exists(theBoxPGPath)
+				&& std::filesystem::exists(theBoxPGPath)
+				);
 		}
 
 	}; // Usage
+
+	//! Generate Ind EOs from IndPGs and eoConvention.
+	inline
+	std::map<om::SenKey, om::SenOri>
+	indKeyOrisFor
+		( std::map<om::SenKey, om::ParmGroup> const & keyIndPGs
+		, om::Convention const & eoConvention
+		)
+	{
+		using namespace om;
+		std::map<SenKey, SenOri> indKeyOris;
+		for (std::map<SenKey, ParmGroup>::value_type
+			const & keyIndPG : keyIndPGs)
+		{
+			SenKey const & senKey = keyIndPG.first;
+			ParmGroup const & pg = keyIndPG.second;
+			indKeyOris[senKey] = eoConvention.transformFor(pg);
+		}
+		return indKeyOris;
+	}
 
 } // [anon]
 
@@ -111,28 +134,31 @@ main
 
 	using namespace om;
 
-	// load indepenent EOs from specified file
-	std::ifstream ifsEO(use.theIndEoPath);
-	std::map<SenKey, SenOri> const indKeyOris{ loadIndEOs(ifsEO) };
-
-	if (! (1u < indKeyOris.size()))
-	{
-		std::cerr << "\nFatal Error:\n";
-		std::cerr
-			<< "  Only loaded " << indKeyOris.size() << " indpendent EOs.\n"
-			<< "  Need at least two in order to form relative orientations!\n"
-			<< '\n';
-		return 2;
-	}
-
-	// load ParmGroups from specified file
-	std::ifstream ifsPG(use.theParmGroupPath);
+	// load interior Box ParmGroups from specified file
+	std::ifstream ifsBoxPG(use.theBoxPGPath);
 	std::map<om::SenKey, om::ParmGroup>
-		const keyPGs{ om::loadParmGroups(ifsPG) };
+		const keyBoxPGs{ om::loadParmGroups(ifsBoxPG) };
+std::cout << "got keyBoxPGs count: " << keyBoxPGs.size() << '\n';
+
+	// load exterior Ind parameter group from specified file
+	std::ifstream ifsIndPG(use.theIndPGPath);
+	std::map<om::SenKey, om::ParmGroup>
+		const keyIndPGs{ om::loadParmGroups(ifsIndPG) };
+std::cout << "got keyIndPGs count: " << keyIndPGs.size() << '\n';
+
+	// Generate Ind EO using current convention
+	om::ConventionString const cs
+		{ om::ConventionString::from("+++ 012 +++ 012 012 0") };
+	om::Convention const eoConvention{ cs.convention() };
+	std::map<SenKey, SenOri> const indKeyOris
+		{ indKeyOrisFor(keyIndPGs, eoConvention) };
+std::cout << "got indKeyOris count: " << indKeyOris.size() << '\n';
+
 
 	std::vector<om::Convention> const allCons{ Convention::allConventions() };
 	std::vector<om::FitNdxPair> fitIndexPairs
-		{ fitIndexPairsFor(keyPGs, indKeyOris, allCons) };
+		{ fitIndexPairsFor(keyBoxPGs, indKeyOris, allCons) };
+std::cout << "got fitIndexPairs count: " << fitIndexPairs.size() << '\n';
 
 	// sort from best and worst
 	std::sort(fitIndexPairs.begin(), fitIndexPairs.end());
@@ -144,8 +170,9 @@ main
 
 		// report ParmGroup values
 		msg << '\n';
+		msg << "Box ParmGroup count: " << keyBoxPGs.size() << '\n';
 		for (std::map<om::SenKey, om::ParmGroup>::value_type
-			const & keyPG : keyPGs)
+			const & keyPG : keyBoxPGs)
 		{
 			msg << "PG: " << keyPG.first
 				<< " " << keyPG.second
