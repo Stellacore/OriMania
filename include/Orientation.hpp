@@ -82,9 +82,9 @@ namespace om
 
 				KeyPair const keyPair{ key1, key2 };
 				SenOri const oriRw1{ inverse(ori1wR) };
-				SenOri const ori2w1{ ori2wR * oriRw1 };
+				SenOri const ro2w1{ ori2wR * oriRw1 };
 
-				ros.emplace_hint(ros.end(), std::make_pair(keyPair, ori2w1));
+				ros.emplace_hint(ros.end(), std::make_pair(keyPair, ro2w1));
 			}
 		}
 		return ros;

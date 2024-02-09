@@ -320,11 +320,11 @@ std::cout << "\nExpect Loops: " << allIndEoCons.size() << '\n';
 
 			using engabra::g3::io::fixed;
 			std::cout
-				<< "fitError: " << fixed(fit1st)
+				<< "fitError: " << fixed(fit1st, 8u, 3u)
 				<< "  boxPGs: " << boxSolnSample.the1st.theBoxCS
 				<< "  indPGs: " << boxSolnSample.the1st.theIndCS
-				<< "  2ndFit: " << fixed(fit2nd)
-				<< "  EndFit: " << fixed(fitEnd)
+				<< "  2ndFit: " << fixed(fit2nd, 8u, 3u)
+				<< "  EndFit: " << fixed(fitEnd, 8u, 3u)
 				<< "  promFrac: " << fixed(promFrac)
 				<< '\n';
 std::cout << std::flush;
