@@ -68,11 +68,8 @@ namespace sim
 	// TODO - run test over many (all?) different conventions.
 	//! An arbitrarily set convention
 	static om::Convention const sConventionA
-		{ {  1,  1, -1 }
-		, { 1, 0, 2 }
-		, {  1, -1,  1 }
-		, { 0, 1, 2 }
-		, { 1, 2, 1 }
+		{ ConventionOffset{ {  1,  1, -1 }, { 1, 0, 2 } }
+		, ConventionAngle{ {  1, -1,  1 }, { 0, 1, 2 }, { 1, 2, 1 } }
 		, om::RotTran
 		};
 

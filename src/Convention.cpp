@@ -318,11 +318,11 @@ Convention :: asNumber
 {
 	return
 		( 1000000000000u
-		+   10000000000u * numberFor(theAngSigns) // 8
-		+     100000000u * numberFor(theAngIndices) // <32
-		+       1000000u * numberFor(theLocSigns) // 8
-		+         10000u * numberFor(theLocIndices) // <32
-		+           100u * numberFor(theBivIndices) // <32
+		+   10000000000u * numberFor(theConvOff.theOffSigns) // 8
+		+     100000000u * numberFor(theConvOff.theOffIndices) // <32
+		+       1000000u * numberFor(theConvAng.theAngSigns) // 8
+		+         10000u * numberFor(theConvAng.theAngIndices) // <32
+		+           100u * numberFor(theConvAng.theBivIndices) // <32
 		+             1u * numberFor(theOrder) // 2
 		);
 }
@@ -453,9 +453,9 @@ Convention :: attitudeFor
 
 	// gather angle sizes together
 	ThreeAngles const angleSizes
-		{ theAngSigns[0] * aVals[theAngIndices[0]]
-		, theAngSigns[1] * aVals[theAngIndices[1]]
-		, theAngSigns[2] * aVals[theAngIndices[2]]
+		{ theConvAng.theAngSigns[0] * aVals[theConvAng.theAngIndices[0]]
+		, theConvAng.theAngSigns[1] * aVals[theConvAng.theAngIndices[1]]
+		, theConvAng.theAngSigns[2] * aVals[theConvAng.theAngIndices[2]]
 		};
 
 	// fixed set of cardinal planes (direction carried by angle sign)
@@ -465,9 +465,9 @@ Convention :: attitudeFor
 
 	// gather angle directions together
 	ThreePlanes const angleDirs
-		{ eVals[theBivIndices[0]]
-		, eVals[theBivIndices[1]]
-		, eVals[theBivIndices[2]]
+		{ eVals[theConvAng.theBivIndices[0]]
+		, eVals[theConvAng.theBivIndices[1]]
+		, eVals[theConvAng.theBivIndices[2]]
 		};
 
 	return attitudeFrom3AngleSequence(angleSizes, angleDirs);
@@ -485,9 +485,9 @@ Convention :: transformFor
 
 	// gather signed distance values together
 	ThreeDistances const offset
-		{ theLocSigns[0] * dVals[theLocIndices[0]]
-		, theLocSigns[1] * dVals[theLocIndices[1]]
-		, theLocSigns[2] * dVals[theLocIndices[2]]
+		{ theConvOff.theOffSigns[0] * dVals[theConvOff.theOffIndices[0]]
+		, theConvOff.theOffSigns[1] * dVals[theConvOff.theOffIndices[1]]
+		, theConvOff.theOffSigns[2] * dVals[theConvOff.theOffIndices[2]]
 		};
 
 	// determine attitude associated with parmGroup
@@ -517,11 +517,11 @@ Convention :: infoString
 		oss << title << ' ';
 	}
 	oss
-		<< "  Ang+/-: " << infoStringSigns(theAngSigns)
-		<< "  AngNdx: " << infoStringIndices(theAngIndices)
-		<< "  Loc+/-: " << infoStringSigns(theLocSigns)
-		<< "  LocNdx: " << infoStringIndices(theLocIndices)
-		<< "  BivNdx: " << infoStringIndices(theBivIndices)
+		<< "  Ang+/-: " << infoStringSigns(theConvAng.theAngSigns)
+		<< "  AngNdx: " << infoStringIndices(theConvAng.theAngIndices)
+		<< "  Off+/-: " << infoStringSigns(theConvOff.theOffSigns)
+		<< "  OffNdx: " << infoStringIndices(theConvOff.theOffIndices)
+		<< "  BivNdx: " << infoStringIndices(theConvAng.theBivIndices)
 		<< "   Order: " << infoStringOrders(theOrder)
 		<< "  Number: " << asNumber()
 		;
@@ -540,34 +540,26 @@ ConventionString :: from
 	( Convention const & convention
 	)
 {
-	std::string const strLocSigns
-		{ stringFrom(convention.theAngSigns) };
-	std::string const strLocNdxs
-		{ stringFrom(convention.theAngIndices) };
+	std::string const strOffSigns
+		{ stringFrom(convention.theConvAng.theAngSigns) };
+	std::string const strOffNdxs
+		{ stringFrom(convention.theConvAng.theAngIndices) };
 	std::string const strAngSigns
-		{ stringFrom(convention.theLocSigns) };
+		{ stringFrom(convention.theConvOff.theOffSigns) };
 	std::string const strAngNdxs
-		{ stringFrom(convention.theLocIndices) };
+		{ stringFrom(convention.theConvOff.theOffIndices) };
 	std::string const strBivNdxs
-		{ stringFrom(convention.theBivIndices) };
+		{ stringFrom(convention.theConvAng.theBivIndices) };
 	std::string const strOrder
 		{ stringFrom(convention.theOrder) };
 	return ConventionString
-		{ strLocSigns
-		, strLocNdxs
+		{ strOffSigns
+		, strOffNdxs
 		, strAngSigns
 		, strAngNdxs
 		, strBivNdxs
 		, strOrder
 		};
-	/*
-	ThreeSigns theAngSigns;
-	ThreeIndices theAngIndices;
-	ThreeSigns theLocSigns;
-	ThreeIndices theLocIndices;
-	ThreeIndices theBivIndices;
-	OrderTR theOrder;
-	*/
 }
 
 // static
@@ -579,7 +571,7 @@ ConventionString :: from
 	std::istringstream iss(encoding);
 	ConventionString cs;
 	iss
-		>> cs.theStrLocSigns >> cs.theStrLocNdxs
+		>> cs.theStrOffSigns >> cs.theStrOffNdxs
 		>> cs.theStrAngSigns >> cs.theStrAngNdxs
 		>> cs.theStrBivNdxs
 		>> cs.theStrOrder
@@ -594,8 +586,8 @@ ConventionString :: stringEncoding
 {
 	std::ostringstream oss;
 	oss
-		<< theStrLocSigns
-		<< ' ' << theStrLocNdxs
+		<< theStrOffSigns
+		<< ' ' << theStrOffNdxs
 		<< ' ' << theStrAngSigns
 		<< ' ' << theStrAngNdxs
 		<< ' ' << theStrBivNdxs
@@ -610,8 +602,8 @@ ConventionString :: isValid
 {
 	// quick check on length - could/should inspect contents as well
 	return
-		(  (3u == theStrLocSigns.size())
-		&& (3u == theStrLocNdxs.size())
+		(  (3u == theStrOffSigns.size())
+		&& (3u == theStrOffNdxs.size())
 		&& (3u == theStrAngSigns.size())
 		&& (3u == theStrAngNdxs.size())
 		&& (3u == theStrBivNdxs.size())
@@ -623,8 +615,8 @@ Convention
 ConventionString :: convention
 	() const
 {
-	ThreeSigns const locSigns{ threeSignsFrom(theStrLocSigns) };
-	ThreeIndices const locNdxs{ threeIndicesFrom(theStrLocNdxs) };
+	ThreeSigns const locSigns{ threeSignsFrom(theStrOffSigns) };
+	ThreeIndices const locNdxs{ threeIndicesFrom(theStrOffNdxs) };
 	ThreeSigns const angSigns{ threeSignsFrom(theStrAngSigns) };
 	ThreeIndices const angNdxs{ threeIndicesFrom(theStrAngNdxs) };
 	ThreeIndices const bivNdxs{ threeIndicesFrom(theStrBivNdxs) };

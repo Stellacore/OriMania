@@ -201,20 +201,30 @@ namespace om
 // Convention for transformation parameters
 //
 
-	//! Candidate convention associated with 6 orientation values
-	struct Convention
+	/*! \brief Conventions for creating offset vector from 3 distance values.
+	 *
+	 */
+	struct ConventionOffset
 	{
+		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
+		ThreeSigns theOffSigns;
+
+		//! \brief Permutations: 012, 021, 120, 102, 201, 210
+		ThreeIndices theOffIndices;
+
+	}; // ConventionOffset
+
+	/*! \brief Conventions for 3-angle sequences from 3 angle size values.
+	 *
+	 */
+	struct ConventionAngle
+	{
+
 		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
 		ThreeSigns theAngSigns;
 
 		//! \brief Permutations: 012, 021, 120, 102, 201, 210
 		ThreeIndices theAngIndices;
-
-		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
-		ThreeSigns theLocSigns;
-
-		//! \brief Permutations: 012, 021, 120, 102, 201, 210
-		ThreeIndices theLocIndices;
 
 		/*! \brief Permutes: 010,012,020,021, 101,102,120,121, 201,202,210,212.
 		 *
@@ -231,6 +241,17 @@ namespace om
 		 * \endverbatim
 		 */
 		ThreeIndices theBivIndices;
+
+	}; // ConventionAngle
+
+	//! Candidate convention associated with 6 orientation values
+	struct Convention
+	{
+		//! \brief Conventions for interpreting 3 offset distances
+		ConventionOffset theConvOff{};
+
+		//! \brief Conventions for interpreting 3 angle sizes
+		ConventionAngle theConvAng{};
 
 		//! \brief Permutations: TranRot, RotTran
 		OrderTR theOrder;
@@ -256,13 +277,13 @@ namespace om
 		allThreeSigns
 			();
 
-		//! All combinations of unique indices for three element array
+		//! All 6 combinations of unique indices for three element array.
 		static
 		std::array<ThreeIndices, 6u>
 		allThreeIndices
 			();
 
-		//! All combinations of unique indices for three element array
+		//! All 12 combinations of unique bivector rotation indices.
 		static
 		std::array<ThreeIndices, 12u>
 		allBivIndices
@@ -315,9 +336,9 @@ namespace om
 	struct ConventionString
 	{
 		//! Three offset vector sign conventions - e.g. "---", "++-", etc.
-		std::string theStrLocSigns;
+		std::string theStrOffSigns;
 		//! Three offset vector indices {0,1,2} - e.g. "012", "201", etc
-		std::string theStrLocNdxs;
+		std::string theStrOffNdxs;
 		//! Three angle size sign conventions - e.g. "---", "++-", etc.
 		std::string theStrAngSigns;
 		//! Three angle size indices {0,1,2} - e.g. "012", "201", etc
