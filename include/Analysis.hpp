@@ -170,7 +170,7 @@ namespace om
 
 	/*! \brief Convention error values and associated convention index.
 	 *
-	 * Uses every element of allConventions to transform each of the
+	 * Uses every element of allBoxConventions to transform each of the
 	 * two ParmGroup values (both transformed with same convention). For
 	 * each resulting pair of orientations (in black box frame) a relative
 	 * orientation, roBox, is computed and compared with the provided
@@ -178,7 +178,7 @@ namespace om
 	 *
 	 * For each convention case, the error between the roBox and roInd
 	 * transformations is computed. This fitError value is stored in the
-	 * first member of the returned pairs, and the index (of allConventions)
+	 * first member of the returned pairs, and the index (of allBoxConventions)
 	 * used for the computation is stored in the second member of the pair.
 	 * 
 	 * Note that the second member of the pair is the same as offset
@@ -187,27 +187,27 @@ namespace om
 	 * fit values via:
 	 * \arg (returnCollection)[0].first -- is the smallest fit error found
 	 * \arg (returnCollection)[0].second -- is the index, ndx, to the member
-	 * of allConventions[ndx] that was used to obtain the fit error.
+	 * of allBoxConventions[ndx] that was used to obtain the fit error.
 	 */
 	inline
 	std::vector<FitNdxPair>
 	fitIndexPairsFor
 		( std::map<SenKey, ParmGroup> const & keyGroups
-		, std::map<KeyPair, SenOri> const & keyIndROs
-		, std::vector<Convention> const & allCons
+		, std::map<KeyPair, SenOri> const & keyIndRelOris
+		, std::vector<Convention> const & allBoxConventions
 		)
 	{
 		std::vector<FitNdxPair> allFitConPairs;
 
-		// accumulation of fit errors, one for each convention in allCons
+		// accumulated fit errors, sum for each convention in allBoxConventions
 		std::vector<double> const sumFitErrors
-			{ sseSumByConvention(keyGroups, keyIndROs, allCons) };
+			{ sseSumByConvention(keyGroups, keyIndRelOris, allBoxConventions) };
 
 		// normalize the scores by number of ROs
-		std::size_t const numROs{ keyIndROs.size() };
-		double const scale{ 1./static_cast<double>(numROs) };
+		std::size_t const numRelOris{ keyIndRelOris.size() };
+		double const scale{ 1./static_cast<double>(numRelOris) };
 
-		// associate the errors with allCons collection index
+		// associate the errors with allBoxConventions collection index
 		std::size_t const numFit{ sumFitErrors.size() };
 		allFitConPairs.reserve(numFit);
 		for (std::size_t nn{0u} ; nn < numFit ; ++nn)
@@ -250,7 +250,7 @@ namespace om
 	fitIndexPairsFor
 		( std::map<SenKey, ParmGroup> const & keyGroups
 		, std::map<SenKey, SenOri> const & keyIndEOs
-		, std::vector<Convention> const & allConventions
+		, std::vector<Convention> const & allBoxConventions
 		)
 	{
 		std::vector<FitNdxPair> fitNdxPairs;
@@ -258,16 +258,32 @@ namespace om
 		if (1u < keyIndEOs.size())
 		{
 			// generate ROs from indepent exterior body orientations
-			std::map<KeyPair, SenOri> const keyIndROs
+			std::map<KeyPair, SenOri> const keyIndRelOris
 				{ relativeOrientationBetweens(keyIndEOs) };
 
 			// core algorithm operating on the relative orientations
 			fitNdxPairs = fitIndexPairsFor
-				(keyGroups, keyIndROs, allConventions);
+				(keyGroups, keyIndRelOris, allBoxConventions);
 		}
 
 		return fitNdxPairs;
 	}
+
+	/*! \brief TODO
+	 */
+	/*
+	inline
+	std::vector<FitNdxPair>
+	fitIndexPairsFor
+		( std::map<SenKey, ParmGroup> const & keyBoxPGs
+		, std::vector<Convention> const & allBoxConventions
+		, std::map<SenKey, ParmGroup> const & keyIndPGs
+		, std::vector<Convention> const & allIndConventions
+		)
+	{
+		return {};//TODO
+	}
+	*/
 
 } // [om]
 
