@@ -366,6 +366,75 @@ allOrderTRs
 		};
 }
 
+//
+//==========================================================================
+// ConventionOffset
+//==========================================================================
+//
+
+// static
+std::vector<ConventionOffset>
+ConventionOffset :: allConventions
+	()
+{
+	std::vector<ConventionOffset> conventions;
+	conventions.reserve(48u);
+
+	// all combinations of each characteristic
+	std::array<ThreeSigns, 8u> const locSigns{ allThreeSigns() };
+	std::array<ThreeIndices, 6u> const locNdxs{ allThreeIndices() };
+
+	// brute force generation of all possible combinations
+	for (ThreeSigns const & locSign : locSigns)
+	{
+		for (ThreeIndices const & locNdx : locNdxs)
+		{
+			ConventionOffset const convention
+				{ locSign
+				, locNdx
+				};
+			conventions.emplace_back(convention);
+		}
+	}
+	return conventions;
+}
+//
+//==========================================================================
+// ConventionAngle
+//==========================================================================
+//
+
+// static
+std::vector<ConventionAngle>
+ConventionAngle :: allConventions
+	()
+{
+	std::vector<ConventionAngle> conventions;
+	conventions.reserve(576u);
+
+	// all combinations of each characteristic
+	std::array<ThreeSigns, 8u> const attSigns{ allThreeSigns() };
+	std::array<ThreeIndices, 6u> const attNdxs{ allThreeIndices() };
+	std::array<ThreeIndices, 12u> const bivNdxs{ allBivIndices() };
+
+	// brute force generation of all possible combinations
+	for (ThreeSigns const & attSign : attSigns)
+	{
+		for (ThreeIndices const & attNdx : attNdxs)
+		{
+			for (ThreeIndices const & bivNdx : bivNdxs)
+			{
+				ConventionAngle const convention
+					{ attSign
+					, attNdx
+					, bivNdx
+					};
+				conventions.emplace_back(convention);
+			}
+		}
+	}
+	return conventions;
+}
 
 //
 //==========================================================================
@@ -388,71 +457,28 @@ Convention :: asNumber
 		);
 }
 
-/*
 // static
-std::array<ThreeSigns, 8u>
-Convention :: allThreeSigns
-	()
+std::vector<Convention>
+Convention :: allConventionsFor
+	( ConventionOffset const & offConv
+	)
 {
-	return
-		{ ThreeSigns{ -1, -1, -1 }
-		, ThreeSigns{ -1, -1,  1 }
-		, ThreeSigns{ -1,  1, -1 }
-		, ThreeSigns{ -1,  1,  1 }
-		, ThreeSigns{  1, -1, -1 }
-		, ThreeSigns{  1, -1,  1 }
-		, ThreeSigns{  1,  1, -1 }
-		, ThreeSigns{  1,  1,  1 }
-		};
-}
+	std::vector<Convention> conventions;
+	std::vector<ConventionAngle>
+		const angConvs{ ConventionAngle::allConventions() };
+	std::array<OrderTR, 2u>
+		const orders{ allOrderTRs() };
 
-// static
-std::array<ThreeIndices, 6u>
-Convention :: allThreeIndices
-	()
-{
-	return
-		{ ThreeIndices{ 0u, 1u, 2u }
-		, ThreeIndices{ 0u, 2u, 1u }
-		, ThreeIndices{ 1u, 0u, 2u }
-		, ThreeIndices{ 1u, 2u, 0u }
-		, ThreeIndices{ 2u, 1u, 0u }
-		, ThreeIndices{ 2u, 0u, 1u }
-		};
+	for (ConventionAngle const & angConv : angConvs)
+	{
+		for (OrderTR const & order : orders)
+		{
+			Convention const convention{ offConv, angConv, order };
+			conventions.emplace_back(convention);
+		}
+	}
+	return conventions;
 }
-
-// static
-std::array<ThreeIndices, 12u>
-Convention :: allBivIndices
-	()
-{
-	return
-		{ ThreeIndices{ 0, 1, 0 }
-		, ThreeIndices{ 0, 1, 2 }
-		, ThreeIndices{ 0, 2, 0 }
-		, ThreeIndices{ 0, 2, 1 }
-		, ThreeIndices{ 1, 0, 1 }
-		, ThreeIndices{ 1, 0, 2 }
-		, ThreeIndices{ 1, 2, 0 }
-		, ThreeIndices{ 1, 2, 1 }
-		, ThreeIndices{ 2, 0, 1 }
-		, ThreeIndices{ 2, 0, 2 }
-		, ThreeIndices{ 2, 1, 0 }
-		, ThreeIndices{ 2, 1, 2 }
-		};
-}
-
-// static
-std::array<OrderTR, 2u>
-Convention :: allOrderTRs
-	()
-{
-	return
-		{ TranRot
-		, RotTran
-		};
-}
-*/
 
 // static
 std::vector<Convention>
@@ -462,42 +488,19 @@ Convention :: allConventions
 	std::vector<Convention> conventions;
 	conventions.reserve(55296);
 
-	// all combinations of each characteristic
-	std::array<ThreeSigns, 8u> const attSigns{ allThreeSigns() };
-	std::array<ThreeIndices, 6u> const attNdxs{ allThreeIndices() };
-	std::array<ThreeSigns, 8u> const locSigns{ allThreeSigns() };
-	std::array<ThreeIndices, 6u> const locNdxs{ allThreeIndices() };
-	std::array<ThreeIndices, 12u> const bivNdxs{ allBivIndices() };
-	std::array<OrderTR, 2u> const orders{ allOrderTRs() };
+	std::vector<ConventionOffset>
+		const offConvs{ ConventionOffset::allConventions() };
 
-	// brute force generation of all possible combinations
-	for (ThreeSigns const & attSign : attSigns)
+	for (ConventionOffset const & offConv : offConvs)
 	{
-		for (ThreeIndices const & attNdx : attNdxs)
-		{
-			for (ThreeSigns const & locSign : locSigns)
-			{
-				for (ThreeIndices const & locNdx : locNdxs)
-				{
-					for (ThreeIndices const & bivNdx : bivNdxs)
-					{
-						for (OrderTR const & order : orders)
-						{
-							Convention const convention
-								{ attSign
-								, attNdx
-								, locSign
-								, locNdx
-								, bivNdx
-								, order
-								};
-							conventions.emplace_back(convention);
-						}
-					}
-				}
-			}
-		}
+		std::vector<Convention> const offConvs
+			{ allConventionsFor(offConv) };
+		conventions.insert
+			( conventions.end()
+			, offConvs.begin(), offConvs.end()
+			);
 	}
+
 	return conventions;
 }
 

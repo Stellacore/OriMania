@@ -233,6 +233,12 @@ namespace om
 		//! \brief Permutations: 012, 021, 120, 102, 201, 210
 		ThreeIndices theOffIndices;
 
+		//! Collection of unique conventions that are supported overall
+		static
+		std::vector<ConventionOffset>
+		allConventions
+			();
+
 	}; // ConventionOffset
 
 	/*! \brief Conventions for 3-angle sequences from 3 angle size values.
@@ -263,6 +269,12 @@ namespace om
 		 */
 		ThreeIndices theBivIndices;
 
+		//! Collection of unique conventions that are supported overall
+		static
+		std::vector<ConventionAngle>
+		allConventions
+			();
+
 	}; // ConventionAngle
 
 	//! Candidate convention associated with 6 orientation values
@@ -282,15 +294,12 @@ namespace om
 		asNumber
 			() const;
 
-		/*TODO
-		//! Create Convention from number - inverse of asNumber() method.
-		inline
+		//! Collection of unique conventions that are supported overall
 		static
-		Convention
-		fromNumber
-			( std::size_t const & number
-			)
-		*/
+		std::vector<Convention>
+		allConventionsFor
+			( ConventionOffset const & offConv
+			);
 
 		//! Collection of unique conventions that are supported overall
 		static
