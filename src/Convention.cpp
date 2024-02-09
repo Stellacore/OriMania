@@ -306,6 +306,67 @@ orderTRFrom
 	return order;
 }
 
+std::array<ThreeSigns, 8u>
+allThreeSigns
+	()
+{
+	return
+		{ ThreeSigns{ -1, -1, -1 }
+		, ThreeSigns{ -1, -1,  1 }
+		, ThreeSigns{ -1,  1, -1 }
+		, ThreeSigns{ -1,  1,  1 }
+		, ThreeSigns{  1, -1, -1 }
+		, ThreeSigns{  1, -1,  1 }
+		, ThreeSigns{  1,  1, -1 }
+		, ThreeSigns{  1,  1,  1 }
+		};
+}
+
+std::array<ThreeIndices, 6u>
+allThreeIndices
+	()
+{
+	return
+		{ ThreeIndices{ 0u, 1u, 2u }
+		, ThreeIndices{ 0u, 2u, 1u }
+		, ThreeIndices{ 1u, 0u, 2u }
+		, ThreeIndices{ 1u, 2u, 0u }
+		, ThreeIndices{ 2u, 1u, 0u }
+		, ThreeIndices{ 2u, 0u, 1u }
+		};
+}
+
+std::array<ThreeIndices, 12u>
+allBivIndices
+	()
+{
+	return
+		{ ThreeIndices{ 0, 1, 0 }
+		, ThreeIndices{ 0, 1, 2 }
+		, ThreeIndices{ 0, 2, 0 }
+		, ThreeIndices{ 0, 2, 1 }
+		, ThreeIndices{ 1, 0, 1 }
+		, ThreeIndices{ 1, 0, 2 }
+		, ThreeIndices{ 1, 2, 0 }
+		, ThreeIndices{ 1, 2, 1 }
+		, ThreeIndices{ 2, 0, 1 }
+		, ThreeIndices{ 2, 0, 2 }
+		, ThreeIndices{ 2, 1, 0 }
+		, ThreeIndices{ 2, 1, 2 }
+		};
+}
+
+std::array<OrderTR, 2u>
+allOrderTRs
+	()
+{
+	return
+		{ TranRot
+		, RotTran
+		};
+}
+
+
 //
 //==========================================================================
 // Convention
@@ -327,6 +388,7 @@ Convention :: asNumber
 		);
 }
 
+/*
 // static
 std::array<ThreeSigns, 8u>
 Convention :: allThreeSigns
@@ -390,6 +452,7 @@ Convention :: allOrderTRs
 		, RotTran
 		};
 }
+*/
 
 // static
 std::vector<Convention>
@@ -400,18 +463,12 @@ Convention :: allConventions
 	conventions.reserve(55296);
 
 	// all combinations of each characteristic
-	std::array<ThreeSigns, 8u> const attSigns
-		{ Convention::allThreeSigns() };
-	std::array<ThreeIndices, 6u> const attNdxs
-		{ Convention::allThreeIndices() };
-	std::array<ThreeSigns, 8u> const locSigns
-		{ Convention::allThreeSigns() };
-	std::array<ThreeIndices, 6u> const locNdxs
-		{ Convention::allThreeIndices() };
-	std::array<ThreeIndices, 12u> const bivNdxs
-		{ Convention::allBivIndices() };
-	std::array<OrderTR, 2u> const orders
-		{ Convention::allOrderTRs() };
+	std::array<ThreeSigns, 8u> const attSigns{ allThreeSigns() };
+	std::array<ThreeIndices, 6u> const attNdxs{ allThreeIndices() };
+	std::array<ThreeSigns, 8u> const locSigns{ allThreeSigns() };
+	std::array<ThreeIndices, 6u> const locNdxs{ allThreeIndices() };
+	std::array<ThreeIndices, 12u> const bivNdxs{ allBivIndices() };
+	std::array<OrderTR, 2u> const orders{ allOrderTRs() };
 
 	// brute force generation of all possible combinations
 	for (ThreeSigns const & attSign : attSigns)

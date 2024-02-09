@@ -115,6 +115,27 @@ namespace om
 		( std::string const & str
 		);
 
+	//! All combinations of signs for three elements
+	std::array<ThreeSigns, 8u>
+	allThreeSigns
+		();
+
+	//! All 6 combinations of unique indices for three element array.
+	std::array<ThreeIndices, 6u>
+	allThreeIndices
+		();
+
+	//! All 12 combinations of unique bivector rotation indices.
+	std::array<ThreeIndices, 12u>
+	allBivIndices
+		();
+
+	//! All transformation translate/rotate conventions
+	std::array<OrderTR, 2u>
+	allOrderTRs
+		();
+
+
 //
 // ParmGroup
 //
@@ -270,30 +291,6 @@ namespace om
 			( std::size_t const & number
 			)
 		*/
-
-		//! All combinations of signs for three elements
-		static
-		std::array<ThreeSigns, 8u>
-		allThreeSigns
-			();
-
-		//! All 6 combinations of unique indices for three element array.
-		static
-		std::array<ThreeIndices, 6u>
-		allThreeIndices
-			();
-
-		//! All 12 combinations of unique bivector rotation indices.
-		static
-		std::array<ThreeIndices, 12u>
-		allBivIndices
-			();
-
-		//! All transformation translate/rotate conventions
-		static
-		std::array<OrderTR, 2u>
-		allOrderTRs
-			();
 
 		//! Collection of unique conventions that are supported overall
 		static
