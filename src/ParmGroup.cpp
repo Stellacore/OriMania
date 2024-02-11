@@ -256,7 +256,54 @@ allOrderTRs
 		};
 }
 
+std::string
+infoStringOrders
+	( om::OrderTR const & order
+	)
+{
+	std::ostringstream oss;
+	using namespace om;
+	switch (order)
+	{
+		case TranRot:
+			oss << "TR";
+			break;
+		case RotTran:
+			oss << "RT";
+			break;
+		case Unknown:
+		default:
+			oss << "??";
+			break;
+	}
+	return oss.str();
+}
 
+std::string
+infoStringSigns
+	( om::ThreeSigns const & signs
+	)
+{
+	std::ostringstream oss;
+	for (std::size_t nn{0u} ; nn < 3u ; ++nn)
+	{
+		oss << ' ' << std::setw(2u) << +signs[nn];
+	}
+	return oss.str();
+}
+
+std::string
+infoStringIndices
+	( om::ThreeIndices const & indices
+	)
+{
+	std::ostringstream oss;
+	for (std::size_t nn{0u} ; nn < 3u ; ++nn)
+	{
+		oss << ' ' << +indices[nn];
+	}
+	return oss.str();
+}
 
 } // [om]
 

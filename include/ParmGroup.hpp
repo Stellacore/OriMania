@@ -138,77 +138,22 @@ namespace om
 //
 
 	//! String representation of three signs
-	inline
 	std::string
 	infoStringOrders
 		( om::OrderTR const & order
-		)
-	{
-		std::ostringstream oss;
-		using namespace om;
-		switch (order)
-		{
-			case TranRot:
-				oss << "TR";
-				break;
-			case RotTran:
-				oss << "RT";
-				break;
-			case Unknown:
-			default:
-				oss << "??";
-				break;
-		}
-		return oss.str();
-	}
+		);
 
 	//! String representation of three signs
-	inline
 	std::string
 	infoStringSigns
 		( om::ThreeSigns const & signs
-		)
-	{
-		std::ostringstream oss;
-		for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-		{
-			oss << ' ' << std::setw(2u) << +signs[nn];
-		}
-		return oss.str();
-	}
+		);
 
 	//! String representation of three indices
-	inline
 	std::string
 	infoStringIndices
 		( om::ThreeIndices const & indices
-		)
-	{
-		std::ostringstream oss;
-		for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-		{
-			oss << ' ' << +indices[nn];
-		}
-		return oss.str();
-	}
-
-
-	/*
-	//! True if corresponding members are equal.
-	inline
-	bool
-	operator==
-		( ThreeSigns const & itemA
-		, ThreeSigns const & itemB
-		)
-	{
-		return
-			(  (itemA[0] == itemB[0])
-			&& (itemA[1] == itemB[1])
-			&& (itemA[2] == itemB[2])
-			);
-	}
-	*/
+		);
 
 //
 // ParmGroup
