@@ -241,7 +241,10 @@ loadParmGroups
 		   )
 		{
 			ParmGroup const pg{ itDistance->second, itAngle->second };
-			pgs[senKey] = pg;
+			if (pg.isValid())
+			{
+				pgs[senKey] = pg;
+			}
 		}
 	}
 
