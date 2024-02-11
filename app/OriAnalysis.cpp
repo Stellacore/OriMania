@@ -92,26 +92,6 @@ namespace
 
 	}; // Usage
 
-	//! Generate Ind EOs from IndPGs and eoConvention.
-	inline
-	std::map<om::SenKey, om::SenOri>
-	indKeyOrisFor
-		( std::map<om::SenKey, om::ParmGroup> const & keyIndPGs
-		, om::Convention const & eoConvention
-		)
-	{
-		using namespace om;
-		std::map<SenKey, SenOri> indKeyOris;
-		for (std::map<SenKey, ParmGroup>::value_type
-			const & keyIndPG : keyIndPGs)
-		{
-			SenKey const & senKey = keyIndPG.first;
-			ParmGroup const & pg = keyIndPG.second;
-			indKeyOris[senKey] = eoConvention.transformFor(pg);
-		}
-		return indKeyOris;
-	}
-
 } // [anon]
 
 
@@ -241,7 +221,7 @@ std::cout << "\nExpect Loops: " << allIndCons.size() << '\n';
 	for (om::Convention const & currIndCon : allIndCons)
 	{
 		std::map<SenKey, SenOri> const indKeyOris
-			{ indKeyOrisFor(keyIndPGs, currIndCon) };
+			{ om::keyOrisFor(keyIndPGs, currIndCon) };
 //std::cout << "got indKeyOris count: " << indKeyOris.size() << '\n';
 
 		std::vector<om::FitNdxPair> fitIndexPairs
