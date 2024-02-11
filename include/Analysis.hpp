@@ -286,6 +286,64 @@ namespace om
 		return fitNdxPairs;
 	}
 
+	//! Residual error for orientations with the two string encodings.
+	struct OneSolutionFit
+	{
+		//! Fit error for a particular solution
+		double const theFitError;
+
+		//! Encoding for Convention used for box orientation.
+		std::string theBoxCS;
+
+		//! Encoding for Convention used for independent Ind orientation.
+		std::string theIndCS;
+
+		/*! Instance from lookup/combination of arguments.
+		 *
+		 * The index (.second) from fitNdxPair is used to obtain
+		 * Convention from the allBoxCon's array. This convention
+		 * and the explicit currIndConv convention are encoded
+		 * as strings. The fit error (fitNdxPair.first), and the
+		 * two encoded strings are then used to instantiate the
+		 * returned instance.
+		 */
+		static
+		OneSolutionFit
+		from
+			( om::FitNdxPair const & fitNdxPair
+			, std::vector<om::Convention> const & allBoxCons
+			, om::Convention const & currIndConv
+			)
+		{
+			double const & fitError = fitNdxPair.first;
+
+			// fetch Box conventions string
+			std::size_t const & bestBoxNdx = fitNdxPair.second;
+			om::Convention const & bestBoxConv{ allBoxCons[bestBoxNdx] };
+			om::ConventionString const csBox
+				{ om::ConventionString::from(bestBoxConv) };
+			std::string const boxCS{ csBox.stringEncoding() };
+
+			// get Ind conventions string
+			om::ConventionString const csInd
+				{ om::ConventionString::from(currIndConv) };
+			std::string const indCS{ csInd.stringEncoding() };
+
+			return OneSolutionFit{ fitError, boxCS, indCS };
+		}
+
+	}; // OneSolutionFit
+
+	//! Several OneSolutionFit samples for a single Box convention solution
+	struct OneTrialResult
+	{
+		OneSolutionFit the1st;
+		OneSolutionFit the2nd;
+		OneSolutionFit theEnd;
+
+	}; // OneTrialResult
+
+
 } // [om]
 
 
