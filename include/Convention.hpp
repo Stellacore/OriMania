@@ -119,12 +119,7 @@ namespace om
 		ConventionAngle theConvAng{};
 
 		//! \brief Permutations: TranRot, RotTran
-		OrderTR theOrder;
-
-		//! Assign a number to each convention (for easy tracking))
-		std::size_t
-		asNumber
-			() const;
+		OrderTR theOrder{ Unknown };
 
 		//! Collection of unique conventions that are supported overall
 		static
@@ -138,6 +133,23 @@ namespace om
 		std::vector<Convention>
 		allConventions
 			();
+
+		//! Construct an instance from numeric encoding.
+		static
+		Convention
+		fromNumberEncoding
+			( std::int64_t const & numId
+			);
+
+		//! Assign a number to each convention (for easy tracking))
+		std::int64_t
+		numberEncoding
+			() const;
+
+		//! True if this instance has valid data (uses theOrder as flag).
+		bool
+		isValid
+			() const;
 
 		//! Attitude associated with parmGroup given this convention.
 		rigibra::Attitude
@@ -230,7 +242,7 @@ namespace om
 		, Convention const & convB
 		)
 	{
-		return (convA.asNumber() < convB.asNumber());
+		return (convA.numberEncoding() < convB.numberEncoding());
 	}
 
 	//! True if ((!(A<B)) && (!(B<A)))

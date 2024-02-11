@@ -174,9 +174,9 @@ namespace
 		}
 		else
 		{
-			std::size_t const expConventionId{ convention.asNumber() };
-			std::size_t const gotConventionId
-				{ allCons[fitIndexPairs[0].second].asNumber() };
+			std::int64_t const expConventionId{ convention.numberEncoding() };
+			std::int64_t const gotConventionId
+				{ allCons[fitIndexPairs[0].second].numberEncoding() };
 			if (! (gotConventionId == expConventionId))
 			{
 				oss << "Failure of find best convention test\n";
