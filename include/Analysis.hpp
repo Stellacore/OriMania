@@ -290,13 +290,13 @@ namespace om
 	struct OneSolutionFit
 	{
 		//! Fit error for a particular solution
-		double const theFitError;
+		double theFitError{ engabra::g3::null<double>() };
 
 		//! Encoding for Convention used for box orientation.
-		std::string theBoxCS;
+		std::string theBoxCS{};
 
 		//! Encoding for Convention used for independent Ind orientation.
-		std::string theIndCS;
+		std::string theIndCS{};
 
 		/*! Instance from lookup/combination of arguments.
 		 *
@@ -342,6 +342,46 @@ namespace om
 		OneSolutionFit theEnd;
 
 	}; // OneTrialResult
+
+
+	//! Result of one trial involving all boxPG conventions for one indEO set.
+	inline
+	OneTrialResult
+	trialResultFrom
+		( std::vector<FitNdxPair> const & fitIndexPairs
+		, std::vector<Convention> const & allBoxCons
+		, Convention const & currIndCon
+		)
+	{
+		// sort from best and worst
+		// Note: could use min and max then find second min for efficiency
+		//       but overall, this probably isn't the slowest part
+		std::vector<FitNdxPair> fitNdxs{ fitIndexPairs }; // copy to sort
+		std::sort(fitNdxs.begin(), fitNdxs.end());
+
+		OneTrialResult trialResult;
+		std::size_t const numPairs{ fitNdxs.size() };
+		if (0u < numPairs)
+		{
+			FitNdxPair const & ndxPair1st = fitNdxs[0u];
+			trialResult.the1st = OneSolutionFit::from
+				(ndxPair1st, allBoxCons, currIndCon);
+		}
+		if (1u < numPairs)
+		{
+			FitNdxPair const & ndxPair2nd = fitNdxs[1u];
+			trialResult.the2nd = OneSolutionFit::from
+				(ndxPair2nd, allBoxCons, currIndCon);
+		}
+		if (2u < numPairs)
+		{
+			FitNdxPair const & ndxPairEnd = fitNdxs[numPairs-1u];
+			trialResult.theEnd = OneSolutionFit::from
+				(ndxPairEnd, allBoxCons, currIndCon);
+		}
+
+		return trialResult;
+	}
 
 
 } // [om]
