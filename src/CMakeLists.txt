@@ -12,6 +12,7 @@ set(srcFiles
 
 	Convention.cpp
 	io.cpp
+	ParmGroup.cpp
 
 	)
 

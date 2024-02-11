@@ -46,15 +46,27 @@ namespace
 
 		// [DoxyExample01]
 
+		om::ThreeSigns const expInts{ 1, -1, 1 };
+		std::string const expStr{ "+-+" };
+
+		std::string const gotStr{ om::stringFrom(expInts) };
+		om::ThreeSigns const gotInts{ om::threeSignsFrom(expStr) };
+
 		// [DoxyExample01]
 
-		// TODO replace this with real test code
-		std::string const fname(__FILE__);
-		bool const isTemplate{ (std::string::npos != fname.find("/_.cpp")) };
-		if (! isTemplate)
+		if (! (gotStr == expStr))
 		{
-			oss << "Failure to implement real test\n";
+			oss << "Failure of ThreeSigns gotStr test\n";
+			oss << "exp: " << expStr << '\n';
+			oss << "got: " << gotStr << '\n';
 		}
+		if (! (gotInts == expInts))
+		{
+			oss << "Failure of ThreeSigns gotInts test\n";
+			oss << "exp: " << om::infoStringSigns(expInts) << '\n';
+			oss << "got: " << om::infoStringSigns(gotInts) << '\n';
+		}
+
 	}
 
 }
