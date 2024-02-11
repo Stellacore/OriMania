@@ -51,7 +51,7 @@ namespace om
 	//! Statistic representing error between ori{1,2}.
 	inline
 	double
-	diffFromIdentity
+	basisTransformRMSE
 		( SenOri const & ori
 		)
 	{
@@ -81,21 +81,23 @@ namespace om
 	//! Statistic representing error between ori{1,2}. 
 	inline
 	double
-	differenceBetween
+	rmseBasisErrorBetween
 		( SenOri const & ori1wX
 		, SenOri const & ori2wX
 		)
 	{
-		double rase{ engabra::g3::null<double>() };
+		double rmse{ engabra::g3::null<double>() };
 		using namespace engabra::g3;
 		using namespace rigibra;
 		if (isValid(ori1wX) && isValid(ori2wX))
 		{
+			// form relative transform between two orientations
 			SenOri const & oriXw1{ inverse(ori1wX) };
 			SenOri const ori2w1{ ori2wX * oriXw1 };
-			rase = diffFromIdentity(ori2w1);
+			// assess rmse error in transforming basis vectors
+			rmse = basisTransformRMSE(ori2w1);
 		}
-		return rase;
+		return rmse;
 	}
 
 	/*! \brief Relative orientation between two ParmGroups.
@@ -132,7 +134,7 @@ namespace om
 	 */
 	inline
 	std::vector<double>
-	sseSumByConvention
+	fitErrorByConvention
 		( std::map<SenKey, ParmGroup> const & keyGroups
 		, std::map<KeyPair, SenOri> const & relKeyOris
 		, std::vector<Convention> const & allCons
@@ -168,7 +170,7 @@ namespace om
 					SenOri const roBox
 						{ relativeOrientationFor(pg1, pg2, convention) };
 					double const fitError
-						{ differenceBetween(roBox, relOri) };
+						{ rmseBasisErrorBetween(roBox, relOri) };
 					sumFitErrors[cNdx] += fitError;
 				}
 			}
@@ -214,7 +216,9 @@ namespace om
 
 		// accumulated fit errors, sum for each convention in allBoxConventions
 		std::vector<double> const sumFitErrors
-			{ sseSumByConvention(keyGroups, keyIndRelOris, allBoxConventions) };
+			{ fitErrorByConvention
+				(keyGroups, keyIndRelOris, allBoxConventions)
+			};
 
 		// normalize the scores by number of ROs
 		std::size_t const numRelOris{ keyIndRelOris.size() };
@@ -281,22 +285,6 @@ namespace om
 
 		return fitNdxPairs;
 	}
-
-	/*! \brief TODO
-	 */
-	/*
-	inline
-	std::vector<FitNdxPair>
-	fitIndexPairsFor
-		( std::map<SenKey, ParmGroup> const & keyBoxPGs
-		, std::vector<Convention> const & allBoxConventions
-		, std::map<SenKey, ParmGroup> const & keyIndPGs
-		, std::vector<Convention> const & allIndConventions
-		)
-	{
-		return {};//TODO
-	}
-	*/
 
 } // [om]
 
