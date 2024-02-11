@@ -48,56 +48,68 @@ Example:
 
 namespace om
 {
+	//! Statistic representing error between ori{1,2}.
+	inline
+	double
+	diffFromIdentity
+		( SenOri const & ori
+		)
+	{
+		using namespace engabra::g3;
+		double rmse{ null<double>() };
+		if (isValid(ori))
+		{
+			// transform orthogonal basis and sum square resulting differences
+			Vector const got1{ ori(e1) };
+			Vector const got2{ ori(e1) };
+			Vector const got3{ ori(e1) };
+			double const eSq1{ magSq(got1 - e1) };
+			double const eSq2{ magSq(got2 - e2) };
+			double const eSq3{ magSq(got3 - e3) };
+
+			// Statistical degrees of freedom
+			constexpr double numComp{ 9. }; // 9 components being compared
+			constexpr double numParm{ 6. }; // 3 offsets and three translations
+			constexpr double statDof{ numComp - numParm };
+
+			double sse{ (1./statDof) * (eSq1 + eSq2 + eSq3) };
+			rmse = std::sqrt(sse);
+		}
+		return rmse;
+	}
 
 	//! Statistic representing error between ori{1,2}. 
 	inline
 	double
 	differenceBetween
-		( SenOri const & ori1
-		, SenOri const & ori2
+		( SenOri const & ori1wX
+		, SenOri const & ori2wX
 		)
 	{
-		// Location
+		double rase{ engabra::g3::null<double>() };
 		using namespace engabra::g3;
-		Vector const & loc1 = ori1.theLoc;
-		Vector const & loc2 = ori2.theLoc;
-
-		// compute weight for locations
-		double const aveMag{ .5 * (magnitude(loc1) + magnitude(loc2)) };
-		double wLoc{ 1. };
-		if (1. < aveMag)
-		{
-			wLoc = (1. / aveMag);
-		}
-
-		// weighted squared location residuals
-		double const residSqLoc{ (wLoc / 3.) * magSq(loc2 - loc1) };
-
-		// Attitude
 		using namespace rigibra;
-		Attitude const & att1 = ori1.theAtt;
-		Attitude const & att2 = ori2.theAtt;
-
-		// weight for attitudes
-		constexpr double wAtt{ 1. };
-
-		// weighted squared angle residuals
-		BiVector const biv1{ att1.spinAngle().theBiv };
-		BiVector const biv2{ att2.spinAngle().theBiv };
-		double const residSqAtt{ (wAtt / 3.) * magSq(biv2 - biv1) };
-
-		double const rase{ std::sqrt(.5 * (residSqLoc + residSqAtt)) };
+		if (isValid(ori1wX) && isValid(ori2wX))
+		{
+			SenOri const & oriXw1{ inverse(ori1wX) };
+			SenOri const ori2w1{ ori2wX * oriXw1 };
+			rase = diffFromIdentity(ori2w1);
+		}
 		return rase;
 	}
 
-	//! Error between roInd and black box RO computed from pg{1,2}.
+	/*! \brief Relative orientation between two ParmGroups.
+	 *
+	 * Each ParmGroup argument is converted to a SenOri using the
+	 * same Convention. The two individual orientations are then
+	 * combined into a relative orientation of "2" with respect to "1".
+	 */
 	inline
-	double
-	fitErrorFor
+	SenOri
+	relativeOrientationFor
 		( ParmGroup const & pg1
 		, ParmGroup const & pg2
 		, Convention const & convention
-		, SenOri const & roInd
 		)
 	{
 		// generate forward transforms internal to black box frame
@@ -106,8 +118,7 @@ namespace om
 		// compute relative orientation in black box frame
 		SenOri const oriBw1{ inverse(ori1wB) };
 		SenOri const roBox{ ori2wB * oriBw1 };
-		// compare black box and independent relative orientations
-		return differenceBetween(roBox, roInd);
+		return roBox;
 	}
 
 	/*! \brief Sum-squared-errors (SSE) (across all ROs) by each convention.
@@ -154,8 +165,10 @@ namespace om
 				for (std::size_t cNdx{0u} ; cNdx < allCons.size() ; ++cNdx)
 				{
 					Convention const & convention = allCons[cNdx];
+					SenOri const roBox
+						{ relativeOrientationFor(pg1, pg2, convention) };
 					double const fitError
-						{ fitErrorFor(pg1, pg2, convention, relOri) };
+						{ differenceBetween(roBox, relOri) };
 					sumFitErrors[cNdx] += fitError;
 				}
 			}

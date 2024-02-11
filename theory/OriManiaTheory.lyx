@@ -846,6 +846,19 @@ Median value - e.g.
  in order.
 \end_layout
 
+\begin_layout Subsection
+Compare Identity Transformations
+\end_layout
+
+\begin_layout Standard
+If two transformations are expected to be nominally the same, then the relative
+ transformation between them should be somewhat near to an identity transformati
+on.
+ Therefore, the similarity of two independents orientations can be assessed
+ by comparing the relative orientation between them with the identity transforma
+tion.
+\end_layout
+
 \begin_layout Section
 Generating Evaluation Cases
 \end_layout
