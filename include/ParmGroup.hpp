@@ -182,39 +182,6 @@ namespace om
 
 	}; // ParmGroup
 
-//
-// Math utilities
-//
-
-	/*! \brief Generate rotation as sequence of three rotations.
-	 *
-	 * The return Attitude is computed as the sequence of rotations
-	 * as follows:
-	 * \arg spinC = exp(angleSize[0]*angleDir[0])
-	 * \arg spinB = exp(angleSize[1]*angleDir[1])
-	 * \arg spinA = exp(angleSize[2]*angleDir[2])
-	 * \arg spinNet = spinC * spinB * spinA
-	 *
-	 * The attitude associated with spinNet is returned.
-	 */
-	inline
-	rigibra::Attitude
-	attitudeFrom3AngleSequence
-		( ThreeAngles const & angleSizes
-		, ThreePlanes const & angleDirs
-		)
-	{
-		using namespace rigibra;
-		PhysAngle const physAngleA{ angleSizes[0] * angleDirs[0] };
-		PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
-		PhysAngle const physAngleC{ angleSizes[2] * angleDirs[2] };
-		Attitude const attA(physAngleA);
-		Attitude const attB(physAngleB);
-		Attitude const attC(physAngleC);
-		return (attC * attB * attA);
-	}
-
-
 } // [om]
 
 
