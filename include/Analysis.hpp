@@ -48,29 +48,34 @@ Example:
 
 namespace om
 {
-	//! Statistic representing error between ori{1,2}. 
+	//! Statistic representing error between ori{1,2}.
 	inline
 	double
 	diffFromIdentity
 		( SenOri const & ori
-		, double const & wLoc = 1.
-		, double const & wAng = 1.
 		)
 	{
-		// Location
 		using namespace engabra::g3;
-		Vector const & loc = ori.theLoc;
+		double rmse{ null<double>() };
+		if (isValid(ori))
+		{
+			// transform orthogonal basis and sum square resulting differences
+			Vector const got1{ ori(e1) };
+			Vector const got2{ ori(e1) };
+			Vector const got3{ ori(e1) };
+			double const eSq1{ magSq(got1 - e1) };
+			double const eSq2{ magSq(got2 - e2) };
+			double const eSq3{ magSq(got3 - e3) };
 
-		using namespace rigibra;
-		Attitude const & att = ori.theAtt;
-		BiVector const biv{ att.spinAngle().theBiv };
+			// Statistical degrees of freedom
+			constexpr double numComp{ 9. }; // 9 components being compared
+			constexpr double numParm{ 6. }; // 3 offsets and three translations
+			constexpr double statDof{ numComp - numParm };
 
-		double const wsseLoc{ sq(wLoc) * magSq(loc) };
-		double const wsseAng{ sq(wAng) * magSq(biv) };
-		double const wSSE{ wsseLoc + wsseAng };
-		double const rase{ std::sqrt((1./6.) * wSSE) };
-
-		return rase;
+			double sse{ (1./statDof) * (eSq1 + eSq2 + eSq3) };
+			rmse = std::sqrt(sse);
+		}
+		return rmse;
 	}
 
 	//! Statistic representing error between ori{1,2}. 
