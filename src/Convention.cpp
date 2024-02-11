@@ -530,7 +530,19 @@ Convention :: attitudeFor
 		, eVals[theConvAng.theBivIndices[2]]
 		};
 
-	return attitudeFrom3AngleSequence(angleSizes, angleDirs);
+	// form physical angles
+	using namespace rigibra;
+	PhysAngle const physAngleA{ angleSizes[0] * angleDirs[0] };
+	PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
+	PhysAngle const physAngleC{ angleSizes[2] * angleDirs[2] };
+
+	// generate attitude from 3-angle-sequence
+	Attitude const attA(physAngleA);
+	Attitude const attB(physAngleB);
+	Attitude const attC(physAngleC);
+	Attitude const attNet(attC * attB * attA);
+
+	return attNet;
 }
 
 
