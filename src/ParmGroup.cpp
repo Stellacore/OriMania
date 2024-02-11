@@ -305,5 +305,49 @@ infoStringIndices
 	return oss.str();
 }
 
+//===========================================================================
+// ParmGroup class
+//===========================================================================
+
+
+bool
+ParmGroup :: isValid
+	() const
+{
+	using engabra::g3::isValid;
+	return
+		(  isValid(theDistances[0])
+		&& isValid(theDistances[1])
+		&& isValid(theDistances[2])
+		&& isValid(theAngles[0])
+		&& isValid(theAngles[1])
+		&& isValid(theAngles[2])
+		);
+}
+
+std::string
+ParmGroup :: infoString
+	( std::string const & title
+	) const
+{
+	std::ostringstream oss;
+	if (! title.empty())
+	{
+		oss << title << ' ';
+	}
+	using engabra::g3::io::fixed;
+	oss
+		<< "  Distances: "
+			<< fixed(theDistances[0], 4u, 6u)
+			<< fixed(theDistances[1], 4u, 6u)
+			<< fixed(theDistances[2], 4u, 6u)
+		<< "  Angles: "
+			<< fixed(theAngles[0], 1u, 9u)
+			<< fixed(theAngles[1], 1u, 9u)
+			<< fixed(theAngles[2], 1u, 9u)
+		;
+	return oss.str();
+}
+
 } // [om]
 

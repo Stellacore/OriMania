@@ -176,31 +176,16 @@ namespace om
 			, engabra::g3::nan
 			};
 
+		//! True if this instance contains plausible data values.
+		bool
+		isValid
+			() const;
+
 		//! Descriptive information about this instance
-		inline
 		std::string
 		infoString
 			( std::string const & title = {}
-			) const
-		{
-			std::ostringstream oss;
-			if (! title.empty())
-			{
-				oss << title << ' ';
-			}
-			using engabra::g3::io::fixed;
-			oss
-				<< "  Distances: "
-					<< fixed(theDistances[0], 4u, 6u)
-					<< fixed(theDistances[1], 4u, 6u)
-					<< fixed(theDistances[2], 4u, 6u)
-				<< "  Angles: "
-					<< fixed(theAngles[0], 1u, 9u)
-					<< fixed(theAngles[1], 1u, 9u)
-					<< fixed(theAngles[2], 1u, 9u)
-				;
-			return oss.str();
-		}
+			) const;
 
 	}; // ParmGroup
 

@@ -38,12 +38,10 @@ namespace
 {
 	//! Examples for documentation
 	void
-	test0
+	testTypes
 		( std::ostream & oss
 		)
 	{
-		using namespace om;
-
 		// [DoxyExample01]
 
 		om::ThreeSigns const expInts{ 1, -1, 1 };
@@ -69,6 +67,20 @@ namespace
 
 	}
 
+	//! Examples for documentation
+	void
+	testCtors
+		( std::ostream & oss
+		)
+	{
+		om::ParmGroup const null; // default is to construct invalid instance
+
+		if (  null.isValid())
+		{
+			oss << "Failure of default null instance test\n";
+		}
+	}
+
 }
 
 //! Check behavior of NS
@@ -79,7 +91,8 @@ main
 	int status{ 1 };
 	std::stringstream oss;
 
-	test0(oss);
+	testTypes(oss);
+	testCtors(oss);
 
 	if (oss.str().empty()) // Only pass if no errors were encountered
 	{
