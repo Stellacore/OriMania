@@ -51,7 +51,7 @@ namespace om
 	//! Statistic representing error between ori{1,2}.
 	inline
 	double
-	diffFromIdentity
+	basisTransformRMSE
 		( SenOri const & ori
 		)
 	{
@@ -81,21 +81,23 @@ namespace om
 	//! Statistic representing error between ori{1,2}. 
 	inline
 	double
-	differenceBetween
+	rmseBasisErrorBetween
 		( SenOri const & ori1wX
 		, SenOri const & ori2wX
 		)
 	{
-		double rase{ engabra::g3::null<double>() };
+		double rmse{ engabra::g3::null<double>() };
 		using namespace engabra::g3;
 		using namespace rigibra;
 		if (isValid(ori1wX) && isValid(ori2wX))
 		{
+			// form relative transform between two orientations
 			SenOri const & oriXw1{ inverse(ori1wX) };
 			SenOri const ori2w1{ ori2wX * oriXw1 };
-			rase = diffFromIdentity(ori2w1);
+			// assess rmse error in transforming basis vectors
+			rmse = basisTransformRMSE(ori2w1);
 		}
-		return rase;
+		return rmse;
 	}
 
 	/*! \brief Relative orientation between two ParmGroups.
@@ -132,7 +134,7 @@ namespace om
 	 */
 	inline
 	std::vector<double>
-	sseSumByConvention
+	fitErrorByConvention
 		( std::map<SenKey, ParmGroup> const & keyGroups
 		, std::map<KeyPair, SenOri> const & relKeyOris
 		, std::vector<Convention> const & allCons
@@ -168,7 +170,7 @@ namespace om
 					SenOri const roBox
 						{ relativeOrientationFor(pg1, pg2, convention) };
 					double const fitError
-						{ differenceBetween(roBox, relOri) };
+						{ rmseBasisErrorBetween(roBox, relOri) };
 					sumFitErrors[cNdx] += fitError;
 				}
 			}
@@ -214,7 +216,9 @@ namespace om
 
 		// accumulated fit errors, sum for each convention in allBoxConventions
 		std::vector<double> const sumFitErrors
-			{ sseSumByConvention(keyGroups, keyIndRelOris, allBoxConventions) };
+			{ fitErrorByConvention
+				(keyGroups, keyIndRelOris, allBoxConventions)
+			};
 
 		// normalize the scores by number of ROs
 		std::size_t const numRelOris{ keyIndRelOris.size() };
@@ -282,21 +286,63 @@ namespace om
 		return fitNdxPairs;
 	}
 
-	/*! \brief TODO
-	 */
-	/*
-	inline
-	std::vector<FitNdxPair>
-	fitIndexPairsFor
-		( std::map<SenKey, ParmGroup> const & keyBoxPGs
-		, std::vector<Convention> const & allBoxConventions
-		, std::map<SenKey, ParmGroup> const & keyIndPGs
-		, std::vector<Convention> const & allIndConventions
-		)
+	//! Residual error for orientations with the two string encodings.
+	struct OneSolutionFit
 	{
-		return {};//TODO
-	}
-	*/
+		//! Fit error for a particular solution
+		double const theFitError;
+
+		//! Encoding for Convention used for box orientation.
+		std::string theBoxCS;
+
+		//! Encoding for Convention used for independent Ind orientation.
+		std::string theIndCS;
+
+		/*! Instance from lookup/combination of arguments.
+		 *
+		 * The index (.second) from fitNdxPair is used to obtain
+		 * Convention from the allBoxCon's array. This convention
+		 * and the explicit currIndConv convention are encoded
+		 * as strings. The fit error (fitNdxPair.first), and the
+		 * two encoded strings are then used to instantiate the
+		 * returned instance.
+		 */
+		static
+		OneSolutionFit
+		from
+			( om::FitNdxPair const & fitNdxPair
+			, std::vector<om::Convention> const & allBoxCons
+			, om::Convention const & currIndConv
+			)
+		{
+			double const & fitError = fitNdxPair.first;
+
+			// fetch Box conventions string
+			std::size_t const & bestBoxNdx = fitNdxPair.second;
+			om::Convention const & bestBoxConv{ allBoxCons[bestBoxNdx] };
+			om::ConventionString const csBox
+				{ om::ConventionString::from(bestBoxConv) };
+			std::string const boxCS{ csBox.stringEncoding() };
+
+			// get Ind conventions string
+			om::ConventionString const csInd
+				{ om::ConventionString::from(currIndConv) };
+			std::string const indCS{ csInd.stringEncoding() };
+
+			return OneSolutionFit{ fitError, boxCS, indCS };
+		}
+
+	}; // OneSolutionFit
+
+	//! Several OneSolutionFit samples for a single Box convention solution
+	struct OneTrialResult
+	{
+		OneSolutionFit the1st;
+		OneSolutionFit the2nd;
+		OneSolutionFit theEnd;
+
+	}; // OneTrialResult
+
 
 } // [om]
 

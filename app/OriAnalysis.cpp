@@ -112,51 +112,6 @@ namespace
 		return indKeyOris;
 	}
 
-	//! Fit error for a particular solution
-	struct OneFitSoln
-	{
-		double const theFitError;
-		std::string theBoxCS;
-		std::string theIndCS;
-
-		//! Instance crated from arguments
-		static
-		OneFitSoln
-		from
-			( om::FitNdxPair const & fitNdxPair
-			, std::vector<om::Convention> const & allBoxCons
-			, om::Convention const & currIndConv
-			)
-		{
-			double const & fitError = fitNdxPair.first;
-
-			// fetch Box conventions string
-			std::size_t const & bestBoxNdx = fitNdxPair.second;
-			om::Convention const & bestBoxConv{ allBoxCons[bestBoxNdx] };
-			om::ConventionString const csBox
-				{ om::ConventionString::from(bestBoxConv) };
-			std::string const boxCS{ csBox.stringEncoding() };
-
-			// get Ind conventions string
-			om::ConventionString const csInd
-				{ om::ConventionString::from(currIndConv) };
-			std::string const indCS{ csInd.stringEncoding() };
-
-			return OneFitSoln{ fitError, boxCS, indCS };
-		}
-
-	}; // OneFitSoln
-
-	//! Several OneFitSoln samples for a single Box convention solution
-	struct OneBoxSolnSamples
-	{
-		OneFitSoln the1st;
-		OneFitSoln the2nd;
-		OneFitSoln theEnd;
-
-	}; // OneBoxSolnSamples
-
-
 } // [anon]
 
 
@@ -276,17 +231,17 @@ std::cout << "got keyIndPGs count: " << keyIndPGs.size() << '\n';
 
 	//! Conventions for Ind EO interpretations
 	om::ConventionOffset const indConvOffset{ { 1, 1, 1 }, { 0u, 1u, 2u } };
-	std::vector<om::Convention> const allIndEoCons
+	std::vector<om::Convention> const allIndCons
 		{ Convention::allConventionsFor(indConvOffset) };
-std::cout << "allIndEoCons.size() : " << allIndEoCons.size() << "\n";
+std::cout << "allIndCons.size() : " << allIndCons.size() << "\n";
 
-	std::vector<OneBoxSolnSamples> boxSolnSamples;
-	std::vector<OneFitSoln> solns;
-std::cout << "\nExpect Loops: " << allIndEoCons.size() << '\n';
-	for (om::Convention const & currIndEoCon : allIndEoCons)
+	std::vector<om::OneTrialResult> boxSolnSamples;
+	std::vector<om::OneSolutionFit> solns;
+std::cout << "\nExpect Loops: " << allIndCons.size() << '\n';
+	for (om::Convention const & currIndCon : allIndCons)
 	{
 		std::map<SenKey, SenOri> const indKeyOris
-			{ indKeyOrisFor(keyIndPGs, currIndEoCon) };
+			{ indKeyOrisFor(keyIndPGs, currIndCon) };
 //std::cout << "got indKeyOris count: " << indKeyOris.size() << '\n';
 
 		std::vector<om::FitNdxPair> fitIndexPairs
@@ -307,10 +262,10 @@ std::cout << "\nExpect Loops: " << allIndEoCons.size() << '\n';
 			--itPair;
 			om::FitNdxPair const ndxPairEnd{ *itPair };
 
-			OneBoxSolnSamples const boxSolnSample
-				{ OneFitSoln::from(ndxPair1st, allBoxCons, currIndEoCon)
-				, OneFitSoln::from(ndxPair2nd, allBoxCons, currIndEoCon)
-				, OneFitSoln::from(ndxPairEnd, allBoxCons, currIndEoCon)
+			om::OneTrialResult const boxSolnSample
+				{ om::OneSolutionFit::from(ndxPair1st, allBoxCons, currIndCon)
+				, om::OneSolutionFit::from(ndxPair2nd, allBoxCons, currIndCon)
+				, om::OneSolutionFit::from(ndxPairEnd, allBoxCons, currIndCon)
 				};
 			boxSolnSamples.emplace_back(boxSolnSample);
 			double const & fit1st = boxSolnSample.the1st.theFitError;
