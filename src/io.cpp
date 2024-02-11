@@ -264,7 +264,7 @@ infoString
 	using engabra::g3::io::fixed;
 	oss
 		<< " fitError: " << fixed(fitError)
-		<< "  convention: " << convention.asNumber()
+		<< "  convention: " << convention.numberEncoding()
 		<< " '" << cs.stringEncoding() << "'"
 		;
 	return oss.str();

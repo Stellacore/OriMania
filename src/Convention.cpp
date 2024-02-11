@@ -39,41 +39,99 @@ namespace
 
 	//! Convert transform order to numeric values (e.g. for sorting) [0,1]
 	inline
-	std::size_t
+	std::int64_t
 	numberFor
 		( om::OrderTR const & order
 		)
 	{
-		return static_cast<std::size_t>(order);
+		return static_cast<std::int64_t>(order);
 	}
 
 	//! Convert sign collection to numeric values (e.g. for sorting) [0,7]
 	inline
-	std::size_t
+	std::int64_t
 	numberFor
 		( om::ThreeSigns const & signs
 		)
 	{
 		return
-			( 4u * (static_cast<std::size_t>(1u + signs[0]) / 2u)
-			+ 2u * (static_cast<std::size_t>(1u + signs[1]) / 2u)
-			+ 1u * (static_cast<std::size_t>(1u + signs[2]) / 2u)
+			( 4u * (static_cast<std::int64_t>(1u + signs[0]) / 2u)
+			+ 2u * (static_cast<std::int64_t>(1u + signs[1]) / 2u)
+			+ 1u * (static_cast<std::int64_t>(1u + signs[2]) / 2u)
 			);
 	}
 
 	//! Convert index collection to numeric values (e.g. for sorting) [0,26]
 	inline
-	std::size_t
+	std::int64_t
 	numberFor
 		( om::ThreeIndices const & indices
 		)
 	{
 		return
-			( 9u * static_cast<std::size_t>(indices[0])
-			+ 3u * static_cast<std::size_t>(indices[1])
-			+ 1u * static_cast<std::size_t>(indices[2])
+			( 9u * static_cast<std::int64_t>(indices[0])
+			+ 3u * static_cast<std::int64_t>(indices[1])
+			+ 1u * static_cast<std::int64_t>(indices[2])
 			);
 	}
+
+	//! ThreeSign (int8_t) values for numeric Id
+	inline
+	om::ThreeSigns
+	threeSignsFor
+		( std::int64_t const numId
+		)
+	{
+		constexpr std::array<om::ThreeSigns, 8u> asInts
+			{ om::ThreeSigns{ -1, -1, -1 }
+			, om::ThreeSigns{ -1, -1,  1 }
+			, om::ThreeSigns{ -1,  1, -1 }
+			, om::ThreeSigns{ -1,  1,  1 }
+			, om::ThreeSigns{  1, -1, -1 }
+			, om::ThreeSigns{  1, -1,  1 }
+			, om::ThreeSigns{  1,  1, -1 }
+			, om::ThreeSigns{  1,  1,  1 }
+			};
+		return asInts[numId];
+	}
+
+	//! ThreeIndices (int8_t) values for numeric Id
+	inline
+	om::ThreeIndices
+	threeIndicesFor
+		( std::int64_t const numId
+		)
+	{
+		using TI = om::ThreeIndices;
+		constexpr std::array<om::ThreeIndices, 27u> asInts
+			{ TI{  0,  0,  0 }, TI{  0,  0,  1 }, TI{  0,  0,  2 }
+			, TI{  0,  1,  0 }, TI{  0,  1,  1 }, TI{  0,  1,  2 }
+			, TI{  0,  2,  0 }, TI{  0,  2,  1 }, TI{  0,  2,  2 }
+			, TI{  1,  0,  0 }, TI{  1,  0,  1 }, TI{  1,  0,  2 }
+			, TI{  1,  1,  0 }, TI{  1,  1,  1 }, TI{  1,  1,  2 }
+			, TI{  1,  2,  0 }, TI{  1,  2,  1 }, TI{  1,  2,  2 }
+			, TI{  2,  0,  0 }, TI{  2,  0,  1 }, TI{  2,  0,  2 }
+			, TI{  2,  1,  0 }, TI{  2,  1,  1 }, TI{  2,  1,  2 }
+			, TI{  2,  2,  0 }, TI{  2,  2,  1 }, TI{  2,  2,  2 }
+			};
+		return asInts[numId];
+	}
+
+	//! OrderTR (enum) values for numeric Id
+	inline
+	om::OrderTR
+	orderFor
+		( std::int64_t const numId
+		)
+	{
+		constexpr std::array<om::OrderTR, 3u> orders
+			{ om::TranRot
+			, om::RotTran
+			, om::Unknown
+			};
+		return orders[numId];
+	}
+
 
 } // [anon]
 
@@ -157,21 +215,6 @@ ConventionAngle :: allConventions
 //==========================================================================
 //
 
-std::size_t
-Convention :: asNumber
-	() const
-{
-	return
-		( 1000000000000u
-		+   10000000000u * numberFor(theConvOff.theOffSigns) // 8
-		+     100000000u * numberFor(theConvOff.theOffIndices) // <32
-		+       1000000u * numberFor(theConvAng.theAngSigns) // 8
-		+         10000u * numberFor(theConvAng.theAngIndices) // <32
-		+           100u * numberFor(theConvAng.theBivIndices) // <32
-		+             1u * numberFor(theOrder) // 2
-		);
-}
-
 // static
 std::vector<Convention>
 Convention :: allConventionsFor
@@ -217,6 +260,86 @@ Convention :: allConventions
 	}
 
 	return conventions;
+}
+
+namespace
+{
+	constexpr std::int64_t numIdBase{ 100 }; // for easy human interpretation
+	constexpr std::int64_t numPad   { 1000000000000 };
+	constexpr std::int64_t numOffSgn{   10000000000 };
+	constexpr std::int64_t numOffNdx{     100000000 };
+	constexpr std::int64_t numAngSgn{       1000000 };
+	constexpr std::int64_t numAngNdx{         10000 };
+	constexpr std::int64_t numBivNdx{           100 };
+	constexpr std::int64_t numOrder {             1 };
+
+} // [anon]
+
+// static
+Convention
+Convention :: fromNumberEncoding
+	( std::int64_t const & numId
+	)
+{
+	std::int64_t curr{ numId };
+
+	std::int64_t digOrder{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digBivNdx{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digAngNdx{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digAngSgn{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digOffNdx{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digOffSgn{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	// should be 1
+	// std::int64_t digPad{ curr % numIdBase };
+	// curr = curr / numIdBase;
+
+	return Convention
+		{ ThreeSigns{ threeSignsFor(digOffSgn) }
+		, ThreeIndices{ threeIndicesFor(digOffNdx) }
+		, ThreeSigns{ threeSignsFor(digAngSgn) }
+		, ThreeIndices{ threeIndicesFor(digAngNdx) }
+		, ThreeIndices{ threeIndicesFor(digBivNdx) }
+		, OrderTR{ orderFor(digOrder) }
+		};
+}
+
+std::int64_t
+Convention :: numberEncoding
+	() const
+{
+	std::int64_t numId{ -1 };;
+	if (isValid())
+	{
+		numId = 
+			( numPad       // so that all values show same width
+			+ numOffSgn  * numberFor(theConvOff.theOffSigns) // 8
+			+ numOffNdx  * numberFor(theConvOff.theOffIndices) // <32
+			+ numAngSgn  * numberFor(theConvAng.theAngSigns) // 8
+			+ numAngNdx  * numberFor(theConvAng.theAngIndices) // <32
+			+ numBivNdx  * numberFor(theConvAng.theBivIndices) // <32
+			+ numOrder   * numberFor(theOrder) // 2
+			);
+	}
+	return numId;
+}
+
+bool
+Convention :: isValid
+	() const
+{
+	return (Unknown != theOrder);
 }
 
 rigibra::Attitude
@@ -310,7 +433,7 @@ Convention :: infoString
 		<< "  OffNdx: " << infoStringIndices(theConvOff.theOffIndices)
 		<< "  BivNdx: " << infoStringIndices(theConvAng.theBivIndices)
 		<< "   Order: " << infoStringOrders(theOrder)
-		<< "  Number: " << asNumber()
+		<< "   NumId: " << numberEncoding()
 		;
 	return oss.str();
 }
