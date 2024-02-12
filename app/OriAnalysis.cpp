@@ -231,29 +231,18 @@ std::cout << "# Number indEO conventions: " << allIndCons.size() << '\n';
 			{ fitIndexPairsFor(keyBoxPGs, indKeyStas, allBoxCons) };
 // std::cout << "got fitIndexPairs count: " << fitIndexPairs.size() << '\n';
 
+		// find the best solution for this trial
 		if (! fitIndexPairs.empty())
 		{
 			om::OneTrialResult const trialResult
 				{ om::trialResultFrom(fitIndexPairs, allBoxCons, currIndCon) };
 			trialResults.emplace_back(trialResult);
 
-			double const & fit1st = trialResult.the1st.theFitError;
-			double const & fit2nd = trialResult.the2nd.theFitError;
-			double const & fitEnd = trialResult.theEnd.theFitError;
-			double const promFrac{ (fit2nd - fit1st) / fitEnd };
-
 			if (use.isVerbose())
 			{
 				using engabra::g3::io::fixed;
-				std::cout
-					<< "fitError: " << fixed(fit1st, 8u, 6u)
-					<< "  boxPGs: " << trialResult.the1st.theBoxCS
-					<< "  indPGs: " << trialResult.the1st.theIndCS
-					<< "  2ndFit: " << fixed(fit2nd, 8u, 6u)
-					<< "  EndFit: " << fixed(fitEnd, 8u, 6u)
-					<< "  promFrac: " << fixed(promFrac)
-					<< '\n';
-				std::cout << std::flush;
+				std::cout << trialResult.infoString() << '\n';
+				std::cout << std::flush; // for watching progress if piped
 			}
 
 if (5u < trialResults.size())

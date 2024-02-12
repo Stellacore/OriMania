@@ -337,9 +337,49 @@ namespace om
 	//! Several OneSolutionFit samples for a single Box convention solution
 	struct OneTrialResult
 	{
-		OneSolutionFit the1st;
-		OneSolutionFit the2nd;
-		OneSolutionFit theEnd;
+		OneSolutionFit the1st{};
+		OneSolutionFit the2nd{};
+		OneSolutionFit theEnd{};
+
+		//! Prominence of result [from fit errors as (2nd-1st)/End]
+		inline
+		double
+		prominence
+			() const
+		{
+			double prom{ engabra::g3::null<double>() };
+			double const worst{ theEnd.theFitError };
+			if (0. < worst)
+			{
+				double const delta{ the2nd.theFitError - the1st.theFitError };
+				prom = delta / worst;
+			}
+			return prom;
+		}
+
+		//! Descriptive information about this instance
+		inline
+		std::string
+		infoString
+			( std::string const & title = {}
+			) const
+		{
+			std::ostringstream oss;
+			if (! title.empty())
+			{
+				oss << title << '\n';
+			}
+			using engabra::g3::io::fixed;
+			oss
+				<< "fitError: " << fixed(the1st.theFitError, 8u, 6u)
+				<< "  boxPGs: " << the1st.theBoxCS
+				<< "  indPGs: " << the1st.theIndCS
+				<< "  2ndFit: " << fixed(the2nd.theFitError, 8u, 6u)
+				<< "  EndFit: " << fixed(theEnd.theFitError, 8u, 6u)
+				<< "  promFrac: " << fixed(prominence())
+				;
+			return oss.str();
+		}
 
 	}; // OneTrialResult
 
