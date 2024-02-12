@@ -45,6 +45,7 @@ namespace
 	{
 		std::filesystem::path theBoxPGPath{};
 		std::filesystem::path theIndPGPath{};
+		std::filesystem::path theOutPath{};
 
 		//! True if verboase output has been requested
 		inline
@@ -52,7 +53,7 @@ namespace
 		isVerbose
 			() const
 		{
-			return true;
+			return true; // TODO could control with command line option
 		}
 
 		//! Check invocation arguments.
@@ -63,18 +64,19 @@ namespace
 			)
 		{
 			int narg{ 1 };
-			if (2 < argc)
-			{
-				theBoxPGPath = argv[narg++];
-				theIndPGPath = argv[narg++];
-			}
-			else
+			if (! (4 == argc))
 			{
 				std::cerr << '\n' << argv[0] << " Bad invocation:"
 					"\nUsage:"
-					"\n  <ProgName> <BoxPGPath> <IndPGPath>"
+					"\n  <ProgName> <BoxPGPath> <IndPGPath> <OutPath>"
 					"\n\n"
 					;
+			}
+			else
+			{
+				theBoxPGPath = argv[narg++];
+				theIndPGPath = argv[narg++];
+				theOutPath = argv[narg++];
 			}
 		}
 
@@ -197,39 +199,49 @@ main
 	std::ifstream ifsBoxPG(use.theBoxPGPath);
 	std::map<om::SenKey, om::ParmGroup>
 		const keyBoxPGs{ om::loadParmGroups(ifsBoxPG) };
-std::cout << "# keyBoxPGs count: " << keyBoxPGs.size() << '\n';
 
 	// try all internal conventions
 	std::vector<om::Convention> const allBoxCons
 		{ Convention::allConventions() };
-std::cout << "# allBoxCons count: " << allBoxCons.size() << std::endl;
 
 
 	// load exterior Ind parameter group from specified file
 	std::ifstream ifsIndPG(use.theIndPGPath);
 	std::map<om::SenKey, om::ParmGroup>
 		const keyIndPGs{ om::loadParmGroups(ifsIndPG) };
-std::cout << "# keyIndPGs count: " << keyIndPGs.size() << '\n';
 
 	//! Conventions for Ind EO interpretations
 	om::ConventionOffset const indConvOffset{ { 1, 1, 1 }, { 0u, 1u, 2u } };
 	std::vector<om::Convention> const allIndCons
 		{ Convention::allConventionsFor(indConvOffset) };
-std::cout << "# allIndCons.size() : " << allIndCons.size() << "\n";
 
 	std::vector<om::OneTrialResult> trialResults;
 	std::vector<om::OneSolutionFit> solns;
-std::cout << "# Number indEO conventions: " << allIndCons.size() << '\n';
+
+	if (use.isVerbose())
+	{
+		std::cout << "# keyBoxPGs count: " << keyBoxPGs.size() << '\n';
+		std::cout << "# allBoxCons count: " << allBoxCons.size() << std::endl;
+		std::cout << "# keyIndPGs count: " << keyIndPGs.size() << '\n';
+		std::cout << "# allIndCons.size() : " << allIndCons.size() << "\n";
+		std::cout << "# indEO count: " << allIndCons.size() << '\n';
+	}
 	for (om::Convention const & currIndCon : allIndCons)
 	{
 		//! Get independent station grouping for current Ind convention
 		std::map<SenKey, SenOri> const indKeyStas
 			{ om::keyOrisFor(keyIndPGs, currIndCon) };
-// std::cout << "got indKeyStas count: " << indKeyStas.size() << '\n';
 
 		std::vector<om::FitNdxPair> fitIndexPairs
 			{ fitIndexPairsFor(keyBoxPGs, indKeyStas, allBoxCons) };
-// std::cout << "got fitIndexPairs count: " << fitIndexPairs.size() << '\n';
+
+		// report data encountered - for debugging
+		constexpr bool showIntermediateData{ false };
+		if (showIntermediateData)
+		{
+			std::cout << rpt::stringInputs(keyBoxPGs, indKeyStas);
+			std::cout << rpt::stringSolution(fitIndexPairs, allBoxCons);
+		}
 
 		// find the best solution for this trial
 		if (! fitIndexPairs.empty())
@@ -241,63 +253,46 @@ std::cout << "# Number indEO conventions: " << allIndCons.size() << '\n';
 			if (use.isVerbose())
 			{
 				using engabra::g3::io::fixed;
-				std::cout << trialResult.infoString() << '\n';
+				std::cout << std::setw(4u) << trialResults.size()
+					<< ' ' << trialResult.infoString() << '\n';
 				std::cout << std::flush; // for watching progress if piped
 			}
-
-if (5u < trialResults.size())
-{
-	break;
-}
-
 		}
 		else
 		{
 			std::cerr << "Error: No results to report\n" << std::endl;
 		}
+
+		// for dev/testing
+		/*
+		if (5 < trialResults.size())
+		{
+			break;
+		}
+		*/
 	}
 
-std::cout << "trialResults count: " << trialResults.size() << '\n';
+	//
+	// Report results
+	//
 
-	// sort overall trial results
+	// sort overall trial results for reporting
 	std::sort(trialResults.begin(), trialResults.end());
 
 	// show results
+	std::ofstream ofsOut(use.theOutPath);
+	ofsOut << "#\n";
+	ofsOut << "# KeyBoxPGs count: " << keyBoxPGs.size() << '\n';
+	ofsOut << "# KeyIndPGs count: " << keyIndPGs.size() << '\n';
+	ofsOut << "# AllBoxCons count: " << allBoxCons.size() << std::endl;
+	ofsOut << "# AllIndCons.size() : " << allIndCons.size() << "\n";
+	ofsOut << "# TrialResults count: " << trialResults.size() << '\n';
+	ofsOut << "#\n";
 	for (om::OneTrialResult const & trialResult : trialResults)
 	{
-		std::cout << trialResult << '\n';
+		ofsOut << trialResult << '\n';
 	}
-
-/*
-
-	// report data encountered
-	if (use.isVerbose())
-	{
-		std::cout << rpt::stringInputs(keyBoxPGs, indKeyStas);
-		std::cout << rpt::stringSolution(fitIndexPairs, allBoxCons);
-	}
-
-	//
-	// Results reporting
-	//
-
-	// report results
-	if (! fitIndexPairs.empty())
-	{
-		std::size_t const numShow
-			{ std::min((std::size_t)5u, (std::size_t)fitIndexPairs.size()) };
-		std::cout << '\n';
-		std::cout << "Best fitting Conventions\n";
-		std::cout << om::infoStringFitConventions
-			(fitIndexPairs.begin(), fitIndexPairs.begin()+numShow, allBoxCons)
-			<< '\n';
-		std::cout << '\n';
-	}
-	else
-	{
-		std::cerr << "Error: No results to report\n" << std::endl;
-	}
-*/
+	ofsOut << "#\n";
 
 	return 0;
 }
