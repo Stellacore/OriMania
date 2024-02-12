@@ -117,7 +117,7 @@ loadIndEOs
 				}
 			}
 			else
-			if ("Distances:" == keyword)
+			if ("Locations:" == keyword)
 			{
 				ThreeDistances dists
 					{ engabra::g3::null<double>()
@@ -241,7 +241,10 @@ loadParmGroups
 		   )
 		{
 			ParmGroup const pg{ itDistance->second, itAngle->second };
-			pgs[senKey] = pg;
+			if (pg.isValid())
+			{
+				pgs[senKey] = pg;
+			}
 		}
 	}
 
@@ -261,7 +264,7 @@ infoString
 	using engabra::g3::io::fixed;
 	oss
 		<< " fitError: " << fixed(fitError)
-		<< "  convention: " << convention.asNumber()
+		<< "  convention: " << convention.numberEncoding()
 		<< " '" << cs.stringEncoding() << "'"
 		;
 	return oss.str();

@@ -43,8 +43,9 @@ namespace
 	//! Check basic application usage
 	struct Usage
 	{
-		std::filesystem::path theIndEoPath{};
-		std::filesystem::path theParmGroupPath{};
+		std::filesystem::path theBoxPGPath{};
+		std::filesystem::path theIndPGPath{};
+		std::filesystem::path theOutPath{};
 
 		//! True if verboase output has been requested
 		inline
@@ -52,7 +53,7 @@ namespace
 		isVerbose
 			() const
 		{
-			return true;
+			return true; // TODO could control with command line option
 		}
 
 		//! Check invocation arguments.
@@ -63,18 +64,19 @@ namespace
 			)
 		{
 			int narg{ 1 };
-			if (2 < argc)
-			{
-				theIndEoPath = argv[narg++];
-				theParmGroupPath = argv[narg++];
-			}
-			else
+			if (! (4 == argc))
 			{
 				std::cerr << '\n' << argv[0] << " Bad invocation:"
 					"\nUsage:"
-					"\n  <ProgName> <IndEoPath> <ParmGroupPath>"
+					"\n  <ProgName> <BoxPGPath> <IndPGPath> <OutPath>"
 					"\n\n"
 					;
+			}
+			else
+			{
+				theBoxPGPath = argv[narg++];
+				theIndPGPath = argv[narg++];
+				theOutPath = argv[narg++];
 			}
 		}
 
@@ -84,12 +86,94 @@ namespace
 		isValid
 			() const
 		{
-			return std::filesystem::exists(theIndEoPath);
+			return
+				(  std::filesystem::exists(theBoxPGPath)
+				&& std::filesystem::exists(theBoxPGPath)
+				);
 		}
 
 	}; // Usage
 
 } // [anon]
+
+
+namespace rpt
+{
+
+	inline
+	std::string
+	stringInputs
+		( std::map<om::SenKey, om::ParmGroup> const & keyBoxPGs
+		, std::map<om::SenKey, om::SenOri> const & indKeyOris
+		)
+	{
+		std::ostringstream msg;
+
+		using namespace om;
+
+		// report ParmGroup values
+		msg << '\n';
+		msg << "Box ParmGroup count: " << keyBoxPGs.size() << '\n';
+		for (std::map<SenKey, ParmGroup>::value_type
+			const & keyPG : keyBoxPGs)
+		{
+			msg << "PG: " << keyPG.first
+				<< " " << keyPG.second
+				<< '\n';
+		}
+
+		// report independent EO values
+		msg << '\n';
+		msg << "Independent EO count: " << indKeyOris.size() << '\n';
+		for (std::map<SenKey, SenOri>::const_iterator
+			iter{indKeyOris.begin()} ; indKeyOris.end() != iter ; ++iter)
+		{
+			msg
+				<< std::setw(12u) << iter->first
+				<< ' ' << iter->second
+				<< '\n';
+		}
+
+		// report ind relative orientations
+		std::map<KeyPair, SenOri> const indKeyROs
+			{ relativeOrientationBetweens(indKeyOris) };
+		msg << '\n';
+		for (std::map<KeyPair, SenOri>::value_type
+			const & indKeyRO : indKeyROs)
+		{
+			msg << indKeyRO.first
+				<< "  " << indKeyRO.second
+				<< '\n';
+		}
+
+		return msg.str();
+	}
+
+	//! String sampling first several and last few solutions
+	inline
+	std::string
+	stringSolution
+		( std::vector<om::FitNdxPair> const & fitIndexPairs
+		, std::vector<om::Convention> const & allBoxCons
+		, std::size_t const & numBeg = 8u
+		, std::size_t const & numEnd = 2u
+		)
+	{
+		std::ostringstream msg;
+
+		using namespace om;
+
+		// display first and last several lines
+		msg << '\n';
+		msg << infoStringFitConventions
+			(fitIndexPairs, allBoxCons, numBeg, numEnd) << '\n';
+		msg << "===\n";
+
+		return msg.str();
+	}
+
+} // [rpt]
+
 
 
 /*! \brief Estimate payload sensor ExCal tranforms by analysing exported data.
@@ -111,83 +195,104 @@ main
 
 	using namespace om;
 
-	// load indepenent EOs from specified file
-	std::ifstream ifsEO(use.theIndEoPath);
-	std::map<SenKey, SenOri> const indKeyOris{ loadIndEOs(ifsEO) };
-
-	if (! (1u < indKeyOris.size()))
-	{
-		std::cerr << "\nFatal Error:\n";
-		std::cerr
-			<< "  Only loaded " << indKeyOris.size() << " indpendent EOs.\n"
-			<< "  Need at least two in order to form relative orientations!\n"
-			<< '\n';
-		return 2;
-	}
-
-	// load ParmGroups from specified file
-	std::ifstream ifsPG(use.theParmGroupPath);
+	// load interior Box ParmGroups from specified file
+	std::ifstream ifsBoxPG(use.theBoxPGPath);
 	std::map<om::SenKey, om::ParmGroup>
-		const keyPGs{ om::loadParmGroups(ifsPG) };
+		const keyBoxPGs{ om::loadParmGroups(ifsBoxPG) };
 
-	std::vector<om::Convention> const allCons{ Convention::allConventions() };
-	std::vector<om::FitNdxPair> fitIndexPairs
-		{ fitIndexPairsFor(keyPGs, indKeyOris, allCons) };
+	// try all internal conventions
+	std::vector<om::Convention> const allBoxCons
+		{ Convention::allConventions() };
 
-	// sort from best and worst
-	std::sort(fitIndexPairs.begin(), fitIndexPairs.end());
 
-	// report data encountered
+	// load exterior Ind parameter group from specified file
+	std::ifstream ifsIndPG(use.theIndPGPath);
+	std::map<om::SenKey, om::ParmGroup>
+		const keyIndPGs{ om::loadParmGroups(ifsIndPG) };
+
+	//! Conventions for Ind EO interpretations
+	om::ConventionOffset const indConvOffset{ { 1, 1, 1 }, { 0u, 1u, 2u } };
+	std::vector<om::Convention> const allIndCons
+		{ Convention::allConventionsFor(indConvOffset) };
+
+	std::vector<om::OneTrialResult> trialResults;
+	std::vector<om::OneSolutionFit> solns;
+
 	if (use.isVerbose())
 	{
-		std::ostringstream msg;
+		std::cout << "# keyBoxPGs count: " << keyBoxPGs.size() << '\n';
+		std::cout << "# allBoxCons count: " << allBoxCons.size() << std::endl;
+		std::cout << "# keyIndPGs count: " << keyIndPGs.size() << '\n';
+		std::cout << "# allIndCons.size() : " << allIndCons.size() << "\n";
+		std::cout << "# indEO count: " << allIndCons.size() << '\n';
+	}
+	for (om::Convention const & currIndCon : allIndCons)
+	{
+		//! Get independent station grouping for current Ind convention
+		std::map<SenKey, SenOri> const indKeyStas
+			{ om::keyOrisFor(keyIndPGs, currIndCon) };
 
-		// report independent EO values
-		msg << '\n';
-		msg << "Independent EO count: " << indKeyOris.size() << '\n';
-		for (std::map<SenKey, SenOri>::const_iterator
-			iter{indKeyOris.begin()} ; indKeyOris.end() != iter ; ++iter)
+		std::vector<om::FitNdxPair> fitIndexPairs
+			{ fitIndexPairsFor(keyBoxPGs, indKeyStas, allBoxCons) };
+
+		// report data encountered - for debugging
+		constexpr bool showIntermediateData{ false };
+		if (showIntermediateData)
 		{
-			msg
-				<< std::setw(12u) << iter->first
-				<< ' ' << iter->second
-				<< '\n';
+			std::cout << rpt::stringInputs(keyBoxPGs, indKeyStas);
+			std::cout << rpt::stringSolution(fitIndexPairs, allBoxCons);
 		}
 
-		// report ParmGroup values
-		msg << '\n';
-		for (std::map<om::SenKey, om::ParmGroup>::value_type
-			const & keyPG : keyPGs)
+		// find the best solution for this trial
+		if (! fitIndexPairs.empty())
 		{
-			msg << "PG: " << keyPG.first
-				<< " " << keyPG.second
-				<< '\n';
+			om::OneTrialResult const trialResult
+				{ om::trialResultFrom(fitIndexPairs, allBoxCons, currIndCon) };
+			trialResults.emplace_back(trialResult);
+
+			if (use.isVerbose())
+			{
+				using engabra::g3::io::fixed;
+				std::cout << std::setw(4u) << trialResults.size()
+					<< ' ' << trialResult.infoString() << '\n';
+				std::cout << std::flush; // for watching progress if piped
+			}
+		}
+		else
+		{
+			std::cerr << "Error: No results to report\n" << std::endl;
 		}
 
-		// display first and last several lines
-		msg << '\n';
-		msg << om::infoStringFitConventions(fitIndexPairs, allCons) << '\n';
-		msg << "===\n";
-
-		std::cout << msg.str();
+		// for dev/testing
+		/*
+		if (5 < trialResults.size())
+		{
+			break;
+		}
+		*/
 	}
 
-	// report results
-	if (! fitIndexPairs.empty())
+	//
+	// Report results
+	//
+
+	// sort overall trial results for reporting
+	std::sort(trialResults.begin(), trialResults.end());
+
+	// show results
+	std::ofstream ofsOut(use.theOutPath);
+	ofsOut << "#\n";
+	ofsOut << "# KeyBoxPGs count: " << keyBoxPGs.size() << '\n';
+	ofsOut << "# KeyIndPGs count: " << keyIndPGs.size() << '\n';
+	ofsOut << "# AllBoxCons count: " << allBoxCons.size() << std::endl;
+	ofsOut << "# AllIndCons.size() : " << allIndCons.size() << "\n";
+	ofsOut << "# TrialResults count: " << trialResults.size() << '\n';
+	ofsOut << "#\n";
+	for (om::OneTrialResult const & trialResult : trialResults)
 	{
-		std::size_t const numShow
-			{ std::min((std::size_t)5u, (std::size_t)fitIndexPairs.size()) };
-		std::cout << '\n';
-		std::cout << "Best fitting Conventions\n";
-		std::cout << om::infoStringFitConventions
-			(fitIndexPairs.begin(), fitIndexPairs.begin()+numShow, allCons)
-			<< '\n';
-		std::cout << '\n';
+		ofsOut << trialResult << '\n';
 	}
-	else
-	{
-		std::cerr << "Error: No results to report\n" << std::endl;
-	}
+	ofsOut << "#\n";
 
 	return 0;
 }

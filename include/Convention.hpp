@@ -35,6 +35,7 @@ Example:
 */
 
 
+#include "ParmGroup.hpp"
 
 #include <Rigibra>
 
@@ -50,171 +51,39 @@ namespace om
 {
 
 //
-// Supporting Types
-//
-
-	//! Transformation convention: translate then rotate or v.v.
-	enum OrderTR
-	{
-		  TranRot // both expressed in domain
-		, RotTran // rotation expressed in domain, translation in range
-		, Unknown // not specified
-	};
-
-	//! Alias for tracking values of three +/- signs
-	using ThreeSigns = std::array<std::int8_t, 3u>;
-
-	//! Alias for tracking permutation of three (small) index values
-	using ThreeIndices = std::array<std::uint8_t, 3u>;
-
-	//! Alias for tracking two different transformation orders
-	using TwoOrders = std::array<OrderTR, 2u>;
-
-	//! Alias for three distinct offset values (with unknown order and sign)
-	using ThreeDistances = std::array<double, 3u>;
-
-	//! Alias for three distinct angle values (with unknown order and sign)
-	using ThreeAngles = std::array<double, 3u>;
-
-	//! Alias for three distinct planes (e.g. basis for sequential rotation)
-	using ThreePlanes = std::array<engabra::g3::BiVector, 3u>;
-
-	//! String of +/- characters for signed integer values
-	std::string
-	stringFrom
-		( ThreeSigns const & signInts
-		);
-
-	//! String of [012] characters for unsigned integer values
-	std::string
-	stringFrom
-		( ThreeIndices const & ndxInts
-		);
-
-	//! String of [0...] characters for enum OrderTR type.
-	std::string
-	stringFrom
-		( OrderTR const & order
-		);
-
-	//! Convert string to three numeric index values
-	ThreeSigns
-	threeSignsFrom
-		( std::string const & str
-		);
-
-	//! Convert string to three numeric index values
-	ThreeIndices
-	threeIndicesFrom
-		( std::string const & str
-		);
-
-	//! Decode string character [01] to [TR,RT]
-	OrderTR
-	orderTRFrom
-		( std::string const & str
-		);
-
-//
-// ParmGroup
-//
-
-	//! Grouping of parameters by angle and distance values
-	struct ParmGroup
-	{
-		//! Numeric distace values (meters) for which order/sign are unknown
-		ThreeDistances theDistances
-			{ engabra::g3::nan
-			, engabra::g3::nan
-			, engabra::g3::nan
-			};
-
-		//! Numeric angle values (radians) for which order/sign are unknown
-		ThreeAngles theAngles
-			{ engabra::g3::nan
-			, engabra::g3::nan
-			, engabra::g3::nan
-			};
-
-		//! Descriptive information about this instance
-		inline
-		std::string
-		infoString
-			( std::string const & title = {}
-			) const
-		{
-			std::ostringstream oss;
-			if (! title.empty())
-			{
-				oss << title << ' ';
-			}
-			using engabra::g3::io::fixed;
-			oss
-				<< "  Distances: "
-					<< fixed(theDistances[0], 4u, 6u)
-					<< fixed(theDistances[1], 4u, 6u)
-					<< fixed(theDistances[2], 4u, 6u)
-				<< "  Angles: "
-					<< fixed(theAngles[0], 1u, 9u)
-					<< fixed(theAngles[1], 1u, 9u)
-					<< fixed(theAngles[2], 1u, 9u)
-				;
-			return oss.str();
-		}
-
-
-	}; // ParmGroup
-
-//
-// Math utilities
-//
-
-	/*! \brief Generate rotation as sequence of three rotations.
-	 *
-	 * The return Attitude is computed as the sequence of rotations
-	 * as follows:
-	 * \arg spinC = exp(angleSize[0]*angleDir[0])
-	 * \arg spinB = exp(angleSize[1]*angleDir[1])
-	 * \arg spinA = exp(angleSize[2]*angleDir[2])
-	 * \arg spinNet = spinC * spinB * spinA
-	 *
-	 * The attitude associated with spinNet is returned.
-	 */
-	inline
-	rigibra::Attitude
-	attitudeFrom3AngleSequence
-		( ThreeAngles const & angleSizes
-		, ThreePlanes const & angleDirs
-		)
-	{
-		using namespace rigibra;
-		PhysAngle const physAngleA{ angleSizes[0] * angleDirs[0] };
-		PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
-		PhysAngle const physAngleC{ angleSizes[2] * angleDirs[2] };
-		Attitude const attA(physAngleA);
-		Attitude const attB(physAngleB);
-		Attitude const attC(physAngleC);
-		return (attC * attB * attA);
-	}
-
-//
 // Convention for transformation parameters
 //
 
-	//! Candidate convention associated with 6 orientation values
-	struct Convention
+	/*! \brief Conventions for creating offset vector from 3 distance values.
+	 *
+	 */
+	struct ConventionOffset
 	{
+		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
+		ThreeSigns theOffSigns;
+
+		//! \brief Permutations: 012, 021, 120, 102, 201, 210
+		ThreeIndices theOffIndices;
+
+		//! Collection of unique conventions that are supported overall
+		static
+		std::vector<ConventionOffset>
+		allConventions
+			();
+
+	}; // ConventionOffset
+
+	/*! \brief Conventions for 3-angle sequences from 3 angle size values.
+	 *
+	 */
+	struct ConventionAngle
+	{
+
 		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
 		ThreeSigns theAngSigns;
 
 		//! \brief Permutations: 012, 021, 120, 102, 201, 210
 		ThreeIndices theAngIndices;
-
-		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
-		ThreeSigns theLocSigns;
-
-		//! \brief Permutations: 012, 021, 120, 102, 201, 210
-		ThreeIndices theLocIndices;
 
 		/*! \brief Permutes: 010,012,020,021, 101,102,120,121, 201,202,210,212.
 		 *
@@ -232,53 +101,55 @@ namespace om
 		 */
 		ThreeIndices theBivIndices;
 
+		//! Collection of unique conventions that are supported overall
+		static
+		std::vector<ConventionAngle>
+		allConventions
+			();
+
+	}; // ConventionAngle
+
+	//! Candidate convention associated with 6 orientation values
+	struct Convention
+	{
+		//! \brief Conventions for interpreting 3 offset distances
+		ConventionOffset theConvOff{};
+
+		//! \brief Conventions for interpreting 3 angle sizes
+		ConventionAngle theConvAng{};
+
 		//! \brief Permutations: TranRot, RotTran
-		OrderTR theOrder;
+		OrderTR theOrder{ Unknown };
 
-		//! Assign a number to each convention (for easy tracking))
-		std::size_t
-		asNumber
-			() const;
-
-		/*TODO
-		//! Create Convention from number - inverse of asNumber() method.
-		inline
+		//! Collection of unique conventions that are supported overall
 		static
-		Convention
-		fromNumber
-			( std::size_t const & number
-			)
-		*/
-
-		//! All combinations of signs for three elements
-		static
-		std::array<ThreeSigns, 8u>
-		allThreeSigns
-			();
-
-		//! All combinations of unique indices for three element array
-		static
-		std::array<ThreeIndices, 6u>
-		allThreeIndices
-			();
-
-		//! All combinations of unique indices for three element array
-		static
-		std::array<ThreeIndices, 12u>
-		allBivIndices
-			();
-
-		//! All transformation translate/rotate conventions
-		static
-		std::array<OrderTR, 2u>
-		allOrderTRs
-			();
+		std::vector<Convention>
+		allConventionsFor
+			( ConventionOffset const & offConv
+			);
 
 		//! Collection of unique conventions that are supported overall
 		static
 		std::vector<Convention>
 		allConventions
 			();
+
+		//! Construct an instance from numeric encoding.
+		static
+		Convention
+		fromNumberEncoding
+			( std::int64_t const & numId
+			);
+
+		//! Assign a number to each convention (for easy tracking))
+		std::int64_t
+		numberEncoding
+			() const;
+
+		//! True if this instance has valid data (uses theOrder as flag).
+		bool
+		isValid
+			() const;
 
 		//! Attitude associated with parmGroup given this convention.
 		rigibra::Attitude
@@ -315,9 +186,9 @@ namespace om
 	struct ConventionString
 	{
 		//! Three offset vector sign conventions - e.g. "---", "++-", etc.
-		std::string theStrLocSigns;
+		std::string theStrOffSigns;
 		//! Three offset vector indices {0,1,2} - e.g. "012", "201", etc
-		std::string theStrLocNdxs;
+		std::string theStrOffNdxs;
 		//! Three angle size sign conventions - e.g. "---", "++-", etc.
 		std::string theStrAngSigns;
 		//! Three angle size indices {0,1,2} - e.g. "012", "201", etc
@@ -371,7 +242,7 @@ namespace om
 		, Convention const & convB
 		)
 	{
-		return (convA.asNumber() < convB.asNumber());
+		return (convA.numberEncoding() < convB.numberEncoding());
 	}
 
 	//! True if ((!(A<B)) && (!(B<A)))

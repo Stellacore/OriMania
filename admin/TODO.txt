@@ -1,7 +1,4 @@
 
-
-Add loader for ParmGroup
-
 For Convention numeric ID encoding,
 
 	Att: +++ 012  (6 bits)

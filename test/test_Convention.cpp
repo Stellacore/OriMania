@@ -80,6 +80,29 @@ namespace
 		}
 	}
 
+	//! Check numeric encoding
+	void
+	testNumId
+		( std::ostream & oss
+		)
+	{
+		om::ConventionString const expCS
+			{ "+-+", "210", "++-", "201", "102", "1"};
+		om::Convention const expCon{ expCS.convention() };
+		std::int64_t const gotNum{ expCon.numberEncoding() };
+
+		om::Convention const gotCon
+			{ om::Convention::fromNumberEncoding(gotNum) };
+		if (! (gotCon == expCon))
+		{
+			oss << "Failure of numeric en/de-code test\n";
+			oss << "exp: " << expCon << '\n';
+			oss << "got: " << gotCon << '\n';
+			oss << "gotNum: " << gotNum << '\n';
+		}
+
+	}
+
 	//! Check key generation for conventions
 	void
 	testKeys
@@ -90,23 +113,39 @@ namespace
 		std::vector<om::Convention> const conventions
 			{ om::Convention::allConventions() };
 
-		// store in map using asNumber() as key
-		using Key = std::size_t;
-		std::map<Key, om::Convention> keyCons;
+		// store in map using numberEncoding() as key
+		using NumId = std::int64_t;
+		std::map<NumId, om::Convention> numCons;
 		for (om::Convention const & convention : conventions)
 		{
-			keyCons.emplace_hint
-				( keyCons.end()
-				, std::make_pair(convention.asNumber(), convention)
+			numCons.emplace_hint
+				( numCons.end()
+				, std::make_pair(convention.numberEncoding(), convention)
 				);
 		}
 
 		// check number of unique keys matches number of conventions
-		if (! (conventions.size() == keyCons.size()))
+		if (! (conventions.size() == numCons.size()))
 		{
-			oss << "Failure of convention/keyCon size test\n";
+			oss << "Failure of convention/numCon size test\n";
 			oss << "conventions.size(): " << conventions.size() << '\n';
-			oss << "    keyCons.size(): " << keyCons.size() << '\n';
+			oss << "    numCons.size(): " << numCons.size() << '\n';
+		}
+
+		// retrieve numeric values and reconstruct conventions
+		for (std::map<NumId, om::Convention>::value_type
+			const & numCon : numCons)
+		{
+			NumId const & numId = numCon.first;
+			om::Convention const & expCon = numCon.second;
+			om::Convention const gotCon
+				{ om::Convention::fromNumberEncoding(numId) };
+			if (! (gotCon == expCon))
+			{
+				oss << "Failure of numeric en/de-code test\n";
+				oss << "exp: " << expCon << '\n';
+				oss << "got: " << gotCon << '\n';
+			}
 		}
 	}
 
@@ -210,7 +249,6 @@ namespace
 			oss << "convention: " << convention << '\n';
 			oss << "cs2: " << cs2.stringEncoding() << '\n';
 		}
-
 	}
 
 }
@@ -224,6 +262,7 @@ main
 	std::stringstream oss;
 
 	testPermuations(oss);
+	testNumId(oss);
 	testKeys(oss);
 	testTransforms(oss);
 	testEncode(oss);

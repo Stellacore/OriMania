@@ -48,56 +48,70 @@ Example:
 
 namespace om
 {
+	//! Statistic representing error between ori{1,2}.
+	inline
+	double
+	basisTransformRMSE
+		( SenOri const & ori
+		)
+	{
+		using namespace engabra::g3;
+		double rmse{ null<double>() };
+		if (isValid(ori))
+		{
+			// transform orthogonal basis and sum square resulting differences
+			Vector const got1{ ori(e1) };
+			Vector const got2{ ori(e1) };
+			Vector const got3{ ori(e1) };
+			double const eSq1{ magSq(got1 - e1) };
+			double const eSq2{ magSq(got2 - e2) };
+			double const eSq3{ magSq(got3 - e3) };
+
+			// Statistical degrees of freedom
+			constexpr double numComp{ 9. }; // 9 components being compared
+			constexpr double numParm{ 6. }; // 3 offsets and three translations
+			constexpr double statDof{ numComp - numParm };
+
+			double sse{ (1./statDof) * (eSq1 + eSq2 + eSq3) };
+			rmse = std::sqrt(sse);
+		}
+		return rmse;
+	}
 
 	//! Statistic representing error between ori{1,2}. 
 	inline
 	double
-	differenceBetween
-		( SenOri const & ori1
-		, SenOri const & ori2
+	rmseBasisErrorBetween
+		( SenOri const & ori1wX
+		, SenOri const & ori2wX
 		)
 	{
-		// Location
+		double rmse{ engabra::g3::null<double>() };
 		using namespace engabra::g3;
-		Vector const & loc1 = ori1.theLoc;
-		Vector const & loc2 = ori2.theLoc;
-
-		// compute weight for locations
-		double const aveMag{ .5 * (magnitude(loc1) + magnitude(loc2)) };
-		double wLoc{ 1. };
-		if (1. < aveMag)
-		{
-			wLoc = (1. / aveMag);
-		}
-
-		// weighted squared location residuals
-		double const residSqLoc{ (wLoc / 3.) * magSq(loc2 - loc1) };
-
-		// Attitude
 		using namespace rigibra;
-		Attitude const & att1 = ori1.theAtt;
-		Attitude const & att2 = ori2.theAtt;
-
-		// weight for attitudes
-		constexpr double wAtt{ 1. };
-
-		// weighted squared angle residuals
-		BiVector const biv1{ att1.spinAngle().theBiv };
-		BiVector const biv2{ att2.spinAngle().theBiv };
-		double const residSqAtt{ (wAtt / 3.) * magSq(biv2 - biv1) };
-
-		double const rase{ std::sqrt(.5 * (residSqLoc + residSqAtt)) };
-		return rase;
+		if (isValid(ori1wX) && isValid(ori2wX))
+		{
+			// form relative transform between two orientations
+			SenOri const & oriXw1{ inverse(ori1wX) };
+			SenOri const ori2w1{ ori2wX * oriXw1 };
+			// assess rmse error in transforming basis vectors
+			rmse = basisTransformRMSE(ori2w1);
+		}
+		return rmse;
 	}
 
-	//! Error between roInd and black box RO computed from pg{1,2}.
+	/*! \brief Relative orientation between two ParmGroups.
+	 *
+	 * Each ParmGroup argument is converted to a SenOri using the
+	 * same Convention. The two individual orientations are then
+	 * combined into a relative orientation of "2" with respect to "1".
+	 */
 	inline
-	double
-	fitErrorFor
+	SenOri
+	relativeOrientationFor
 		( ParmGroup const & pg1
 		, ParmGroup const & pg2
 		, Convention const & convention
-		, SenOri const & roInd
 		)
 	{
 		// generate forward transforms internal to black box frame
@@ -106,8 +120,7 @@ namespace om
 		// compute relative orientation in black box frame
 		SenOri const oriBw1{ inverse(ori1wB) };
 		SenOri const roBox{ ori2wB * oriBw1 };
-		// compare black box and independent relative orientations
-		return differenceBetween(roBox, roInd);
+		return roBox;
 	}
 
 	/*! \brief Sum-squared-errors (SSE) (across all ROs) by each convention.
@@ -121,7 +134,7 @@ namespace om
 	 */
 	inline
 	std::vector<double>
-	sseSumByConvention
+	fitErrorByConvention
 		( std::map<SenKey, ParmGroup> const & keyGroups
 		, std::map<KeyPair, SenOri> const & relKeyOris
 		, std::vector<Convention> const & allCons
@@ -154,8 +167,10 @@ namespace om
 				for (std::size_t cNdx{0u} ; cNdx < allCons.size() ; ++cNdx)
 				{
 					Convention const & convention = allCons[cNdx];
+					SenOri const roBox
+						{ relativeOrientationFor(pg1, pg2, convention) };
 					double const fitError
-						{ fitErrorFor(pg1, pg2, convention, relOri) };
+						{ rmseBasisErrorBetween(roBox, relOri) };
 					sumFitErrors[cNdx] += fitError;
 				}
 			}
@@ -170,7 +185,7 @@ namespace om
 
 	/*! \brief Convention error values and associated convention index.
 	 *
-	 * Uses every element of allConventions to transform each of the
+	 * Uses every element of allBoxConventions to transform each of the
 	 * two ParmGroup values (both transformed with same convention). For
 	 * each resulting pair of orientations (in black box frame) a relative
 	 * orientation, roBox, is computed and compared with the provided
@@ -178,7 +193,7 @@ namespace om
 	 *
 	 * For each convention case, the error between the roBox and roInd
 	 * transformations is computed. This fitError value is stored in the
-	 * first member of the returned pairs, and the index (of allConventions)
+	 * first member of the returned pairs, and the index (of allBoxConventions)
 	 * used for the computation is stored in the second member of the pair.
 	 * 
 	 * Note that the second member of the pair is the same as offset
@@ -187,27 +202,29 @@ namespace om
 	 * fit values via:
 	 * \arg (returnCollection)[0].first -- is the smallest fit error found
 	 * \arg (returnCollection)[0].second -- is the index, ndx, to the member
-	 * of allConventions[ndx] that was used to obtain the fit error.
+	 * of allBoxConventions[ndx] that was used to obtain the fit error.
 	 */
 	inline
 	std::vector<FitNdxPair>
 	fitIndexPairsFor
 		( std::map<SenKey, ParmGroup> const & keyGroups
-		, std::map<KeyPair, SenOri> const & keyIndROs
-		, std::vector<Convention> const & allCons
+		, std::map<KeyPair, SenOri> const & keyIndRelOris
+		, std::vector<Convention> const & allBoxConventions
 		)
 	{
 		std::vector<FitNdxPair> allFitConPairs;
 
-		// accumulation of fit errors, one for each convention in allCons
+		// accumulated fit errors, sum for each convention in allBoxConventions
 		std::vector<double> const sumFitErrors
-			{ sseSumByConvention(keyGroups, keyIndROs, allCons) };
+			{ fitErrorByConvention
+				(keyGroups, keyIndRelOris, allBoxConventions)
+			};
 
 		// normalize the scores by number of ROs
-		std::size_t const numROs{ keyIndROs.size() };
-		double const scale{ 1./static_cast<double>(numROs) };
+		std::size_t const numRelOris{ keyIndRelOris.size() };
+		double const scale{ 1./static_cast<double>(numRelOris) };
 
-		// associate the errors with allCons collection index
+		// associate the errors with allBoxConventions collection index
 		std::size_t const numFit{ sumFitErrors.size() };
 		allFitConPairs.reserve(numFit);
 		for (std::size_t nn{0u} ; nn < numFit ; ++nn)
@@ -250,7 +267,7 @@ namespace om
 	fitIndexPairsFor
 		( std::map<SenKey, ParmGroup> const & keyGroups
 		, std::map<SenKey, SenOri> const & keyIndEOs
-		, std::vector<Convention> const & allConventions
+		, std::vector<Convention> const & allBoxConventions
 		)
 	{
 		std::vector<FitNdxPair> fitNdxPairs;
@@ -258,16 +275,172 @@ namespace om
 		if (1u < keyIndEOs.size())
 		{
 			// generate ROs from indepent exterior body orientations
-			std::map<KeyPair, SenOri> const keyIndROs
+			std::map<KeyPair, SenOri> const keyIndRelOris
 				{ relativeOrientationBetweens(keyIndEOs) };
 
 			// core algorithm operating on the relative orientations
 			fitNdxPairs = fitIndexPairsFor
-				(keyGroups, keyIndROs, allConventions);
+				(keyGroups, keyIndRelOris, allBoxConventions);
 		}
 
 		return fitNdxPairs;
 	}
+
+	//! Residual error for orientations with the two string encodings.
+	struct OneSolutionFit
+	{
+		//! Fit error for a particular solution
+		double theFitError{ engabra::g3::null<double>() };
+
+		//! Encoding for Convention used for box orientation.
+		std::string theBoxCS{};
+
+		//! Encoding for Convention used for independent Ind orientation.
+		std::string theIndCS{};
+
+		/*! Instance from lookup/combination of arguments.
+		 *
+		 * The index (.second) from fitNdxPair is used to obtain
+		 * Convention from the allBoxCon's array. This convention
+		 * and the explicit currIndConv convention are encoded
+		 * as strings. The fit error (fitNdxPair.first), and the
+		 * two encoded strings are then used to instantiate the
+		 * returned instance.
+		 */
+		static
+		OneSolutionFit
+		from
+			( om::FitNdxPair const & fitNdxPair
+			, std::vector<om::Convention> const & allBoxCons
+			, om::Convention const & currIndConv
+			)
+		{
+			double const & fitError = fitNdxPair.first;
+
+			// fetch Box conventions string
+			std::size_t const & bestBoxNdx = fitNdxPair.second;
+			om::Convention const & bestBoxConv{ allBoxCons[bestBoxNdx] };
+			om::ConventionString const csBox
+				{ om::ConventionString::from(bestBoxConv) };
+			std::string const boxCS{ csBox.stringEncoding() };
+
+			// get Ind conventions string
+			om::ConventionString const csInd
+				{ om::ConventionString::from(currIndConv) };
+			std::string const indCS{ csInd.stringEncoding() };
+
+			return OneSolutionFit{ fitError, boxCS, indCS };
+		}
+
+	}; // OneSolutionFit
+
+	//! Several OneSolutionFit samples for a single Box convention solution
+	struct OneTrialResult
+	{
+		OneSolutionFit the1st{};
+		OneSolutionFit the2nd{};
+		OneSolutionFit theEnd{};
+
+		//! Prominence of result [from fit errors as (2nd-1st)/End]
+		inline
+		double
+		prominence
+			() const
+		{
+			double prom{ engabra::g3::null<double>() };
+			double const worst{ theEnd.theFitError };
+			if (0. < worst)
+			{
+				double const delta{ the2nd.theFitError - the1st.theFitError };
+				prom = delta / worst;
+			}
+			return prom;
+		}
+
+		//! Descriptive information about this instance
+		inline
+		std::string
+		infoString
+			( std::string const & title = {}
+			) const
+		{
+			std::ostringstream oss;
+			if (! title.empty())
+			{
+				oss << title << '\n';
+			}
+			using engabra::g3::io::fixed;
+			oss
+				<< "fitError: " << fixed(the1st.theFitError, 8u, 6u)
+				<< "  boxPGs: " << the1st.theBoxCS
+				<< "  indPGs: " << the1st.theIndCS
+				<< "  2ndFit: " << fixed(the2nd.theFitError, 8u, 6u)
+				<< "  EndFit: " << fixed(theEnd.theFitError, 8u, 6u)
+				<< "  promFrac: " << fixed(prominence())
+				;
+			return oss.str();
+		}
+
+	}; // OneTrialResult
+
+
+	//! Result of one trial involving all boxPG conventions for one indEO set.
+	inline
+	OneTrialResult
+	trialResultFrom
+		( std::vector<FitNdxPair> const & fitIndexPairs
+		, std::vector<Convention> const & allBoxCons
+		, Convention const & currIndCon
+		)
+	{
+		// sort from best and worst
+		// Note: could use min and max then find second min for efficiency
+		//       but overall, this probably isn't the slowest part
+		std::vector<FitNdxPair> fitNdxs{ fitIndexPairs }; // copy to sort
+		std::sort(fitNdxs.begin(), fitNdxs.end());
+
+		OneTrialResult trialResult;
+		std::size_t const numPairs{ fitNdxs.size() };
+		if (0u < numPairs)
+		{
+			FitNdxPair const & ndxPair1st = fitNdxs[0u];
+			trialResult.the1st = OneSolutionFit::from
+				(ndxPair1st, allBoxCons, currIndCon);
+		}
+		if (1u < numPairs)
+		{
+			FitNdxPair const & ndxPair2nd = fitNdxs[1u];
+			trialResult.the2nd = OneSolutionFit::from
+				(ndxPair2nd, allBoxCons, currIndCon);
+		}
+		if (2u < numPairs)
+		{
+			FitNdxPair const & ndxPairEnd = fitNdxs[numPairs-1u];
+			trialResult.theEnd = OneSolutionFit::from
+				(ndxPairEnd, allBoxCons, currIndCon);
+		}
+
+		return trialResult;
+	}
+
+	//! Order such that small error and larger prominence are both less.
+	inline
+	bool
+	operator<
+		( OneTrialResult const & trA
+		, OneTrialResult const & trB
+		)
+	{
+		// use pair as quick hack for sorting criteria
+		// note that (always non-negative) prominence is negated so that
+		// smaller error and larger prominence sort in same direction
+		std::pair<double, double> const pairA
+			{ trA.the1st.theFitError, -trA.prominence() };
+		std::pair<double, double> const pairB
+			{ trB.the1st.theFitError, -trB.prominence() };
+		return (pairA < pairB);
+	}
+
 
 } // [om]
 

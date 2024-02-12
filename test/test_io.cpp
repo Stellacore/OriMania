@@ -55,11 +55,11 @@ namespace
 			"\n"
 			"# NOTE: All three records are required per each sensor.\n"
 			"# Convention: <senKey> <convention> # interptation convention\n"
-			"# Distances: <senKey> <dist1> <dist2> <dist3>  # 3 distance[m]\n"
+			"# Locations: <senKey> <dist1> <dist2> <dist3>  # 3 distance[m]\n"
 			"# Angles: <senKey> <angle1> <angle2> <angle3>  # 3 angles[rad]\n"
 			"\n"
 			"  Convention: TestSen1 +++ 012 +++ 012 012 0  # convention\n"
-			"  Distances:  TestSen1 10.7 -60.7  31.1  # distances[m]\n"
+			"  Locations:  TestSen1 10.7 -60.7  31.1  # distances[m]\n"
 			"  Angles:     TestSen1 -.127  .619 -.317 # physical angles[rad]\n"
 			"\n"
 			"garbage lines for testing\n"
@@ -95,7 +95,7 @@ namespace
 			using namespace rigibra;
 			using namespace engabra::g3; // eij
 			// "  Convention: FakeSen1 +++ 012 +++ 012 012 0
-			// "  Distances:  FakeSen1 10.7 -60.7  31.1
+			// "  Locations:  FakeSen1 10.7 -60.7  31.1
 			Location const loc{ 10.7, -60.7, 31.1 };
 			// "  Convention: FakeSen1 +++ 012 +++ 012 012 0
 			// "  Angles:     FakeSen1 -.127  .619 -.317

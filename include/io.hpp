@@ -40,6 +40,7 @@ Example:
 #include "Analysis.hpp"
 #include "Convention.hpp"
 #include "Orientation.hpp"
+#include "ParmGroup.hpp"
 
 #include <iostream>
 #include <map>
@@ -129,6 +130,22 @@ namespace
 {
 
 //
+// For ParmGroup.hpp
+//
+
+	//! Put ParmGroup infoString() output to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::ParmGroup const & parmGroup
+		)
+	{
+		ostrm << parmGroup.infoString();
+		return ostrm;
+	}
+
+//
 // For Convention.hpp
 //
 
@@ -157,18 +174,6 @@ namespace
 		)
 	{
 		ostrm << convention.infoString();
-		return ostrm;
-	}
-
-	//! Put ParmGroup infoString() output to stream.
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, om::ParmGroup const & parmGroup
-		)
-	{
-		ostrm << parmGroup.infoString();
 		return ostrm;
 	}
 
@@ -235,6 +240,23 @@ namespace
 		}
 		return ostrm;
 	}
+
+//
+// For Analysis.hpp
+//
+
+	//! Put OneTrialResult.infoString() to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::OneTrialResult const & trialResult
+		)
+	{
+		ostrm << trialResult.infoString();
+		return ostrm;
+	}
+
 
 } // [anon]
 

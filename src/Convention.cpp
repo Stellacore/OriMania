@@ -39,99 +39,97 @@ namespace
 
 	//! Convert transform order to numeric values (e.g. for sorting) [0,1]
 	inline
-	std::size_t
+	std::int64_t
 	numberFor
 		( om::OrderTR const & order
 		)
 	{
-		return static_cast<std::size_t>(order);
+		return static_cast<std::int64_t>(order);
 	}
 
 	//! Convert sign collection to numeric values (e.g. for sorting) [0,7]
 	inline
-	std::size_t
+	std::int64_t
 	numberFor
 		( om::ThreeSigns const & signs
 		)
 	{
 		return
-			( 4u * (static_cast<std::size_t>(1u + signs[0]) / 2u)
-			+ 2u * (static_cast<std::size_t>(1u + signs[1]) / 2u)
-			+ 1u * (static_cast<std::size_t>(1u + signs[2]) / 2u)
+			( 4u * (static_cast<std::int64_t>(1u + signs[0]) / 2u)
+			+ 2u * (static_cast<std::int64_t>(1u + signs[1]) / 2u)
+			+ 1u * (static_cast<std::int64_t>(1u + signs[2]) / 2u)
 			);
 	}
 
 	//! Convert index collection to numeric values (e.g. for sorting) [0,26]
 	inline
-	std::size_t
+	std::int64_t
 	numberFor
 		( om::ThreeIndices const & indices
 		)
 	{
 		return
-			( 9u * static_cast<std::size_t>(indices[0])
-			+ 3u * static_cast<std::size_t>(indices[1])
-			+ 1u * static_cast<std::size_t>(indices[2])
+			( 9u * static_cast<std::int64_t>(indices[0])
+			+ 3u * static_cast<std::int64_t>(indices[1])
+			+ 1u * static_cast<std::int64_t>(indices[2])
 			);
 	}
 
-//
-// Info/formatting
-//
-
-	//! String representation of three signs
+	//! ThreeSign (int8_t) values for numeric Id
 	inline
-	std::string
-	infoStringOrders
-		( om::OrderTR const & order
+	om::ThreeSigns
+	threeSignsFor
+		( std::int64_t const numId
 		)
 	{
-		std::ostringstream oss;
-		using namespace om;
-		switch (order)
-		{
-			case TranRot:
-				oss << "TR";
-				break;
-			case RotTran:
-				oss << "RT";
-				break;
-			case Unknown:
-			default:
-				oss << "??";
-				break;
-		}
-		return oss.str();
+		constexpr std::array<om::ThreeSigns, 8u> asInts
+			{ om::ThreeSigns{ -1, -1, -1 }
+			, om::ThreeSigns{ -1, -1,  1 }
+			, om::ThreeSigns{ -1,  1, -1 }
+			, om::ThreeSigns{ -1,  1,  1 }
+			, om::ThreeSigns{  1, -1, -1 }
+			, om::ThreeSigns{  1, -1,  1 }
+			, om::ThreeSigns{  1,  1, -1 }
+			, om::ThreeSigns{  1,  1,  1 }
+			};
+		return asInts[numId];
 	}
 
-	//! String representation of three signs
+	//! ThreeIndices (int8_t) values for numeric Id
 	inline
-	std::string
-	infoStringSigns
-		( om::ThreeSigns const & signs
+	om::ThreeIndices
+	threeIndicesFor
+		( std::int64_t const numId
 		)
 	{
-		std::ostringstream oss;
-		for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-		{
-			oss << ' ' << std::setw(2u) << +signs[nn];
-		}
-		return oss.str();
+		using TI = om::ThreeIndices;
+		constexpr std::array<om::ThreeIndices, 27u> asInts
+			{ TI{  0,  0,  0 }, TI{  0,  0,  1 }, TI{  0,  0,  2 }
+			, TI{  0,  1,  0 }, TI{  0,  1,  1 }, TI{  0,  1,  2 }
+			, TI{  0,  2,  0 }, TI{  0,  2,  1 }, TI{  0,  2,  2 }
+			, TI{  1,  0,  0 }, TI{  1,  0,  1 }, TI{  1,  0,  2 }
+			, TI{  1,  1,  0 }, TI{  1,  1,  1 }, TI{  1,  1,  2 }
+			, TI{  1,  2,  0 }, TI{  1,  2,  1 }, TI{  1,  2,  2 }
+			, TI{  2,  0,  0 }, TI{  2,  0,  1 }, TI{  2,  0,  2 }
+			, TI{  2,  1,  0 }, TI{  2,  1,  1 }, TI{  2,  1,  2 }
+			, TI{  2,  2,  0 }, TI{  2,  2,  1 }, TI{  2,  2,  2 }
+			};
+		return asInts[numId];
 	}
 
-	//! String representation of three indices
+	//! OrderTR (enum) values for numeric Id
 	inline
-	std::string
-	infoStringIndices
-		( om::ThreeIndices const & indices
+	om::OrderTR
+	orderFor
+		( std::int64_t const numId
 		)
 	{
-		std::ostringstream oss;
-		for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-		{
-			oss << ' ' << +indices[nn];
-		}
-		return oss.str();
+		constexpr std::array<om::OrderTR, 3u> orders
+			{ om::TranRot
+			, om::RotTran
+			, om::Unknown
+			};
+		return orders[numId];
 	}
 
 
@@ -141,169 +139,74 @@ namespace
 namespace om
 {
 
-namespace priv
-{
-
-	//! A '+' or '-' character depending on the sign of aByte
-	inline
-	std::string::value_type
-	pmCharFor
-		( int8_t const & aByte
-		)
-	{
-		std::string::value_type aChar{ '+' };
-		if (aByte < 0)
-		{
-			aChar = '-';
-		}
-		return aChar;
-	}
-
-
-	//! Convert string characters [-,+] into {-1.,+1.}
-	inline
-	double
-	signFrom
-		( std::string::value_type const & aChar
-		)
-	{
-		double value{ engabra::g3::null<double>() };
-		if ('-' == aChar)
-		{
-			value = -1.;
-		}
-		else
-		if ('+' == aChar)
-		{
-			value = 1.;
-		}
-		return value;
-	}
-
-	//! Convert string characters [012] int size_t types
-	inline
-	std::uint8_t
-	indexFrom
-		( std::string::value_type const & aChar
-		)
-	{
-		std::uint8_t ndx{ 255u };
-		if ('0' == aChar)
-		{
-			ndx = 0;
-		}
-		else
-		if ('1' == aChar)
-		{
-			ndx = 1;
-		}
-		else
-		if ('2' == aChar)
-		{
-			ndx = 2;
-		}
-		return ndx;
-	}
-
-} // [priv]
-
-
-
 //
 //==========================================================================
-// ConventionString encoding support
+// ConventionOffset
 //==========================================================================
 //
 
-std::string
-stringFrom
-	( om::ThreeSigns const & signInts
-	)
+// static
+std::vector<ConventionOffset>
+ConventionOffset :: allConventions
+	()
 {
-	std::ostringstream oss;
-	//	using ThreeSigns = std::array<std::int8_t, 3u>;
-	oss
-		<< priv::pmCharFor(signInts[0])
-		<< priv::pmCharFor(signInts[1])
-		<< priv::pmCharFor(signInts[2])
-		;
-	return oss.str();
-}
+	std::vector<ConventionOffset> conventions;
+	conventions.reserve(48u);
 
-std::string
-stringFrom
-	( ThreeIndices const & ndxInts
-	)
-{
-	std::ostringstream oss;
-	//	using ThreeIndices = std::array<std::uint8_t, 3u>;
-	oss
-		<< static_cast<int>(ndxInts[0])
-		<< static_cast<int>(ndxInts[1])
-		<< static_cast<int>(ndxInts[2])
-		;
-	return oss.str();
-}
+	// all combinations of each characteristic
+	std::array<ThreeSigns, 8u> const locSigns{ allThreeSigns() };
+	std::array<ThreeIndices, 6u> const locNdxs{ allThreeIndices() };
 
-std::string
-stringFrom
-	( OrderTR const & order
-	)
-{
-	std::ostringstream oss;
-	oss << static_cast<int>(order);
-	return oss.str();
-}
-
-ThreeSigns
-threeSignsFrom
-	( std::string const & str
-	)
-{
-	ThreeSigns signs{ -128, -128, -128 };
-	if (3u == str.size())
+	// brute force generation of all possible combinations
+	for (ThreeSigns const & locSign : locSigns)
 	{
-		signs[0] = priv::signFrom(str[0]);
-		signs[1] = priv::signFrom(str[1]);
-		signs[2] = priv::signFrom(str[2]);
-	}
-	return signs;
-}
-
-ThreeIndices
-threeIndicesFrom
-	( std::string const & str
-	)
-{
-	ThreeIndices ndxs{ 255u, 255u, 255u };
-	if (3u == str.size())
-	{
-		ndxs[0] = priv::indexFrom(str[0]);
-		ndxs[1] = priv::indexFrom(str[1]);
-		ndxs[2] = priv::indexFrom(str[2]);
-	}
-	return ndxs;
-}
-
-OrderTR
-orderTRFrom
-	( std::string const & str
-	)
-{
-	OrderTR order{ Unknown };
-	if (1u == str.size())
-	{
-		if ('0' == str[0])
+		for (ThreeIndices const & locNdx : locNdxs)
 		{
-			order = TranRot;
-		}
-		else
-		if ('1' == str[0])
-		{
-			order = RotTran;
+			ConventionOffset const convention
+				{ locSign
+				, locNdx
+				};
+			conventions.emplace_back(convention);
 		}
 	}
-	return order;
+	return conventions;
+}
+//
+//==========================================================================
+// ConventionAngle
+//==========================================================================
+//
+
+// static
+std::vector<ConventionAngle>
+ConventionAngle :: allConventions
+	()
+{
+	std::vector<ConventionAngle> conventions;
+	conventions.reserve(576u);
+
+	// all combinations of each characteristic
+	std::array<ThreeSigns, 8u> const attSigns{ allThreeSigns() };
+	std::array<ThreeIndices, 6u> const attNdxs{ allThreeIndices() };
+	std::array<ThreeIndices, 12u> const bivNdxs{ allBivIndices() };
+
+	// brute force generation of all possible combinations
+	for (ThreeSigns const & attSign : attSigns)
+	{
+		for (ThreeIndices const & attNdx : attNdxs)
+		{
+			for (ThreeIndices const & bivNdx : bivNdxs)
+			{
+				ConventionAngle const convention
+					{ attSign
+					, attNdx
+					, bivNdx
+					};
+				conventions.emplace_back(convention);
+			}
+		}
+	}
+	return conventions;
 }
 
 //
@@ -312,83 +215,27 @@ orderTRFrom
 //==========================================================================
 //
 
-std::size_t
-Convention :: asNumber
-	() const
-{
-	return
-		( 1000000000000u
-		+   10000000000u * numberFor(theAngSigns) // 8
-		+     100000000u * numberFor(theAngIndices) // <32
-		+       1000000u * numberFor(theLocSigns) // 8
-		+         10000u * numberFor(theLocIndices) // <32
-		+           100u * numberFor(theBivIndices) // <32
-		+             1u * numberFor(theOrder) // 2
-		);
-}
-
 // static
-std::array<ThreeSigns, 8u>
-Convention :: allThreeSigns
-	()
+std::vector<Convention>
+Convention :: allConventionsFor
+	( ConventionOffset const & offConv
+	)
 {
-	return
-		{ ThreeSigns{ -1, -1, -1 }
-		, ThreeSigns{ -1, -1,  1 }
-		, ThreeSigns{ -1,  1, -1 }
-		, ThreeSigns{ -1,  1,  1 }
-		, ThreeSigns{  1, -1, -1 }
-		, ThreeSigns{  1, -1,  1 }
-		, ThreeSigns{  1,  1, -1 }
-		, ThreeSigns{  1,  1,  1 }
-		};
-}
+	std::vector<Convention> conventions;
+	std::vector<ConventionAngle>
+		const angConvs{ ConventionAngle::allConventions() };
+	std::array<OrderTR, 2u>
+		const orders{ allOrderTRs() };
 
-// static
-std::array<ThreeIndices, 6u>
-Convention :: allThreeIndices
-	()
-{
-	return
-		{ ThreeIndices{ 0u, 1u, 2u }
-		, ThreeIndices{ 0u, 2u, 1u }
-		, ThreeIndices{ 1u, 0u, 2u }
-		, ThreeIndices{ 1u, 2u, 0u }
-		, ThreeIndices{ 2u, 1u, 0u }
-		, ThreeIndices{ 2u, 0u, 1u }
-		};
-}
-
-// static
-std::array<ThreeIndices, 12u>
-Convention :: allBivIndices
-	()
-{
-	return
-		{ ThreeIndices{ 0, 1, 0 }
-		, ThreeIndices{ 0, 1, 2 }
-		, ThreeIndices{ 0, 2, 0 }
-		, ThreeIndices{ 0, 2, 1 }
-		, ThreeIndices{ 1, 0, 1 }
-		, ThreeIndices{ 1, 0, 2 }
-		, ThreeIndices{ 1, 2, 0 }
-		, ThreeIndices{ 1, 2, 1 }
-		, ThreeIndices{ 2, 0, 1 }
-		, ThreeIndices{ 2, 0, 2 }
-		, ThreeIndices{ 2, 1, 0 }
-		, ThreeIndices{ 2, 1, 2 }
-		};
-}
-
-// static
-std::array<OrderTR, 2u>
-Convention :: allOrderTRs
-	()
-{
-	return
-		{ TranRot
-		, RotTran
-		};
+	for (ConventionAngle const & angConv : angConvs)
+	{
+		for (OrderTR const & order : orders)
+		{
+			Convention const convention{ offConv, angConv, order };
+			conventions.emplace_back(convention);
+		}
+	}
+	return conventions;
 }
 
 // static
@@ -399,49 +246,100 @@ Convention :: allConventions
 	std::vector<Convention> conventions;
 	conventions.reserve(55296);
 
-	// all combinations of each characteristic
-	std::array<ThreeSigns, 8u> const attSigns
-		{ Convention::allThreeSigns() };
-	std::array<ThreeIndices, 6u> const attNdxs
-		{ Convention::allThreeIndices() };
-	std::array<ThreeSigns, 8u> const locSigns
-		{ Convention::allThreeSigns() };
-	std::array<ThreeIndices, 6u> const locNdxs
-		{ Convention::allThreeIndices() };
-	std::array<ThreeIndices, 12u> const bivNdxs
-		{ Convention::allBivIndices() };
-	std::array<OrderTR, 2u> const orders
-		{ Convention::allOrderTRs() };
+	std::vector<ConventionOffset>
+		const offConvs{ ConventionOffset::allConventions() };
 
-	// brute force generation of all possible combinations
-	for (ThreeSigns const & attSign : attSigns)
+	for (ConventionOffset const & offConv : offConvs)
 	{
-		for (ThreeIndices const & attNdx : attNdxs)
-		{
-			for (ThreeSigns const & locSign : locSigns)
-			{
-				for (ThreeIndices const & locNdx : locNdxs)
-				{
-					for (ThreeIndices const & bivNdx : bivNdxs)
-					{
-						for (OrderTR const & order : orders)
-						{
-							Convention const convention
-								{ attSign
-								, attNdx
-								, locSign
-								, locNdx
-								, bivNdx
-								, order
-								};
-							conventions.emplace_back(convention);
-						}
-					}
-				}
-			}
-		}
+		std::vector<Convention> const offConvs
+			{ allConventionsFor(offConv) };
+		conventions.insert
+			( conventions.end()
+			, offConvs.begin(), offConvs.end()
+			);
 	}
+
 	return conventions;
+}
+
+namespace
+{
+	constexpr std::int64_t numIdBase{ 100 }; // for easy human interpretation
+	constexpr std::int64_t numPad   { 1000000000000 };
+	constexpr std::int64_t numOffSgn{   10000000000 };
+	constexpr std::int64_t numOffNdx{     100000000 };
+	constexpr std::int64_t numAngSgn{       1000000 };
+	constexpr std::int64_t numAngNdx{         10000 };
+	constexpr std::int64_t numBivNdx{           100 };
+	constexpr std::int64_t numOrder {             1 };
+
+} // [anon]
+
+// static
+Convention
+Convention :: fromNumberEncoding
+	( std::int64_t const & numId
+	)
+{
+	std::int64_t curr{ numId };
+
+	std::int64_t digOrder{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digBivNdx{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digAngNdx{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digAngSgn{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digOffNdx{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	std::int64_t digOffSgn{ curr % numIdBase };
+	curr = curr / numIdBase;
+
+	// should be 1
+	// std::int64_t digPad{ curr % numIdBase };
+	// curr = curr / numIdBase;
+
+	return Convention
+		{ ThreeSigns{ threeSignsFor(digOffSgn) }
+		, ThreeIndices{ threeIndicesFor(digOffNdx) }
+		, ThreeSigns{ threeSignsFor(digAngSgn) }
+		, ThreeIndices{ threeIndicesFor(digAngNdx) }
+		, ThreeIndices{ threeIndicesFor(digBivNdx) }
+		, OrderTR{ orderFor(digOrder) }
+		};
+}
+
+std::int64_t
+Convention :: numberEncoding
+	() const
+{
+	std::int64_t numId{ -1 };;
+	if (isValid())
+	{
+		numId = 
+			( numPad       // so that all values show same width
+			+ numOffSgn  * numberFor(theConvOff.theOffSigns) // 8
+			+ numOffNdx  * numberFor(theConvOff.theOffIndices) // <32
+			+ numAngSgn  * numberFor(theConvAng.theAngSigns) // 8
+			+ numAngNdx  * numberFor(theConvAng.theAngIndices) // <32
+			+ numBivNdx  * numberFor(theConvAng.theBivIndices) // <32
+			+ numOrder   * numberFor(theOrder) // 2
+			);
+	}
+	return numId;
+}
+
+bool
+Convention :: isValid
+	() const
+{
+	return (Unknown != theOrder);
 }
 
 rigibra::Attitude
@@ -453,9 +351,9 @@ Convention :: attitudeFor
 
 	// gather angle sizes together
 	ThreeAngles const angleSizes
-		{ theAngSigns[0] * aVals[theAngIndices[0]]
-		, theAngSigns[1] * aVals[theAngIndices[1]]
-		, theAngSigns[2] * aVals[theAngIndices[2]]
+		{ theConvAng.theAngSigns[0] * aVals[theConvAng.theAngIndices[0]]
+		, theConvAng.theAngSigns[1] * aVals[theConvAng.theAngIndices[1]]
+		, theConvAng.theAngSigns[2] * aVals[theConvAng.theAngIndices[2]]
 		};
 
 	// fixed set of cardinal planes (direction carried by angle sign)
@@ -465,12 +363,24 @@ Convention :: attitudeFor
 
 	// gather angle directions together
 	ThreePlanes const angleDirs
-		{ eVals[theBivIndices[0]]
-		, eVals[theBivIndices[1]]
-		, eVals[theBivIndices[2]]
+		{ eVals[theConvAng.theBivIndices[0]]
+		, eVals[theConvAng.theBivIndices[1]]
+		, eVals[theConvAng.theBivIndices[2]]
 		};
 
-	return attitudeFrom3AngleSequence(angleSizes, angleDirs);
+	// form physical angles
+	using namespace rigibra;
+	PhysAngle const physAngleA{ angleSizes[0] * angleDirs[0] };
+	PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
+	PhysAngle const physAngleC{ angleSizes[2] * angleDirs[2] };
+
+	// generate attitude from 3-angle-sequence
+	Attitude const attA(physAngleA);
+	Attitude const attB(physAngleB);
+	Attitude const attC(physAngleC);
+	Attitude const attNet(attC * attB * attA);
+
+	return attNet;
 }
 
 
@@ -485,9 +395,9 @@ Convention :: transformFor
 
 	// gather signed distance values together
 	ThreeDistances const offset
-		{ theLocSigns[0] * dVals[theLocIndices[0]]
-		, theLocSigns[1] * dVals[theLocIndices[1]]
-		, theLocSigns[2] * dVals[theLocIndices[2]]
+		{ theConvOff.theOffSigns[0] * dVals[theConvOff.theOffIndices[0]]
+		, theConvOff.theOffSigns[1] * dVals[theConvOff.theOffIndices[1]]
+		, theConvOff.theOffSigns[2] * dVals[theConvOff.theOffIndices[2]]
 		};
 
 	// determine attitude associated with parmGroup
@@ -517,13 +427,13 @@ Convention :: infoString
 		oss << title << ' ';
 	}
 	oss
-		<< "  Ang+/-: " << infoStringSigns(theAngSigns)
-		<< "  AngNdx: " << infoStringIndices(theAngIndices)
-		<< "  Loc+/-: " << infoStringSigns(theLocSigns)
-		<< "  LocNdx: " << infoStringIndices(theLocIndices)
-		<< "  BivNdx: " << infoStringIndices(theBivIndices)
+		<< "  Ang+/-: " << infoStringSigns(theConvAng.theAngSigns)
+		<< "  AngNdx: " << infoStringIndices(theConvAng.theAngIndices)
+		<< "  Off+/-: " << infoStringSigns(theConvOff.theOffSigns)
+		<< "  OffNdx: " << infoStringIndices(theConvOff.theOffIndices)
+		<< "  BivNdx: " << infoStringIndices(theConvAng.theBivIndices)
 		<< "   Order: " << infoStringOrders(theOrder)
-		<< "  Number: " << asNumber()
+		<< "   NumId: " << numberEncoding()
 		;
 	return oss.str();
 }
@@ -540,34 +450,26 @@ ConventionString :: from
 	( Convention const & convention
 	)
 {
-	std::string const strLocSigns
-		{ stringFrom(convention.theAngSigns) };
-	std::string const strLocNdxs
-		{ stringFrom(convention.theAngIndices) };
+	std::string const strOffSigns
+		{ stringFrom(convention.theConvAng.theAngSigns) };
+	std::string const strOffNdxs
+		{ stringFrom(convention.theConvAng.theAngIndices) };
 	std::string const strAngSigns
-		{ stringFrom(convention.theLocSigns) };
+		{ stringFrom(convention.theConvOff.theOffSigns) };
 	std::string const strAngNdxs
-		{ stringFrom(convention.theLocIndices) };
+		{ stringFrom(convention.theConvOff.theOffIndices) };
 	std::string const strBivNdxs
-		{ stringFrom(convention.theBivIndices) };
+		{ stringFrom(convention.theConvAng.theBivIndices) };
 	std::string const strOrder
 		{ stringFrom(convention.theOrder) };
 	return ConventionString
-		{ strLocSigns
-		, strLocNdxs
+		{ strOffSigns
+		, strOffNdxs
 		, strAngSigns
 		, strAngNdxs
 		, strBivNdxs
 		, strOrder
 		};
-	/*
-	ThreeSigns theAngSigns;
-	ThreeIndices theAngIndices;
-	ThreeSigns theLocSigns;
-	ThreeIndices theLocIndices;
-	ThreeIndices theBivIndices;
-	OrderTR theOrder;
-	*/
 }
 
 // static
@@ -579,7 +481,7 @@ ConventionString :: from
 	std::istringstream iss(encoding);
 	ConventionString cs;
 	iss
-		>> cs.theStrLocSigns >> cs.theStrLocNdxs
+		>> cs.theStrOffSigns >> cs.theStrOffNdxs
 		>> cs.theStrAngSigns >> cs.theStrAngNdxs
 		>> cs.theStrBivNdxs
 		>> cs.theStrOrder
@@ -594,8 +496,8 @@ ConventionString :: stringEncoding
 {
 	std::ostringstream oss;
 	oss
-		<< theStrLocSigns
-		<< ' ' << theStrLocNdxs
+		<< theStrOffSigns
+		<< ' ' << theStrOffNdxs
 		<< ' ' << theStrAngSigns
 		<< ' ' << theStrAngNdxs
 		<< ' ' << theStrBivNdxs
@@ -610,8 +512,8 @@ ConventionString :: isValid
 {
 	// quick check on length - could/should inspect contents as well
 	return
-		(  (3u == theStrLocSigns.size())
-		&& (3u == theStrLocNdxs.size())
+		(  (3u == theStrOffSigns.size())
+		&& (3u == theStrOffNdxs.size())
 		&& (3u == theStrAngSigns.size())
 		&& (3u == theStrAngNdxs.size())
 		&& (3u == theStrBivNdxs.size())
@@ -623,8 +525,8 @@ Convention
 ConventionString :: convention
 	() const
 {
-	ThreeSigns const locSigns{ threeSignsFrom(theStrLocSigns) };
-	ThreeIndices const locNdxs{ threeIndicesFrom(theStrLocNdxs) };
+	ThreeSigns const locSigns{ threeSignsFrom(theStrOffSigns) };
+	ThreeIndices const locNdxs{ threeIndicesFrom(theStrOffNdxs) };
 	ThreeSigns const angSigns{ threeSignsFrom(theStrAngSigns) };
 	ThreeIndices const angNdxs{ threeIndicesFrom(theStrAngNdxs) };
 	ThreeIndices const bivNdxs{ threeIndicesFrom(theStrBivNdxs) };

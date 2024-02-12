@@ -36,6 +36,8 @@ Example:
 
 
 #include "Key.hpp"
+#include "ParmGroup.hpp"
+#include "Convention.hpp"
 
 #include <Rigibra>
 
@@ -46,6 +48,25 @@ namespace om
 {
 	//! Shorthand for classic 3D rigid body orientation transform.
 	using SenOri = rigibra::Transform;
+
+	//! Orientations from collection of ParmGroup using useConvention.
+	inline
+	std::map<om::SenKey, om::SenOri>
+	keyOrisFor
+		( std::map<om::SenKey, om::ParmGroup> const & keyPGs
+		, om::Convention const & useConvention
+		)
+	{
+		using namespace om;
+		std::map<SenKey, SenOri> keyOris;
+		for (std::map<SenKey, ParmGroup>::value_type const & keyPG : keyPGs)
+		{
+			SenKey const & senKey = keyPG.first;
+			ParmGroup const & pg = keyPG.second;
+			keyOris[senKey] = useConvention.transformFor(pg);
+		}
+		return keyOris;
+	}
 
 	/*! \brief Generate all (non trivial) combinations of relative orientation.
 	 *
@@ -82,9 +103,9 @@ namespace om
 
 				KeyPair const keyPair{ key1, key2 };
 				SenOri const oriRw1{ inverse(ori1wR) };
-				SenOri const ori2w1{ ori2wR * oriRw1 };
+				SenOri const ro2w1{ ori2wR * oriRw1 };
 
-				ros.emplace_hint(ros.end(), std::make_pair(keyPair, ori2w1));
+				ros.emplace_hint(ros.end(), std::make_pair(keyPair, ro2w1));
 			}
 		}
 		return ros;
