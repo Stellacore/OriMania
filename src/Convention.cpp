@@ -264,6 +264,30 @@ Convention :: allConventions
 
 namespace
 {
+	/*
+	For Convention numeric ID encoding,
+
+		Att: +++ 012  (6 char)
+		Loc: +++ 012  (6 char)
+		Biv: 012      (3 char)
+		oTR: 0        (1 char )
+					  === 16 char
+		(64-bit signed number has max value of about 18 decimal digits)
+
+		Bits
+		1,1,1,2,2,2 = 9
+		1,1,1,2,2,2 = 9
+		2,2,2       = 6
+		1           = 1
+					=== 27
+		(more compactly)
+		3,5 = 8
+		3,5 = 8
+		5   = 6
+		2   = 2
+		  === 24
+	*/
+
 	constexpr std::int64_t numIdBase{ 100 }; // for easy human interpretation
 	constexpr std::int64_t numPad   { 1000000000000 };
 	constexpr std::int64_t numOffSgn{   10000000000 };
