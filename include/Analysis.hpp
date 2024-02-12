@@ -290,13 +290,13 @@ namespace om
 	struct OneSolutionFit
 	{
 		//! Fit error for a particular solution
-		double const theFitError;
+		double theFitError{ engabra::g3::null<double>() };
 
 		//! Encoding for Convention used for box orientation.
-		std::string theBoxCS;
+		std::string theBoxCS{};
 
 		//! Encoding for Convention used for independent Ind orientation.
-		std::string theIndCS;
+		std::string theIndCS{};
 
 		/*! Instance from lookup/combination of arguments.
 		 *
@@ -337,11 +337,109 @@ namespace om
 	//! Several OneSolutionFit samples for a single Box convention solution
 	struct OneTrialResult
 	{
-		OneSolutionFit the1st;
-		OneSolutionFit the2nd;
-		OneSolutionFit theEnd;
+		OneSolutionFit the1st{};
+		OneSolutionFit the2nd{};
+		OneSolutionFit theEnd{};
+
+		//! Prominence of result [from fit errors as (2nd-1st)/End]
+		inline
+		double
+		prominence
+			() const
+		{
+			double prom{ engabra::g3::null<double>() };
+			double const worst{ theEnd.theFitError };
+			if (0. < worst)
+			{
+				double const delta{ the2nd.theFitError - the1st.theFitError };
+				prom = delta / worst;
+			}
+			return prom;
+		}
+
+		//! Descriptive information about this instance
+		inline
+		std::string
+		infoString
+			( std::string const & title = {}
+			) const
+		{
+			std::ostringstream oss;
+			if (! title.empty())
+			{
+				oss << title << '\n';
+			}
+			using engabra::g3::io::fixed;
+			oss
+				<< "fitError: " << fixed(the1st.theFitError, 8u, 6u)
+				<< "  boxPGs: " << the1st.theBoxCS
+				<< "  indPGs: " << the1st.theIndCS
+				<< "  2ndFit: " << fixed(the2nd.theFitError, 8u, 6u)
+				<< "  EndFit: " << fixed(theEnd.theFitError, 8u, 6u)
+				<< "  promFrac: " << fixed(prominence())
+				;
+			return oss.str();
+		}
 
 	}; // OneTrialResult
+
+
+	//! Result of one trial involving all boxPG conventions for one indEO set.
+	inline
+	OneTrialResult
+	trialResultFrom
+		( std::vector<FitNdxPair> const & fitIndexPairs
+		, std::vector<Convention> const & allBoxCons
+		, Convention const & currIndCon
+		)
+	{
+		// sort from best and worst
+		// Note: could use min and max then find second min for efficiency
+		//       but overall, this probably isn't the slowest part
+		std::vector<FitNdxPair> fitNdxs{ fitIndexPairs }; // copy to sort
+		std::sort(fitNdxs.begin(), fitNdxs.end());
+
+		OneTrialResult trialResult;
+		std::size_t const numPairs{ fitNdxs.size() };
+		if (0u < numPairs)
+		{
+			FitNdxPair const & ndxPair1st = fitNdxs[0u];
+			trialResult.the1st = OneSolutionFit::from
+				(ndxPair1st, allBoxCons, currIndCon);
+		}
+		if (1u < numPairs)
+		{
+			FitNdxPair const & ndxPair2nd = fitNdxs[1u];
+			trialResult.the2nd = OneSolutionFit::from
+				(ndxPair2nd, allBoxCons, currIndCon);
+		}
+		if (2u < numPairs)
+		{
+			FitNdxPair const & ndxPairEnd = fitNdxs[numPairs-1u];
+			trialResult.theEnd = OneSolutionFit::from
+				(ndxPairEnd, allBoxCons, currIndCon);
+		}
+
+		return trialResult;
+	}
+
+	//! Order such that small error and larger prominence are both less.
+	inline
+	bool
+	operator<
+		( OneTrialResult const & trA
+		, OneTrialResult const & trB
+		)
+	{
+		// use pair as quick hack for sorting criteria
+		// note that (always non-negative) prominence is negated so that
+		// smaller error and larger prominence sort in same direction
+		std::pair<double, double> const pairA
+			{ trA.the1st.theFitError, -trA.prominence() };
+		std::pair<double, double> const pairB
+			{ trB.the1st.theFitError, -trB.prominence() };
+		return (pairA < pairB);
+	}
 
 
 } // [om]
