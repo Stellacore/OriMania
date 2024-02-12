@@ -259,6 +259,15 @@ if (5u < trialResults.size())
 
 std::cout << "trialResults count: " << trialResults.size() << '\n';
 
+	// sort overall trial results
+	std::sort(trialResults.begin(), trialResults.end());
+
+	// show results
+	for (om::OneTrialResult const & trialResult : trialResults)
+	{
+		std::cout << trialResult << '\n';
+	}
+
 /*
 
 	// report data encountered

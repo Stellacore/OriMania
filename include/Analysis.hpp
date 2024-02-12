@@ -423,6 +423,24 @@ namespace om
 		return trialResult;
 	}
 
+	//! Order such that small error and larger prominence are both less.
+	inline
+	bool
+	operator<
+		( OneTrialResult const & trA
+		, OneTrialResult const & trB
+		)
+	{
+		// use pair as quick hack for sorting criteria
+		// note that (always non-negative) prominence is negated so that
+		// smaller error and larger prominence sort in same direction
+		std::pair<double, double> const pairA
+			{ trA.the1st.theFitError, -trA.prominence() };
+		std::pair<double, double> const pairB
+			{ trB.the1st.theFitError, -trB.prominence() };
+		return (pairA < pairB);
+	}
+
 
 } // [om]
 

@@ -241,6 +241,23 @@ namespace
 		return ostrm;
 	}
 
+//
+// For Analysis.hpp
+//
+
+	//! Put OneTrialResult.infoString() to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::OneTrialResult const & trialResult
+		)
+	{
+		ostrm << trialResult.infoString();
+		return ostrm;
+	}
+
+
 } // [anon]
 
 
