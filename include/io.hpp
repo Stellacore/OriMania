@@ -170,6 +170,30 @@ namespace
 	std::ostream &
 	operator<<
 		( std::ostream & ostrm
+		, om::ConventionOffset const & convention
+		)
+	{
+		ostrm << convention.infoString();
+		return ostrm;
+	}
+
+	//! Put convention infoString() output to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::ConventionAngle const & convention
+		)
+	{
+		ostrm << convention.infoString();
+		return ostrm;
+	}
+
+	//! Put convention infoString() output to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
 		, om::Convention const & convention
 		)
 	{
