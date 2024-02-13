@@ -136,7 +136,7 @@ namespace om
 	std::vector<double>
 	fitErrorByConvention
 		( std::map<SenKey, ParmGroup> const & keyGroups
-		, std::map<KeyPair, SenOri> const & relKeyOris
+		, std::map<KeyPair, SenOri> const & keyIndRelOris
 		, std::vector<Convention> const & allCons
 		)
 	{
@@ -145,11 +145,11 @@ namespace om
 
 		// compute consistency score vector for each relative orientation
 		for (std::map<KeyPair, SenOri>::value_type
-			const & relKeyOri : relKeyOris)
+			const & keyIndRelOri : keyIndRelOris)
 		{
 			// access data for this RO
-			KeyPair const & keyPair = relKeyOri.first;
-			SenOri const & relOri = relKeyOri.second;
+			KeyPair const & keyPair = keyIndRelOri.first;
+			SenOri const & relOri = keyIndRelOri.second;
 
 			// locate parameter groups for the two RO keys
 			std::map<SenKey, ParmGroup>::const_iterator
