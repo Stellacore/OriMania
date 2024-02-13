@@ -366,6 +366,23 @@ Convention :: isValid
 	return (Unknown != theOrder);
 }
 
+rigibra::Location
+Convention :: offsetFor
+	( ParmGroup const & parmGroup
+	) const
+{
+	std::array<double, 3u> const & dVals = parmGroup.theDistances;
+
+	// gather signed distance values together
+	ThreeDistances const offset
+		{ theConvOff.theOffSigns[0] * dVals[theConvOff.theOffIndices[0]]
+		, theConvOff.theOffSigns[1] * dVals[theConvOff.theOffIndices[1]]
+		, theConvOff.theOffSigns[2] * dVals[theConvOff.theOffIndices[2]]
+		};
+
+	return engabra::g3::Vector{ offset };
+}
+
 rigibra::Attitude
 Convention :: attitudeFor
 	( ParmGroup const & parmGroup
@@ -407,34 +424,24 @@ Convention :: attitudeFor
 	return attNet;
 }
 
-
 rigibra::Transform
 Convention :: transformFor
 	( ParmGroup const & parmGroup
 	) const
 {
-	std::array<double, 3u> const & dVals = parmGroup.theDistances;
-
-	using namespace engabra::g3;
-
-	// gather signed distance values together
-	ThreeDistances const offset
-		{ theConvOff.theOffSigns[0] * dVals[theConvOff.theOffIndices[0]]
-		, theConvOff.theOffSigns[1] * dVals[theConvOff.theOffIndices[1]]
-		, theConvOff.theOffSigns[2] * dVals[theConvOff.theOffIndices[2]]
-		};
+	using engabra::g3::Vector;
 
 	// determine attitude associated with parmGroup
 	rigibra::Attitude const attR(attitudeFor(parmGroup));
 
 	// to compute translation
 	// first, assume TranRot convention...
-	Vector tVec{ offset };
+	Vector tVec{ offsetFor(parmGroup) };
 	// ... unless inverse convention is needed
 	if (RotTran == theOrder)
 	{
 		// compute forward translation from inverse offset convention
-		Vector const ty{ offset };
+		Vector const & ty = tVec; // alias to indicate interpretation change
 		tVec = attR(ty);
 	}
 	return rigibra::Transform{ tVec, attR };

@@ -151,6 +151,12 @@ namespace om
 		isValid
 			() const;
 
+		//! Offset vector (expressed in OrderTR domain - invert if OrderRT)
+		rigibra::Location
+		offsetFor
+			( ParmGroup const & parmGroup
+			) const;
+
 		//! Attitude associated with parmGroup given this convention.
 		rigibra::Attitude
 		attitudeFor
