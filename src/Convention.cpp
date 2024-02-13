@@ -29,9 +29,49 @@
 
 #include "Convention.hpp"
 
+#include <iomanip>
+
 
 namespace
 {
+
+namespace num
+{
+	/*
+	For Convention numeric ID encoding,
+
+		Att: +++ 012  (6 char)
+		Loc: +++ 012  (6 char)
+		Biv: 012      (3 char)
+		oTR: 0        (1 char )
+					  === 16 char
+		(64-bit signed number has max value of about 18 decimal digits)
+
+		Bits
+		1,1,1,2,2,2 = 9
+		1,1,1,2,2,2 = 9
+		2,2,2       = 6
+		1           = 1
+					=== 27
+		(more compactly)
+		3,5 = 8
+		3,5 = 8
+		5   = 6
+		2   = 2
+		  === 24
+	*/
+
+	constexpr std::int64_t sIdBase{ 100 }; // for easy human interpretation
+	constexpr std::int64_t sPad   { 1000000000000 };
+	constexpr std::int64_t sOffSgn{   10000000000 };
+	constexpr std::int64_t sOffNdx{     100000000 };
+	constexpr std::int64_t sAngSgn{       1000000 };
+	constexpr std::int64_t sAngNdx{         10000 };
+	constexpr std::int64_t sBivNdx{           100 };
+	constexpr std::int64_t sOrder {             1 };
+
+} // [num]
+
 
 //
 // Numeric encodings
@@ -171,6 +211,36 @@ ConventionOffset :: allConventions
 	}
 	return conventions;
 }
+
+std::size_t
+ConventionOffset :: indexValue
+	() const
+{
+	// 216 elements:  8 (signs) * 27 (indices)
+	std::size_t const numSgn{ (std::size_t)numberFor(theOffSigns) };
+	std::size_t const numNdx{ (std::size_t)numberFor(theOffIndices) };
+	std::size_t const ndxVal( (numSgn * 27u) + numNdx );
+	return ndxVal;
+}
+
+std::string
+ConventionOffset :: infoString
+	( std::string const & title
+	) const
+{
+	std::ostringstream oss;
+	if (! title.empty())
+	{
+		oss << title << ' ';
+	}
+	oss
+		<< " Off+/-: " << infoStringSigns(theOffSigns)
+		<< " OffNdx: " << infoStringIndices(theOffIndices)
+		<< " ndxVal: " << std::setw(3u) << indexValue()
+		;
+	return oss.str();
+}
+
 //
 //==========================================================================
 // ConventionAngle
@@ -208,6 +278,42 @@ ConventionAngle :: allConventions
 	}
 	return conventions;
 }
+
+std::size_t
+ConventionAngle :: indexValue
+	() const
+{
+	// 5832 possible: 8(signs) * 27 (angSizeIndices) * 27 (bivIndices)
+	std::size_t const numAngSgn{ (std::size_t)numberFor(theAngSigns) };
+	std::size_t const numAngNdx{ (std::size_t)numberFor(theAngIndices) };
+	std::size_t const numBivNdx{ (std::size_t)numberFor(theBivIndices) };
+	std::size_t const ndxVal
+		{ (numAngSgn * 27u * 27u)
+		+ (numAngNdx * 27u)
+		+  numBivNdx
+		};
+	return ndxVal;
+}
+
+std::string
+ConventionAngle :: infoString
+	( std::string const & title
+	) const
+{
+	std::ostringstream oss;
+	if (! title.empty())
+	{
+		oss << title << ' ';
+	}
+	oss
+		<< " Ang+/-: " << infoStringSigns(theAngSigns)
+		<< " AngNdx: " << infoStringIndices(theAngIndices)
+		<< " BivNdx: " << infoStringIndices(theBivIndices)
+		<< " ndxVal: " << std::setw(3u) << indexValue()
+		;
+	return oss.str();
+}
+
 
 //
 //==========================================================================
@@ -262,43 +368,6 @@ Convention :: allConventions
 	return conventions;
 }
 
-namespace
-{
-	/*
-	For Convention numeric ID encoding,
-
-		Att: +++ 012  (6 char)
-		Loc: +++ 012  (6 char)
-		Biv: 012      (3 char)
-		oTR: 0        (1 char )
-					  === 16 char
-		(64-bit signed number has max value of about 18 decimal digits)
-
-		Bits
-		1,1,1,2,2,2 = 9
-		1,1,1,2,2,2 = 9
-		2,2,2       = 6
-		1           = 1
-					=== 27
-		(more compactly)
-		3,5 = 8
-		3,5 = 8
-		5   = 6
-		2   = 2
-		  === 24
-	*/
-
-	constexpr std::int64_t numIdBase{ 100 }; // for easy human interpretation
-	constexpr std::int64_t numPad   { 1000000000000 };
-	constexpr std::int64_t numOffSgn{   10000000000 };
-	constexpr std::int64_t numOffNdx{     100000000 };
-	constexpr std::int64_t numAngSgn{       1000000 };
-	constexpr std::int64_t numAngNdx{         10000 };
-	constexpr std::int64_t numBivNdx{           100 };
-	constexpr std::int64_t numOrder {             1 };
-
-} // [anon]
-
 // static
 Convention
 Convention :: fromNumberEncoding
@@ -307,27 +376,27 @@ Convention :: fromNumberEncoding
 {
 	std::int64_t curr{ numId };
 
-	std::int64_t digOrder{ curr % numIdBase };
-	curr = curr / numIdBase;
+	std::int64_t digOrder{ curr % num::sIdBase };
+	curr = curr / num::sIdBase;
 
-	std::int64_t digBivNdx{ curr % numIdBase };
-	curr = curr / numIdBase;
+	std::int64_t digBivNdx{ curr % num::sIdBase };
+	curr = curr / num::sIdBase;
 
-	std::int64_t digAngNdx{ curr % numIdBase };
-	curr = curr / numIdBase;
+	std::int64_t digAngNdx{ curr % num::sIdBase };
+	curr = curr / num::sIdBase;
 
-	std::int64_t digAngSgn{ curr % numIdBase };
-	curr = curr / numIdBase;
+	std::int64_t digAngSgn{ curr % num::sIdBase };
+	curr = curr / num::sIdBase;
 
-	std::int64_t digOffNdx{ curr % numIdBase };
-	curr = curr / numIdBase;
+	std::int64_t digOffNdx{ curr % num::sIdBase };
+	curr = curr / num::sIdBase;
 
-	std::int64_t digOffSgn{ curr % numIdBase };
-	curr = curr / numIdBase;
+	std::int64_t digOffSgn{ curr % num::sIdBase };
+	curr = curr / num::sIdBase;
 
 	// should be 1
-	// std::int64_t digPad{ curr % numIdBase };
-	// curr = curr / numIdBase;
+	// std::int64_t digPad{ curr % num::sIdBase };
+	// curr = curr / num::sIdBase;
 
 	return Convention
 		{ ThreeSigns{ threeSignsFor(digOffSgn) }
@@ -347,13 +416,13 @@ Convention :: numberEncoding
 	if (isValid())
 	{
 		numId = 
-			( numPad       // so that all values show same width
-			+ numOffSgn  * numberFor(theConvOff.theOffSigns) // 8
-			+ numOffNdx  * numberFor(theConvOff.theOffIndices) // <32
-			+ numAngSgn  * numberFor(theConvAng.theAngSigns) // 8
-			+ numAngNdx  * numberFor(theConvAng.theAngIndices) // <32
-			+ numBivNdx  * numberFor(theConvAng.theBivIndices) // <32
-			+ numOrder   * numberFor(theOrder) // 2
+			( num::sPad       // so that all values show same width
+			+ num::sOffSgn  * numberFor(theConvOff.theOffSigns)
+			+ num::sOffNdx  * numberFor(theConvOff.theOffIndices)
+			+ num::sAngSgn  * numberFor(theConvAng.theAngSigns)
+			+ num::sAngNdx  * numberFor(theConvAng.theAngIndices)
+			+ num::sBivNdx  * numberFor(theConvAng.theBivIndices)
+			+ num::sOrder   * numberFor(theOrder)
 			);
 	}
 	return numId;
@@ -458,11 +527,8 @@ Convention :: infoString
 		oss << title << ' ';
 	}
 	oss
-		<< "  Ang+/-: " << infoStringSigns(theConvAng.theAngSigns)
-		<< "  AngNdx: " << infoStringIndices(theConvAng.theAngIndices)
-		<< "  Off+/-: " << infoStringSigns(theConvOff.theOffSigns)
-		<< "  OffNdx: " << infoStringIndices(theConvOff.theOffIndices)
-		<< "  BivNdx: " << infoStringIndices(theConvAng.theBivIndices)
+		<< " " << theConvOff.infoString()
+		<< " " << theConvAng.infoString()
 		<< "   Order: " << infoStringOrders(theOrder)
 		<< "   NumId: " << numberEncoding()
 		;

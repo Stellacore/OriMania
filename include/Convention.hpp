@@ -1,4 +1,3 @@
-// MIT License
 //
 // Copyright (c) 2024 Stellacore Corporation
 //
@@ -71,6 +70,17 @@ namespace om
 		allConventions
 			();
 
+		//! Assign a number to each convention (for easy tracking))
+		std::size_t
+		indexValue
+			() const;
+
+		//! Descriptive information about this instance
+		std::string
+		infoString
+			( std::string const & title = {}
+			) const;
+
 	}; // ConventionOffset
 
 	/*! \brief Conventions for 3-angle sequences from 3 angle size values.
@@ -106,6 +116,17 @@ namespace om
 		std::vector<ConventionAngle>
 		allConventions
 			();
+
+		//! Assign a number to each convention (for easy tracking))
+		std::size_t
+		indexValue
+			() const;
+
+		//! Descriptive information about this instance
+		std::string
+		infoString
+			( std::string const & title = {}
+			) const;
 
 	}; // ConventionAngle
 
