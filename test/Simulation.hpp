@@ -65,11 +65,17 @@ namespace sim
 		, { "pg6", PG{ { -40.1, -50.9,  31.3 }, {  .433,  .547, -.337 } } }
 		};
 
-	// TODO - run test over many (all?) different conventions.
-	//! An arbitrarily set convention
-	static om::Convention const sConventionA
+	//! An arbitrarily set convention for Box frame
+	static om::Convention const sConventionBox
 		{ ConventionOffset{ {  1,  1, -1 }, { 1, 0, 2 } }
 		, ConventionAngle{ {  1, -1,  1 }, { 0, 1, 2 }, { 1, 2, 1 } }
+		, om::RotTran
+		};
+
+	//! An arbitrarily set convention for Ind frame
+	static om::Convention const sConventionInd
+		{ ConventionOffset{ {  1,  1,  1 }, { 0, 1, 2 } }
+		, ConventionAngle{ {  1,  1,  1 }, { 0, 1, 2 }, { 0, 1, 2 } }
 		, om::RotTran
 		};
 
