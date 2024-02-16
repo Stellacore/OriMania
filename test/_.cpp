@@ -29,10 +29,8 @@
 
 
 //TODO remove this and add test case header
-//#include "CN.hpp"
 #include "_.hpp" // template for header files
-
-#include "OriMania.hpp"
+//#include "CN.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -43,7 +41,7 @@ namespace
 	//! Examples for documentation
 	void
 	test0
-		( std::ostream & oss
+		( std::ostringstream & oss
 		)
 	{
 		using namespace om;
@@ -69,7 +67,7 @@ main
 	()
 {
 	int status{ 1 };
-	std::stringstream oss;
+	std::ostringstream oss;
 
 	test0(oss);
 
