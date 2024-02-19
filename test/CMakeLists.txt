@@ -42,8 +42,9 @@ set(mainProgs
 	test_Convention # diverse conventions for representing orientations
 	test_io # input/output utility functions
 	test_Orientation # math operations involving orientation data
-	test_Permute # Manage permutations of transformations
+	test_Permute # manage permutations of transformations
 	test_ParmGroup # manipulation of parameter groupings into orientations
+	test_Rotation # limited support for rotation conversions
 
 	)
 

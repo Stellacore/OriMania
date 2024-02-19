@@ -2141,6 +2141,53 @@ r_{31}=-\sin\phi
 \end_layout
 
 \begin_layout Standard
+These 5 rotation matrix elements may be expressed in terms of the components
+ of spinor, 
+\begin_inset Formula 
+\[
+R=e^{\vartheta\Theta}=\rho_{0}+\rho_{1}e_{23}+\rho_{2}e_{31}+\rho_{3}e_{12}
+\]
+
+\end_inset
+
+The associated rotation matrix is (Knopp_TODO)
+\begin_inset Formula 
+\[
+\mathsf{R}=\left[\begin{array}{ccc}
+\left(\rho_{0}^{2}+\rho_{1}^{2}-\rho_{2}^{2}-\rho_{3}^{2}\right) & 2\left(\rho_{1}\rho_{2}+\rho_{0}\rho_{3}\right) & 2\left(\rho_{1}\rho_{3}-\rho_{0}\rho_{2}\right)\\
+2\left(\rho_{1}\rho_{2}-\rho_{0}\rho_{3}\right) & \left(\rho_{0}^{2}-\rho_{1}^{2}+\rho_{2}^{2}-\rho_{3}^{2}\right) & 2\left(\rho_{2}\rho_{3}+\rho_{0}\rho_{1}\right)\\
+2\left(\rho_{1}\rho_{3}+\rho_{0}\rho_{2}\right) & 2\left(\rho_{2}\rho_{3}-\rho_{0}\rho_{1}\right) & \left(\rho_{0}^{2}-\rho_{1}^{2}-\rho_{2}^{2}+\rho_{3}^{2}\right)
+\end{array}\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+r_{11} & =\left(\rho_{0}^{2}+\rho_{1}^{2}-\rho_{2}^{2}-\rho_{3}^{2}\right)\\
+r_{21} & =2\left(\rho_{1}\rho_{2}-\rho_{0}\rho_{3}\right)\\
+r_{31} & =2\left(\rho_{1}\rho_{3}+\rho_{0}\rho_{2}\right)\\
+r_{32} & =2\left(\rho_{2}\rho_{3}-\rho_{0}\rho_{1}\right)\\
+r_{33} & =\left(\rho_{0}^{2}-\rho_{1}^{2}-\rho_{2}^{2}+\rho_{3}^{2}\right)
+\end{align*}
+
+\end_inset
+
+Yielding the relationship
+\begin_inset Formula 
+\begin{align*}
+\phi & =\arcsin\left(-2\left(\rho_{1}\rho_{3}+\rho_{0}\rho_{2}\right)\right)\\
+\kappa & =\arctan_{2}\left(2\left(\rho_{1}\rho_{2}-\rho_{0}\rho_{3}\right),\left(\rho_{0}^{2}+\rho_{1}^{2}-\rho_{2}^{2}-\rho_{3}^{2}\right)\right)\\
+\omega & =\arctan_{2}\left(2\left(\rho_{2}\rho_{3}-\rho_{0}\rho_{1}\right),\left(\rho_{0}^{2}-\rho_{1}^{2}-\rho_{2}^{2}+\rho_{3}^{2}\right)\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
 btprint "btPrintCited"
