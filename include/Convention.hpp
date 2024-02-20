@@ -1,4 +1,3 @@
-// MIT License
 //
 // Copyright (c) 2024 Stellacore Corporation
 //
@@ -71,6 +70,17 @@ namespace om
 		allConventions
 			();
 
+		//! Assign a number to each convention (for easy tracking))
+		std::size_t
+		indexValue
+			() const;
+
+		//! Descriptive information about this instance
+		std::string
+		infoString
+			( std::string const & title = {}
+			) const;
+
 	}; // ConventionOffset
 
 	/*! \brief Conventions for 3-angle sequences from 3 angle size values.
@@ -78,7 +88,6 @@ namespace om
 	 */
 	struct ConventionAngle
 	{
-
 		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
 		ThreeSigns theAngSigns;
 
@@ -106,6 +115,23 @@ namespace om
 		std::vector<ConventionAngle>
 		allConventions
 			();
+
+		//! Assign a number to each convention (for easy tracking))
+		std::size_t
+		indexValue
+			() const;
+
+		//! Attitude associated with parmGroup given this convention.
+		rigibra::Attitude
+		attitudeFor
+			( ParmGroup const & parmGroup
+			) const;
+
+		//! Descriptive information about this instance
+		std::string
+		infoString
+			( std::string const & title = {}
+			) const;
 
 	}; // ConventionAngle
 
@@ -150,6 +176,12 @@ namespace om
 		bool
 		isValid
 			() const;
+
+		//! Offset vector (expressed in OrderTR domain - invert if OrderRT)
+		rigibra::Location
+		offsetFor
+			( ParmGroup const & parmGroup
+			) const;
 
 		//! Attitude associated with parmGroup given this convention.
 		rigibra::Attitude
@@ -221,6 +253,16 @@ namespace om
 		//! True if all strings components are valid
 		bool
 		isValid
+			() const;
+
+		//! Offset convention associated with current string
+		ConventionOffset
+		conventionOffset
+			() const;
+
+		//! Attitude convention associated with current string
+		ConventionAngle
+		conventionAngle
 			() const;
 
 		//! Convention associated with current string values

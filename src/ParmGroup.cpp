@@ -221,8 +221,8 @@ allThreeIndices
 		, ThreeIndices{ 0u, 2u, 1u }
 		, ThreeIndices{ 1u, 0u, 2u }
 		, ThreeIndices{ 1u, 2u, 0u }
-		, ThreeIndices{ 2u, 1u, 0u }
 		, ThreeIndices{ 2u, 0u, 1u }
+		, ThreeIndices{ 2u, 1u, 0u }
 		};
 }
 

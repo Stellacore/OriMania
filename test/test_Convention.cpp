@@ -251,6 +251,74 @@ namespace
 		}
 	}
 
+	//! Check Convention Offset index generation
+	void
+	testIndicesOffset
+		( std::ostream & oss
+		)
+	{
+		using namespace om;
+
+		std::vector<ConventionOffset> const allCons
+			{ ConventionOffset::allConventions() };
+		// Note that only 6 of the 27 index permuations use all 3 indices
+		constexpr std::size_t expSize{ 8u * 6u };
+		if (! (expSize == allCons.size()))
+		{
+			oss << "Failure offset convention size test\n";
+			oss << "exp: " << expSize << '\n';
+			oss << "got: " << allCons.size() << '\n';
+		}
+
+		std::set<std::size_t> uniqNdxs;
+		for (ConventionOffset const & allCon : allCons)
+		{
+			uniqNdxs.insert(allCon.indexValue());
+		}
+
+		constexpr std::size_t expUniq{ 48u };
+		if (! (expUniq == uniqNdxs.size()))
+		{
+			oss << "Failure of unique offset index test\n";
+			oss << "exp: " << expUniq << '\n';
+			oss << "got: " << uniqNdxs.size() << '\n';
+		}
+	}
+
+	//! Check Convention Angle index generation
+	void
+	testIndicesAngle
+		( std::ostream & oss
+		)
+	{
+		using namespace om;
+
+		std::vector<ConventionAngle> const allCons
+			{ ConventionAngle::allConventions() };
+		// Note that only 6 of the 27 index permuations are relevant
+		//      for each of the angle size but 12 of 27 for biv dir
+		constexpr std::size_t expSize{ 8u * 6u * 12u };
+		if (! (expSize == allCons.size()))
+		{
+			oss << "Failure angle convention size test\n";
+			oss << "exp: " << expSize << '\n';
+			oss << "got: " << allCons.size() << '\n';
+		}
+
+		std::set<std::size_t> uniqNdxs;
+		for (ConventionAngle const & allCon : allCons)
+		{
+			uniqNdxs.insert(allCon.indexValue());
+		}
+
+		constexpr std::size_t expUniq{ 8u * 6u * 12u };
+		if (! (expUniq == uniqNdxs.size()))
+		{
+			oss << "Failure of unique angle index test\n";
+			oss << "exp: " << expUniq << '\n';
+			oss << "got: " << uniqNdxs.size() << '\n';
+		}
+	}
 }
 
 //! Check behavior of Convention handling
@@ -266,6 +334,8 @@ main
 	testKeys(oss);
 	testTransforms(oss);
 	testEncode(oss);
+	testIndicesOffset(oss);
+	testIndicesAngle(oss);
 
 	if (oss.str().empty()) // Only pass if no errors were encountered
 	{

@@ -62,7 +62,7 @@ namespace
 	{
 		using namespace om;
 
-		om::Convention const convention{ om::sim::sConventionA };
+		om::Convention const expConvention{ om::sim::sConventionBox };
 
 		// if true report various simulation data values
 		constexpr bool showData{ true };
@@ -75,7 +75,7 @@ namespace
 		if (showData)
 		{
 			std::cout << '\n';
-			std::cout << "using convention: " << convention << '\n';
+			std::cout << "using expConvention: " << expConvention << '\n';
 		}
 
 	 	// [DoxyExample01]
@@ -86,13 +86,13 @@ namespace
 
 		// Simulate: configuration of a payload system
 		// in which sensor ExCal data are using some unknown
-		// arbitrary convention (here sConventionA is assumed unknown)
+		// arbitrary convention (here sConventionBox is assumed unknown)
 		// 
 		// NOTE: the conventions used to generate these data are the
 		//       unknown values to be determined by solution code below.
 		//
 		std::map<SenKey, SenOri> const boxKeyOris
-			{ om::sim::boxKeyOris(om::sim::sKeyGroups, om::sim::sConventionA) };
+			{ om::sim::boxKeyOris(om::sim::sKeyGroups, expConvention) };
 
 		//
 		// "Load" input data
@@ -174,7 +174,8 @@ namespace
 		}
 		else
 		{
-			std::int64_t const expConventionId{ convention.numberEncoding() };
+			std::int64_t const expConventionId
+				{ expConvention.numberEncoding() };
 			std::int64_t const gotConventionId
 				{ allCons[fitIndexPairs[0].second].numberEncoding() };
 			if (! (gotConventionId == expConventionId))

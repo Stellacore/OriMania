@@ -136,7 +136,7 @@ namespace om
 	std::vector<double>
 	fitErrorByConvention
 		( std::map<SenKey, ParmGroup> const & keyGroups
-		, std::map<KeyPair, SenOri> const & relKeyOris
+		, std::map<KeyPair, SenOri> const & keyIndRelOris
 		, std::vector<Convention> const & allCons
 		)
 	{
@@ -145,11 +145,11 @@ namespace om
 
 		// compute consistency score vector for each relative orientation
 		for (std::map<KeyPair, SenOri>::value_type
-			const & relKeyOri : relKeyOris)
+			const & keyIndRelOri : keyIndRelOris)
 		{
 			// access data for this RO
-			KeyPair const & keyPair = relKeyOri.first;
-			SenOri const & relOri = relKeyOri.second;
+			KeyPair const & keyPair = keyIndRelOri.first;
+			SenOri const & relOri = keyIndRelOri.second;
 
 			// locate parameter groups for the two RO keys
 			std::map<SenKey, ParmGroup>::const_iterator
@@ -439,6 +439,67 @@ namespace om
 		std::pair<double, double> const pairB
 			{ trB.the1st.theFitError, -trB.prominence() };
 		return (pairA < pairB);
+	}
+
+	//! TODO
+	inline
+	std::vector<om::OneTrialResult>
+	allTrialResults
+		( std::map<SenKey, ParmGroup> const & boxKeyPGs
+		, std::vector<Convention> const & allBoxCons
+		, std::map<SenKey, ParmGroup> const & indKeyPGs
+		, std::vector<Convention> const & allIndCons
+		, bool const & showProgress = true
+		)
+	{
+		std::vector<OneTrialResult> trialResults;
+
+		// report data encountered - for debugging
+		if (showProgress)
+		{
+			std::cout << "# boxKeyPGs count: " << boxKeyPGs.size() << '\n';
+			std::cout << "# allBoxCons count: " << allBoxCons.size() << '\n';
+			std::cout << "# indKeyPGs count: " << indKeyPGs.size() << '\n';
+			std::cout << "# allIndCons.size() : " << allIndCons.size() << "\n";
+			std::cout << "# indEO count: " << allIndCons.size() << '\n';
+		}
+
+		for (Convention const & currIndCon : allIndCons)
+		{
+			//! Get independent station grouping for current Ind convention
+			std::map<SenKey, SenOri> const indKeyStas
+				{ keyOrisFor(indKeyPGs, currIndCon) };
+
+			std::vector<FitNdxPair> fitIndexPairs
+				{ fitIndexPairsFor(boxKeyPGs, indKeyStas, allBoxCons) };
+
+			// find the best solution for this trial
+			if (! fitIndexPairs.empty())
+			{
+				OneTrialResult const trialResult
+					{ trialResultFrom(fitIndexPairs, allBoxCons, currIndCon) };
+				trialResults.emplace_back(trialResult);
+
+				if (showProgress)
+				{
+					using engabra::g3::io::fixed;
+					std::cout << std::setw(4u) << trialResults.size()
+						<< ' ' << trialResult.infoString() << '\n';
+					std::cout << std::flush; // for watching progress if piped
+				}
+			}
+			else
+			{
+				std::cerr << "Error: No results to report\n" << std::endl;
+			}
+
+		}
+
+		//
+		// Report results
+		//
+
+		return trialResults;
 	}
 
 

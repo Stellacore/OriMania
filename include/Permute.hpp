@@ -23,64 +23,23 @@
 //
 
 
+#ifndef OriMania_Permute_INCL_
+#define OriMania_Permute_INCL_
+
 /*! \file
-\brief Unit tests (and example) code for OriMania::NS::CN
+\brief Contains ######
+
+Example:
+\snippet test_Permute.cpp DoxyExample01
+
 */
 
 
-//TODO remove this and add test case header
-#include "_.hpp" // template for header files
-//#include "CN.hpp"
-
-#include <iostream>
-#include <sstream>
-
-
-namespace
+namespace om
 {
-	//! Examples for documentation
-	void
-	test0
-		( std::ostringstream & oss
-		)
-	{
-		using namespace om;
 
-		// [DoxyExample01]
 
-		// [DoxyExample01]
+} // [om]
 
-		// TODO replace this with real test code
-		std::string const fname(__FILE__);
-		bool const isTemplate{ (std::string::npos != fname.find("/_.cpp")) };
-		if (! isTemplate)
-		{
-			oss << "Failure to implement real test\n";
-		}
-	}
 
-}
-
-//! Check behavior of NS
-int
-main
-	()
-{
-	int status{ 1 };
-	std::ostringstream oss;
-
-	test0(oss);
-
-	if (oss.str().empty()) // Only pass if no errors were encountered
-	{
-		status = 0;
-	}
-	else
-	{
-		// else report error messages
-		std::cerr << "### FAILURE in test file: " << __FILE__ << std::endl;
-		std::cerr << oss.str();
-	}
-	return status;
-}
-
+#endif // OriMania_Permute_INCL_
