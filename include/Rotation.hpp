@@ -46,7 +46,10 @@ namespace om
 	 * to stay away from gimbals lock. (i.e., that phi rotation magnitude
 	 * is (numerically meaningfully) less than pi/2.
 	 *
-	 * Example:
+	 * Photogrammetric "Omega-Phi-Kappa (OPK)" convention:
+	 * \snippet test_Rotation.cpp DoxyExampleSpin
+	 *
+	 * Example OPK extraction:
 	 * \snippet test_Rotation.cpp DoxyExample01
 	 */
 	std::array<double, 3u>
@@ -67,8 +70,23 @@ namespace om
 		// reconstitute preferred rotation matrix elements
 		double const r31{ 2.*(r1*r3 + r0*r2) };
 
-		constexpr double tooNear{ 1./262144. }; // arbitrary (2^-18)
-		if (! nearlyEquals(std::abs(r31), 1., tooNear))
+		/*
+		double const sinPhi{ -r31 };
+		double const cosPhi{ std::cos(std::asin(sinPhi)) };
+		std::cout
+			<< " sinPhi: " << io::fixed(sinPhi)
+			<< " cosPhi: " << io::fixed(cosPhi)
+			<< '\n';
+		*/
+
+		constexpr double tooNear{ 1./1024./1024. }; // arbitrary
+		if ( nearlyEquals(r31,  1., tooNear)
+		  || nearlyEquals(r31, -1., tooNear)
+		   )
+		{
+			std::cerr << "### opkFrom() near gimbals lock - no solution\n";
+		}
+		else
 		{
 			double const r11{ r0*r0 + r1*r1 - r2*r2 - r3*r3 };
 			double const r21{ 2.*(r1*r2 - r0*r3) };
@@ -80,27 +98,53 @@ namespace om
 			opk[0] = -( std::atan2(r32, r33) );
 			opk[1] = -( std::asin(-r31) );
 			opk[2] = -( std::atan2(r21, r11) );
+
 		}
+
+		return opk;
+/*
+double const rm11{ r0*r0 + r1*r1 - r2*r2 - r3*r3 };
+double const rm12{ 2.*(r1*r2 + r0*r3) }; //
+double const rm13{ 2.*(r1*r3 - r0*r2) }; //
+double const rm21{ 2.*(r1*r2 - r0*r3) };
+double const rm22{ r0*r0 - r1*r1 + r2*r2 - r3*r3 };
+double const rm23{ 2.*(r2*r3 + r0*r1) }; //
+double const rm31{ 2.*(r1*r3 + r0*r2) };
+double const rm32{ 2.*(r2*r3 - r0*r1) };
+double const rm33{ r0*r0 - r1*r1 - r2*r2 + r3*r3 };
+
+using engabra::g3::io::fixed;
+std::cout
+	<< "rmat\n"
+	<< ' ' << fixed(rm11) << ' ' << fixed(rm12) << ' ' << fixed(rm13) << '\n'
+	<< ' ' << fixed(rm21) << ' ' << fixed(rm22) << ' ' << fixed(rm23) << '\n'
+	<< ' ' << fixed(rm31) << ' ' << fixed(rm32) << ' ' << fixed(rm33) << '\n'
+	;
+std::cout << "opk:"
+	<< ' ' << io::fixed(opk[0])
+	<< ' ' << io::fixed(opk[1])
+	<< ' ' << io::fixed(opk[2])
+	<< '\n';
+*/
+
 		/* Cases near gimbals lock - todo if needed
 		else
 		if (0. < r31) // (nearlyEquals(r31, -1.))
 		{
 			// any solution for which: omega - kappa = atan2(-r23,r22)
-			phi =  piHalf;
-			kap = -atan2(-r23, r22);
-			ome = 0.;
+			opk[0] = 0.;
+			opk[1] =  piHalf;
+			opk[2] = -atan2(-r23, r22);
 		}
 		else
 		if (r31 < 0.) // (nearlyEquals(r31,  1.))
 		{
 			// any solution for which: omega + kappa = atan2(-r23,r22)
-			phi = -piHalf;
-			kap =  atan2(-r23, r22);
-			ome = 0.;
+			opk[0] = 0.;
+			opk[1] = -piHalf;
+			opk[2] =  atan2(-r23, r22);
 		}
 		*/
-
-		return opk;
 	}
 
 } // [om]
