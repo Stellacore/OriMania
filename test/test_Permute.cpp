@@ -33,6 +33,7 @@
 #include "Rotation.hpp"
 #include "Simulation.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 
@@ -101,6 +102,7 @@ namespace
 		( std::ostream & oss
 		)
 	{
+		// [DoxyExample01]
 		// [DoxyExample01]
 
 		using namespace om;
@@ -214,8 +216,56 @@ std::cout << '\n';
 
 		}
 
-		// [DoxyExample01]
+	}
 
+	//! Examples for documentation
+	void
+	testAttPerms
+		( std::ostream & oss
+		)
+	{
+		using namespace om;
+
+		// use arbitrary parameter group
+		om::ParmGroup const pg
+			{ {  10.0,  20.0,  30.0 }, {  0.10,  1.20,  2.30,} };
+
+		// attitude conventions to utilize
+		std::vector<ConventionAngle>
+			const allAngCons{ ConventionAngle::allConventions() };
+
+		// compute attitude objects and insert into hash
+		// based on ConventionAngle::indexValue()
+		std::size_t const expNotNull{ allAngCons.size() };
+		constexpr std::size_t maxNdxValue{ 5694u }; // many unused locations
+		using namespace rigibra;
+		std::vector<Attitude> hashAtts;
+		hashAtts.resize(maxNdxValue);
+		std::fill(hashAtts.begin(), hashAtts.end(), null<Attitude>());
+		for (ConventionAngle const & allAngCon : allAngCons)
+		{
+			hashAtts[allAngCon.indexValue()] = allAngCon.attitudeFor(pg);
+			/*
+			std::cout << "allAngCon:"
+				<< ' ' << allAngCon.indexValue()
+				<< ' ' << allAngCon.attitudeFor(pg)
+				<< '\n';
+			*/
+		}
+
+		// count number of valid hash entries
+		std::size_t const gotNotNull
+			{ (std::size_t)std::count_if
+				( hashAtts.cbegin(), hashAtts.cend()
+				, [] (Attitude const & att) { return isValid(att); }
+				)
+			};
+		if (! (gotNotNull == expNotNull))
+		{
+			oss << "Failure of notnull count test\n";
+			oss << "exp: " << expNotNull << '\n';
+			oss << "got: " << gotNotNull << '\n';
+		}
 	}
 
 }
@@ -228,7 +278,8 @@ main
 	int status{ 1 };
 	std::stringstream oss;
 
-	test0(oss);
+//	test0(oss);
+	testAttPerms(oss);
 
 	if (oss.str().empty()) // Only pass if no errors were encountered
 	{
