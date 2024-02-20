@@ -103,7 +103,7 @@ namespace rpt
 	inline
 	std::string
 	stringInputs
-		( std::map<om::SenKey, om::ParmGroup> const & keyBoxPGs
+		( std::map<om::SenKey, om::ParmGroup> const & boxKeyPGs
 		, std::map<om::SenKey, om::SenOri> const & indKeyOris
 		)
 	{
@@ -113,9 +113,9 @@ namespace rpt
 
 		// report ParmGroup values
 		msg << '\n';
-		msg << "Box ParmGroup count: " << keyBoxPGs.size() << '\n';
+		msg << "Box ParmGroup count: " << boxKeyPGs.size() << '\n';
 		for (std::map<SenKey, ParmGroup>::value_type
-			const & keyPG : keyBoxPGs)
+			const & keyPG : boxKeyPGs)
 		{
 			msg << "PG: " << keyPG.first
 				<< " " << keyPG.second
@@ -198,7 +198,7 @@ main
 	// load interior Box ParmGroups from specified file
 	std::ifstream ifsBoxPG(use.theBoxPGPath);
 	std::map<om::SenKey, om::ParmGroup>
-		const keyBoxPGs{ om::loadParmGroups(ifsBoxPG) };
+		const boxKeyPGs{ om::loadParmGroups(ifsBoxPG) };
 
 	// try all internal conventions
 	std::vector<om::Convention> const allBoxCons
@@ -208,82 +208,23 @@ main
 	// load exterior Ind parameter group from specified file
 	std::ifstream ifsIndPG(use.theIndPGPath);
 	std::map<om::SenKey, om::ParmGroup>
-		const keyIndPGs{ om::loadParmGroups(ifsIndPG) };
+		const indKeyPGs{ om::loadParmGroups(ifsIndPG) };
 
 	//! Conventions for Ind EO interpretations
 	om::ConventionOffset const indConvOffset{ { 1, 1, 1 }, { 0u, 1u, 2u } };
 	std::vector<om::Convention> const allIndCons
 		{ Convention::allConventionsFor(indConvOffset) };
 
-	std::vector<om::OneTrialResult> trialResults;
-	std::vector<om::OneSolutionFit> solns;
-
-	if (use.isVerbose())
-	{
-		std::cout << "# keyBoxPGs count: " << keyBoxPGs.size() << '\n';
-		std::cout << "# allBoxCons count: " << allBoxCons.size() << std::endl;
-		std::cout << "# keyIndPGs count: " << keyIndPGs.size() << '\n';
-		std::cout << "# allIndCons.size() : " << allIndCons.size() << "\n";
-		std::cout << "# indEO count: " << allIndCons.size() << '\n';
-	}
-	for (om::Convention const & currIndCon : allIndCons)
-	{
-		//! Get independent station grouping for current Ind convention
-		std::map<SenKey, SenOri> const indKeyStas
-			{ om::keyOrisFor(keyIndPGs, currIndCon) };
-
-		std::vector<om::FitNdxPair> fitIndexPairs
-			{ fitIndexPairsFor(keyBoxPGs, indKeyStas, allBoxCons) };
-
-		// report data encountered - for debugging
-		constexpr bool showIntermediateData{ false };
-		if (showIntermediateData)
-		{
-			std::cout << rpt::stringInputs(keyBoxPGs, indKeyStas);
-			std::cout << rpt::stringSolution(fitIndexPairs, allBoxCons);
-		}
-
-		// find the best solution for this trial
-		if (! fitIndexPairs.empty())
-		{
-			om::OneTrialResult const trialResult
-				{ om::trialResultFrom(fitIndexPairs, allBoxCons, currIndCon) };
-			trialResults.emplace_back(trialResult);
-
-			if (use.isVerbose())
-			{
-				using engabra::g3::io::fixed;
-				std::cout << std::setw(4u) << trialResults.size()
-					<< ' ' << trialResult.infoString() << '\n';
-				std::cout << std::flush; // for watching progress if piped
-			}
-		}
-		else
-		{
-			std::cerr << "Error: No results to report\n" << std::endl;
-		}
-
-		// for dev/testing
-		/*
-		if (5 < trialResults.size())
-		{
-			break;
-		}
-		*/
-	}
-
-	//
-	// Report results
-	//
-
-	// sort overall trial results for reporting
+	// generate overall trial results for reporting
+	std::vector<om::OneTrialResult> trialResults
+		{ om::allTrialResults(boxKeyPGs, allBoxCons, indKeyPGs, allIndCons) };
 	std::sort(trialResults.begin(), trialResults.end());
 
 	// show results
 	std::ofstream ofsOut(use.theOutPath);
 	ofsOut << "#\n";
-	ofsOut << "# KeyBoxPGs count: " << keyBoxPGs.size() << '\n';
-	ofsOut << "# KeyIndPGs count: " << keyIndPGs.size() << '\n';
+	ofsOut << "# boxKeyPGs count: " << boxKeyPGs.size() << '\n';
+	ofsOut << "# indKeyPGs count: " << indKeyPGs.size() << '\n';
 	ofsOut << "# AllBoxCons count: " << allBoxCons.size() << std::endl;
 	ofsOut << "# AllIndCons.size() : " << allIndCons.size() << "\n";
 	ofsOut << "# TrialResults count: " << trialResults.size() << '\n';

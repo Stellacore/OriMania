@@ -28,7 +28,9 @@
 */
 
 
+#include "io.hpp"
 #include "Permute.hpp"
+#include "Rotation.hpp"
 #include "Simulation.hpp"
 
 #include <iostream>
@@ -37,6 +39,62 @@
 
 namespace
 {
+	//! Simulate contents of an indKeyPGs output file
+	std::string
+	indPGsFileTextOPK
+		( std::map<om::SenKey, om::SenOri> const & indKeyPGs
+		, om::Convention const & expIndConv
+		)
+	{
+		std::ostringstream oss;
+
+		// Only OPK attitude convention is supported for this simulation
+		static om::Convention const xyzopkConv
+			{ om::ConventionOffset{ {  1,  1,  1 }, { 0, 1, 2 } }
+			, om::ConventionAngle{ {  1,  1,  1 }, { 0, 1, 2 }, { 0, 1, 2 } }
+			, om::RotTran
+			};
+		if (! (xyzopkConv == expIndConv))
+		{
+			std::cerr << "FATAL: indPGsFileTextOPK - only supports xyzOPK\n";
+			std::cerr << std::flush;
+			exit(8);
+		}
+
+		// save independent Key orientations with Ind conventions.
+		for (std::map<om::SenKey, om::SenOri>::value_type
+			const & indKeyPG : indKeyPGs)
+		{
+			om::SenOri const & ori = indKeyPG.second;
+			using namespace engabra::g3;
+			Spinor const spin{ ori.theAtt.spinor() };
+			std::array<double, 3u> const opk{ om::opkFrom(spin) };
+			std::cout
+				<< "sen: " << indKeyPG.first
+				<< " att: " << indKeyPG.second.theAtt
+				<< " opk:"
+				<< ' ' << io::fixed(opk[0])
+				<< ' ' << io::fixed(opk[1])
+				<< ' ' << io::fixed(opk[2])
+				<< '\n';
+			/*
+			*/
+			oss
+				<< "Distances:"
+					<< ' ' << indKeyPG.first
+					<< io::fixed(indKeyPG.second.theLoc, 8u, 3u)
+				<< '\n'
+				<< "Angles:   "
+					<< ' ' << indKeyPG.first
+					<< ' ' << io::fixed(opk[0], 1u, 9u)
+					<< ' ' << io::fixed(opk[1], 1u, 9u)
+					<< ' ' << io::fixed(opk[2], 1u, 9u)
+				<< '\n';
+		}
+
+		return oss.str();
+	}
+
 	//! Examples for documentation
 	void
 	test0
@@ -52,17 +110,22 @@ namespace
 		//              (with different iterators in use).
 		//
 
+		/*
 		// offset conventions to utilize
 		std::vector<ConventionOffset>
-			const allOffCons{ om::ConventionOffset::allConventions() };
+			const allOffCons{ ConventionOffset::allConventions() };
 
 		// attitude conventions to utilize
 		std::vector<ConventionAngle>
-			const allAngCons{ om::ConventionAngle::allConventions() };
+			const allAngCons{ ConventionAngle::allConventions() };
+		*/
 
 		//! interpetation alternatives for offset/rotate convention
 //		std::array<OrderTR, 2u>
 //			const allOrders{ om::allOrderTRs() };
+
+		std::vector<om::Convention> const allBoxCons
+			{ Convention::allConventions() };
 
 		//
 		// Box frame (simulated data values
@@ -74,18 +137,42 @@ namespace
 		//
 		// Ind frame (simulated data values
 		//
-		om::Convention const & expBoxConv = sim::sConventionBox;
-//		om::Convention const expIndConv = sim::sConventionInd;
+		Convention const & expBoxConv = sim::sConventionBox;
+		Convention const & expIndConv = sim::sConventionInd;
 
-		// simulate inependent exterior orientations
-		std::map<om::SenKey, om::SenOri> const boxKeyOris
+		// simulate independent exterior orientations
+		std::map<SenKey, SenOri> const boxKeyOris
 			{ sim::boxKeyOris(boxKeyPGs, expBoxConv) };
-		std::map<SenKey, SenOri> const indKeyPGs
-			{ sim::independentKeyOris(boxKeyOris, om::sim::sXfmBoxWrtRef) };
+		std::map<SenKey, SenOri> const indKeyOris
+			{ sim::independentKeyOris(boxKeyOris, sim::sXfmBoxWrtRef) };
 
-		// save independent Key orientations with Ind conventions.
+		// create data file using "OPK convention"
+		std::string const indPGsFileText
+			{ indPGsFileTextOPK(indKeyOris, expIndConv) };
+		std::istringstream issIndPG(indPGsFileText);
+		std::map<SenKey, ParmGroup> const indKeyPGs
+			{ loadParmGroups(issIndPG) };
 
-		oss << "Failure: TODO/Need to decompose/save 3 angle conventions\n";
+		ConventionOffset const indConvOffset{ { 1, 1, 1 }, { 0u, 1u, 2u } };
+		std::vector<om::Convention> const allIndCons
+			{ Convention::allConventionsFor(indConvOffset) };
+
+/*
+		std::vector<om::OneTrialResult> trialResults
+			{ om::allTrialResults
+				(boxKeyPGs, allBoxCons, indKeyPGs, allIndCons)
+			};
+*/
+
+		// generate overall trial results
+
+
+
+std::cout << "boxKeyOris.size: " << boxKeyOris.size() << '\n';
+std::cout << "indKeyOris.size: " << indKeyOris.size() << '\n';
+std::cout << "indKeyPGs.size: " << indKeyPGs.size() << '\n';
+
+oss << "Failure: implement (optimized) test\n";
 
 		// [DoxyExample01]
 
