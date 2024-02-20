@@ -295,6 +295,49 @@ ConventionAngle :: indexValue
 	return ndxVal;
 }
 
+rigibra::Attitude
+ConventionAngle :: attitudeFor
+	( ParmGroup const & parmGroup
+	) const
+{
+	using namespace rigibra;
+	Attitude attNet{ null<Attitude>() };
+
+	std::array<double, 3u> const & aVals = parmGroup.theAngles;
+
+	// gather angle sizes together
+	ThreeAngles const angleSizes
+		{ theAngSigns[0] * aVals[theAngIndices[0]]
+		, theAngSigns[1] * aVals[theAngIndices[1]]
+		, theAngSigns[2] * aVals[theAngIndices[2]]
+		};
+
+	// fixed set of cardinal planes (direction carried by angle sign)
+	using namespace engabra::g3;
+	static ThreePlanes
+		const & eVals{ e23, e31, e12 };
+
+	// gather angle directions together
+	ThreePlanes const angleDirs
+		{ eVals[theBivIndices[0]]
+		, eVals[theBivIndices[1]]
+		, eVals[theBivIndices[2]]
+		};
+
+	// form physical angles
+	PhysAngle const physAngleA{ angleSizes[0] * angleDirs[0] };
+	PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
+	PhysAngle const physAngleC{ angleSizes[2] * angleDirs[2] };
+
+	// generate attitude from 3-angle-sequence
+	Attitude const attA(physAngleA);
+	Attitude const attB(physAngleB);
+	Attitude const attC(physAngleC);
+	attNet = attC * attB * attA;
+
+	return attNet;
+}
+
 std::string
 ConventionAngle :: infoString
 	( std::string const & title
@@ -457,40 +500,7 @@ Convention :: attitudeFor
 	( ParmGroup const & parmGroup
 	) const
 {
-	std::array<double, 3u> const & aVals = parmGroup.theAngles;
-
-	// gather angle sizes together
-	ThreeAngles const angleSizes
-		{ theConvAng.theAngSigns[0] * aVals[theConvAng.theAngIndices[0]]
-		, theConvAng.theAngSigns[1] * aVals[theConvAng.theAngIndices[1]]
-		, theConvAng.theAngSigns[2] * aVals[theConvAng.theAngIndices[2]]
-		};
-
-	// fixed set of cardinal planes (direction carried by angle sign)
-	using namespace engabra::g3;
-	static ThreePlanes
-		const & eVals{ e23, e31, e12 };
-
-	// gather angle directions together
-	ThreePlanes const angleDirs
-		{ eVals[theConvAng.theBivIndices[0]]
-		, eVals[theConvAng.theBivIndices[1]]
-		, eVals[theConvAng.theBivIndices[2]]
-		};
-
-	// form physical angles
-	using namespace rigibra;
-	PhysAngle const physAngleA{ angleSizes[0] * angleDirs[0] };
-	PhysAngle const physAngleB{ angleSizes[1] * angleDirs[1] };
-	PhysAngle const physAngleC{ angleSizes[2] * angleDirs[2] };
-
-	// generate attitude from 3-angle-sequence
-	Attitude const attA(physAngleA);
-	Attitude const attB(physAngleB);
-	Attitude const attC(physAngleC);
-	Attitude const attNet(attC * attB * attA);
-
-	return attNet;
+	return theConvAng.attitudeFor(parmGroup);
 }
 
 rigibra::Transform
@@ -628,8 +638,11 @@ ConventionString :: convention
 	ThreeIndices const angNdxs{ threeIndicesFrom(theStrAngNdxs) };
 	ThreeIndices const bivNdxs{ threeIndicesFrom(theStrBivNdxs) };
 	OrderTR const order{ orderTRFrom(theStrOrder) };
-	return Convention
-		{ locSigns, locNdxs, angSigns, angNdxs, bivNdxs, order };
+
+	ConventionOffset const conOff{ locSigns, locNdxs };
+	ConventionAngle const conAng{ angSigns, angNdxs, bivNdxs };
+
+	return Convention{ conOff, conAng, order };
 }
 
 

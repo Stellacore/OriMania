@@ -88,7 +88,6 @@ namespace om
 	 */
 	struct ConventionAngle
 	{
-
 		//! \brief Permutations: ---, --+, -+-, -++, +--, +-+, ++-, +++
 		ThreeSigns theAngSigns;
 
@@ -121,6 +120,12 @@ namespace om
 		std::size_t
 		indexValue
 			() const;
+
+		//! Attitude associated with parmGroup given this convention.
+		rigibra::Attitude
+		attitudeFor
+			( ParmGroup const & parmGroup
+			) const;
 
 		//! Descriptive information about this instance
 		std::string
