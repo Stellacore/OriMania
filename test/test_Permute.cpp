@@ -157,22 +157,62 @@ namespace
 		std::vector<om::Convention> const allIndCons
 			{ Convention::allConventionsFor(indConvOffset) };
 
-/*
-		std::vector<om::OneTrialResult> trialResults
-			{ om::allTrialResults
-				(boxKeyPGs, allBoxCons, indKeyPGs, allIndCons)
-			};
-*/
-
-		// generate overall trial results
-
-
-
 std::cout << "boxKeyOris.size: " << boxKeyOris.size() << '\n';
 std::cout << "indKeyOris.size: " << indKeyOris.size() << '\n';
 std::cout << "indKeyPGs.size: " << indKeyPGs.size() << '\n';
 
-oss << "Failure: implement (optimized) test\n";
+		// generate overall trial results
+		std::vector<om::OneTrialResult> trialResults
+			{ om::allTrialResults
+				(boxKeyPGs, allBoxCons, indKeyPGs, allIndCons)
+			};
+		if (! trialResults.empty())
+		{
+			// consider replacing with min_element perhaps?
+			std::sort(trialResults.begin(), trialResults.end());
+			// access best trial data
+			om::OneTrialResult const & bestResult = trialResults.front();
+			std::string const & boxCS = bestResult.the1st.theBoxCS;
+			std::string const & indCS = bestResult.the1st.theIndCS;
+			om::Convention const boxConv
+				{ om::ConventionString::from(boxCS).convention() };
+			om::Convention const indConv
+				{ om::ConventionString::from(indCS).convention() };
+
+			bool okay{ true };
+			if (! (boxConv == expBoxConv))
+			{
+				oss << "Failure of expBoxConv test\n";
+				okay = false;
+			}
+			if (! (indConv == expIndConv))
+			{
+				oss << "Failure of expIndConv test\n";
+				okay = false;
+			}
+
+			if (! okay)
+			{
+				oss << "\nExpected info:\n";
+				oss << " expBoxConv: " << expBoxConv << '\n';
+				oss << " expIndConv: " << expIndConv << '\n';
+				oss << "\nBest fit info:\n";
+				oss << "  bestTrial: " << trialResults.front() << '\n';
+				oss << "    boxConv: " << boxConv << '\n';
+				oss << "    indConv: " << indConv << '\n';
+				oss << '\n';
+			}
+
+std::cout << "\nExpected info:\n";
+std::cout << " expBoxConv: " << expBoxConv << '\n';
+std::cout << " expIndConv: " << expIndConv << '\n';
+std::cout << "\nBest fit info:\n";
+std::cout << "  bestTrial: " << trialResults.front() << '\n';
+std::cout << "    boxConv: " << boxConv << '\n';
+std::cout << "    indConv: " << indConv << '\n';
+std::cout << '\n';
+
+		}
 
 		// [DoxyExample01]
 
