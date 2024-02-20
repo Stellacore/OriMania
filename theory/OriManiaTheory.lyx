@@ -297,7 +297,7 @@ Create a collection of combinations of angle size values from
 \end_inset
 
 .
- The 6 non trivial cases include combintations of all three available data
+ The 6 non trivial cases include combinations of all three available data
  values that may be assigned to the angle sizes, 
 \begin_inset Formula $\left\{ \alpha,\beta,\gamma\right\} $
 \end_inset
@@ -407,8 +407,8 @@ For the three angle sequence, the bivector directions of the successive
 
 \begin_layout Standard
 Note the potential confusion.
- The in text (and software) form the directions are often written left to
- right, as in 
+ In text (and software) form, the directions are often written left to right,
+ as in 
 \begin_inset Formula $A$
 \end_inset
 
