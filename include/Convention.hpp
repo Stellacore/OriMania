@@ -255,6 +255,16 @@ namespace om
 		isValid
 			() const;
 
+		//! Offset convention associated with current string
+		ConventionOffset
+		conventionOffset
+			() const;
+
+		//! Attitude convention associated with current string
+		ConventionAngle
+		conventionAngle
+			() const;
+
 		//! Convention associated with current string values
 		Convention
 		convention

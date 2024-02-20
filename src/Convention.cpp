@@ -628,10 +628,38 @@ ConventionString :: isValid
 		);
 }
 
+ConventionOffset
+ConventionString :: conventionOffset
+	() const
+{
+	ThreeSigns const locSigns{ threeSignsFrom(theStrOffSigns) };
+	ThreeIndices const locNdxs{ threeIndicesFrom(theStrOffNdxs) };
+	ConventionOffset const conOff{ locSigns, locNdxs };
+	return conOff;
+}
+
+ConventionAngle
+ConventionString :: conventionAngle
+	() const
+{
+	ThreeSigns const angSigns{ threeSignsFrom(theStrAngSigns) };
+	ThreeIndices const angNdxs{ threeIndicesFrom(theStrAngNdxs) };
+	ThreeIndices const bivNdxs{ threeIndicesFrom(theStrBivNdxs) };
+	ConventionAngle const conAng{ angSigns, angNdxs, bivNdxs };
+	return conAng;
+}
+
 Convention
 ConventionString :: convention
 	() const
 {
+	OrderTR const order{ orderTRFrom(theStrOrder) };
+	return Convention
+		{ conventionOffset()
+		, conventionAngle()
+		, order
+		};
+	/*
 	ThreeSigns const locSigns{ threeSignsFrom(theStrOffSigns) };
 	ThreeIndices const locNdxs{ threeIndicesFrom(theStrOffNdxs) };
 	ThreeSigns const angSigns{ threeSignsFrom(theStrAngSigns) };
@@ -643,6 +671,7 @@ ConventionString :: convention
 	ConventionAngle const conAng{ angSigns, angNdxs, bivNdxs };
 
 	return Convention{ conOff, conAng, order };
+	*/
 }
 
 
