@@ -75,12 +75,11 @@ namespace om
 		{
 			// transform orthogonal basis and sum square resulting differences
 			Vector const got1{ ori(e1) };
-			Vector const got2{ ori(e1) };
-			Vector const got3{ ori(e1) };
+			Vector const got2{ ori(e2) };
+			Vector const got3{ ori(e3) };
 			double const eSq1{ magSq(got1 - e1) };
 			double const eSq2{ magSq(got2 - e2) };
 			double const eSq3{ magSq(got3 - e3) };
-
 			// Statistical degrees of freedom
 			constexpr double numComp{ 9. }; // 9 components being compared
 			constexpr double numParm{ 6. }; // 3 offsets and three translations
