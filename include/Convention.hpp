@@ -70,6 +70,12 @@ namespace om
 		allConventions
 			();
 
+		//! Vector offset for parmGroup using this current convention
+		rigibra::Location
+		offsetFor
+			( ParmGroup const & parmGroup
+			) const;
+
 		//! Assign a number to each convention (for easy tracking))
 		std::size_t
 		indexValue

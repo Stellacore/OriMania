@@ -212,6 +212,24 @@ ConventionOffset :: allConventions
 	return conventions;
 }
 
+rigibra::Location
+ConventionOffset :: offsetFor
+	( ParmGroup const & parmGroup
+	) const
+{
+	std::array<double, 3u> const & dVals = parmGroup.theDistances;
+
+	// gather signed distance values together
+	ThreeDistances const offset
+		{ theOffSigns[0] * dVals[theOffIndices[0]]
+		, theOffSigns[1] * dVals[theOffIndices[1]]
+		, theOffSigns[2] * dVals[theOffIndices[2]]
+		};
+
+	return engabra::g3::Vector{ offset };
+}
+
+
 std::size_t
 ConventionOffset :: indexValue
 	() const
@@ -483,16 +501,7 @@ Convention :: offsetFor
 	( ParmGroup const & parmGroup
 	) const
 {
-	std::array<double, 3u> const & dVals = parmGroup.theDistances;
-
-	// gather signed distance values together
-	ThreeDistances const offset
-		{ theConvOff.theOffSigns[0] * dVals[theConvOff.theOffIndices[0]]
-		, theConvOff.theOffSigns[1] * dVals[theConvOff.theOffIndices[1]]
-		, theConvOff.theOffSigns[2] * dVals[theConvOff.theOffIndices[2]]
-		};
-
-	return engabra::g3::Vector{ offset };
+	return theConvOff.offsetFor(parmGroup);
 }
 
 rigibra::Attitude
