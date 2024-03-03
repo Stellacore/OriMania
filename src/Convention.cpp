@@ -530,7 +530,7 @@ Convention :: transformFor
 	{
 		// compute forward translation from inverse offset convention
 		Vector const & ty = tVec; // alias to indicate interpretation change
-		tVec = attR(ty);
+		tVec = inverse(attR)(ty);
 	}
 	return rigibra::Transform{ tVec, attR };
 }
