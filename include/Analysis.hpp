@@ -48,7 +48,21 @@ Example:
 
 namespace om
 {
-	//! Statistic representing error between ori{1,2}.
+	/*! Statistic: how much basis vectors change under 'ori' transform.
+	 *
+	 * The three basis vectors, {e1,e2,e3}, are transformed by ori and
+	 * the results are subtracted from the originals. This difference
+	 * represents the *combined* effect of rotation and translation.
+	 *
+	 * The RMSE statistic is computed as:
+	 * \arg sum the squares of the (3) components of (3) difference vectors
+	 * \arg divided this by the (3=9(mea)-6(dof)) statistical freedoms
+	 * \arg take the square root.
+	 *
+	 * Note: for a pure rotation, this is eqivalent to the columns
+	 * of the difference matrix of rotation matrix less identity
+	 * matrix - but here, translation effects are also included).
+	 */
 	inline
 	double
 	basisTransformRMSE
@@ -78,7 +92,23 @@ namespace om
 		return rmse;
 	}
 
-	//! Statistic representing error between ori{1,2}. 
+	/*! Statistic representing error between ori{1,2}wX. 
+	 *
+	 * Computation involves determining the relative orientation
+	 * \arg Ro2w1 = ori2wX * inverse(ori1wX)
+	 * 
+	 * The returned statistic is the error associated with transformation
+	 * of the basis vectors through the relative orientation - i.e.
+	 * the value of basisTransformRMSE() called with the Ro2w1 transform.
+	 *
+	 * If the two input orientations are about the same, then the
+	 * relative orientation is near identity. In that case, the basis
+	 * vectors transform almost into themselves, such that
+	 * \arg the more similar ori1wX and ori2wX
+	 * \arg the more close to identity is Ro2w1
+	 * \arg the more similar the transformed basis vectors are to original
+	 * \arg and the smaller is the reported RMSE value.
+	 */
 	inline
 	double
 	rmseBasisErrorBetween
