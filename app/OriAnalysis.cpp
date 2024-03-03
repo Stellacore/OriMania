@@ -68,7 +68,7 @@ namespace
 			{
 				std::cerr << '\n' << argv[0] << " Bad invocation:"
 					"\nUsage:"
-					"\n  <ProgName> <BoxPGPath> <IndPGPath> <OutPath>"
+					"\n  " << argv[0] << " <BoxPGPath> <IndPGPath> <OutPath>"
 					"\n\n"
 					;
 			}
