@@ -70,7 +70,7 @@ namespace
 		// Load indendent exterior body orientations from stream.
 		std::istringstream iss(eoFile.str());
 		using namespace om;
-		std::map<SenKey, SenOri> const indKeyOris{ loadIndEOs(iss) };
+		std::map<SenKey, SenOri> const indKeyOris{ loadOrientations(iss) };
 
 		// [DoxyExampleLoadIndEOs]
 

@@ -80,7 +80,7 @@ trimmed
 }
 
 std::map<SenKey, SenOri>
-loadIndEOs
+loadOrientations
 	( std::istream & istrm
 	)
 {

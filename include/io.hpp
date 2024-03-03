@@ -79,7 +79,7 @@ namespace om
 	 * \snippet test_io.cpp DoxyExampleLoadIndEOs
 	 */
 	std::map<SenKey, SenOri>
-	loadIndEOs
+	loadOrientations
 		( std::istream & istrm
 		);
 	

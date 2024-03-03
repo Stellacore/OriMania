@@ -178,7 +178,15 @@ namespace rpt
 
 /*! \brief Estimate payload sensor ExCal tranforms by analysing exported data.
  *
- * \arg Load independent EO's via om::loadIndEOs().
+ * \arg Load parameter group values associated with Box frame
+ * \arg Synthesize all possible Box frame conventions
+ * \arg Load parameter group values associated with Ind frame
+ * \arg Synthesize possible Box frame conventions (attitude changes only)
+ * \arg find combination of Box and Ind conventions that produce best fit
+ *
+ * Note: This approach is rather inefficience since the same attitude 
+ * object instances need to be recomputed over and over (e.g. many thousands
+ * of times).
  *
  */
 int
@@ -203,7 +211,6 @@ main
 	// try all internal conventions
 	std::vector<om::Convention> const allBoxCons
 		{ Convention::allConventions() };
-
 
 	// load exterior Ind parameter group from specified file
 	std::ifstream ifsIndPG(use.theIndPGPath);
