@@ -76,7 +76,13 @@ namespace om
 			( ParmGroup const & parmGroup
 			) const;
 
-		//! Assign a number to each convention (for easy tracking))
+		/*! Assign a number to each convention (for easy tracking))
+		 *
+		 * Number of index values is less than
+		 * \arg 5832 = 8(signs) * 27(offNdxOrder)
+		 *
+		 * Actual max index value is 210. (i.e. 211 element storage needed).
+		 */
 		std::size_t
 		indexValue
 			() const;
@@ -122,7 +128,13 @@ namespace om
 		allConventions
 			();
 
-		//! Assign a number to each convention (for easy tracking))
+		/*! Assign a number to each convention (for easy tracking))
+		 *
+		 * Number of index values is less than
+		 * \arg 5832 = 8(signs) * 27(angNdxOrder) * 27(bivNdxOrder)
+		 *
+		 * Actual max index value is 5693. (i.e. 5694 element storage needed).
+		 */
 		std::size_t
 		indexValue
 			() const;
