@@ -31,8 +31,8 @@
 #include "Convention.hpp"
 #include "io.hpp"
 #include "ParmGroup.hpp"
+#include "Timer.hpp"
 
-#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <locale>
@@ -159,59 +159,6 @@ namespace
 			oss << ' ' << keyPair.second.size();
 		}
 		return oss.str();
-	}
-
-	//! \brief High precision timer
-	struct Timer
-	{
-		std::string theName{};
-		std::chrono::time_point<std::chrono::high_resolution_clock>
-			theBeg{ std::chrono::high_resolution_clock::now() };
-		std::chrono::time_point<std::chrono::high_resolution_clock>
-			theEnd{ std::chrono::high_resolution_clock::now() };
-
-		inline
-		void
-		restart
-			()
-		{
-			theBeg = std::chrono::high_resolution_clock::now();
-		}
-
-		inline
-		void
-		stop
-			()
-		{
-			theEnd = std::chrono::high_resolution_clock::now();
-		}
-
-		inline
-		double
-		elapsed
-			() const
-		{
-			using namespace std::chrono;
-			duration const duro{ duration_cast<nanoseconds>(theEnd - theBeg) };
-			double const delta{ 1.e-9 * static_cast<double>(duro.count()) };
-			return delta;
-		}
-
-	}; // Timer
-
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, Timer const & tmr
-		)
-	{
-		ostrm
-			<< std::setw(15u) << std::fixed << tmr.elapsed()
-			<< ' '
-			<< tmr.theName
-			;
-		return ostrm;
 	}
 
 } // [anon]
@@ -473,7 +420,7 @@ namespace
 
 
 		// Conventions to try for Box frame
-		Timer timeBoxEOs{ "Time for Box orientation construction" };
+		om::Timer timeBoxEOs{ "Time for Box orientation construction" };
 		std::vector<ConventionOffset> const boxConOffs
 			{ ConventionOffset::allConventions() };
 		std::vector<ConventionAngle> const boxConAngs
@@ -483,7 +430,7 @@ namespace
 		timeBoxEOs.stop();
 
 		// Conventions to try for Ind frame
-		Timer timeIndEOs{ "Time for Ind orientation construction" };
+		om::Timer timeIndEOs{ "Time for Ind orientation construction" };
 //		std::vector<ConventionOffset> const indConOffs
 //			{ ConventionOffset::allConventions() };
 std::vector<ConventionOffset> const indConOffs
@@ -495,12 +442,12 @@ std::vector<ConventionOffset> const indConOffs
 		timeIndEOs.stop();
 
 		// Compute relative orientations in both the Box and Ind frames
-		Timer timeROs{ "Time for relative orientations" };
-		Timer timeBoxROs{ "Time for Box relative orientations" };
+		om::Timer timeROs{ "Time for relative orientations" };
+		om::Timer timeBoxROs{ "Time for Box relative orientations" };
 		std::map<SenKey, std::vector<ConOri> > const boxConROs
 			{ conventionROsWrtFirst(boxConOris, useSenKey) };
 		timeBoxROs.stop();
-		Timer timeIndROs{ "Time for Ind relative orientations" };
+		om::Timer timeIndROs{ "Time for Ind relative orientations" };
 		std::map<SenKey, std::vector<ConOri> > const indConROs
 			{ conventionROsWrtFirst(indConOris, useSenKey) };
 		timeIndROs.stop();
@@ -531,7 +478,7 @@ std::cout << "pairNumCons: " << commaNumber(pairNumCons) << '\n';
 		// per sensor: 55296(box) * 1152(ind) = 64M cases
 
 std::size_t rmseCount{ 0u };
-		Timer timeRMSEs{ "Time for RMSE computations" };
+		om::Timer timeRMSEs{ "Time for RMSE computations" };
 		bool firstPass{ true };
 		for (std::set<SenKey>::const_iterator itKey{senKeys.cbegin()}
 			; senKeys.cend() != itKey ; ++itKey)
@@ -638,10 +585,16 @@ std::cout << "indConOris.size: " << indConOris.size() << '\n';
 
 
 std::cout << "sorting" << std::endl;
-		Timer timeSort{ "Time for sorting results" };
-		// put smallest errors at front
+
+		// sort to put smallest errors at front
+
+		// [DoxyExampleTime]
+
+		om::Timer timeSort{ "Time for sorting results" };
 		std::sort(maxErrPairCons.begin(), maxErrPairCons.end());
 		timeSort.stop();
+
+		// [DoxyExampleTime]
 
 		ErrPairCon const & maxEPCBest = maxErrPairCons.front();
 		ErrPairCon const & maxEPCLast = maxErrPairCons.back();
