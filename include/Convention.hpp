@@ -48,6 +48,9 @@ Example:
 
 namespace om
 {
+	//! Type associated with Convention::numberEncoding() return value.
+	using ConNumId = std::int64_t;
+
 
 //
 // Convention for transformation parameters
@@ -182,11 +185,11 @@ namespace om
 		static
 		Convention
 		fromNumberEncoding
-			( std::int64_t const & numId
+			( ConNumId const & numId
 			);
 
 		//! Assign a number to each convention (for easy tracking))
-		std::int64_t
+		ConNumId
 		numberEncoding
 			() const;
 
