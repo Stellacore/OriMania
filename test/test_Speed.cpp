@@ -379,6 +379,92 @@ namespace om
 		return roSenConOris;
 	}
 
+	/*! \brief TODO
+	 *
+	 */
+	inline
+	void
+	computeMaxErrors
+		( std::set<SenKey> const & useSenKeys
+			//!< Sensor Keys to process
+		, std::map<SenKey, std::vector<ConOri> > const & boxConROs
+			//!< Orientation of each sensor in (Black)Box frame
+		, std::map<SenKey, std::vector<ConOri> > const & indConROs
+			//!< Orientation of each sensor in Ind(ependent) frame
+		, std::vector<ErrPairCon> * const ptMaxErrPairCons
+			//!< Data space in which to place results
+		)
+	{
+		// initialize result structure to zero values
+		ErrPairCon const zeroErrPairCon{ 0., { 0u, 0u } };
+		std::fill
+			( ptMaxErrPairCons->begin(), ptMaxErrPairCons->end()
+			, zeroErrPairCon
+			);
+
+std::size_t rmseCount{ 0u };
+		bool firstPass{ true };
+		for (std::set<SenKey>::const_iterator itKey{useSenKeys.cbegin()}
+			; useSenKeys.cend() != itKey ; ++itKey)
+		{
+			std::size_t ndxEPCs{ 0u };
+			SenKey const & senKey = *itKey;
+
+			using ItRO = std::map<SenKey, std::vector<ConOri> >::const_iterator;
+			ItRO const itBoxRO{ boxConROs.find(senKey) };
+			std::vector<ConOri> const & boxConOris = itBoxRO->second;
+
+std::cout << "Key:" << ' ' << senKey << ' ' << senKey << std::endl;
+
+			ItRO const itIndRO{ indConROs.find(senKey) };
+			std::vector<ConOri> const & indConOris = itIndRO->second;
+
+			// Loop over all box conventions (e.g. up to 55296)
+			// E.g. 55296 cases for full orientation convention coverage
+std::cout << "boxConOris.size: " << boxConOris.size() << '\n';
+std::cout << "indConOris.size: " << indConOris.size() << '\n';
+			for (ConOri const & boxConOri : boxConOris)
+			{
+				ConNumId const & boxConId = boxConOri.first;
+				SenOri const & boxRO = boxConOri.second;
+
+				// Loop over all ind conventions
+				// Up to 55296 for full convention, or 1152 if for angle only
+				for (ConOri const & indConOri : indConOris)
+				{
+					ConNumId const & indConId = indConOri.first;
+					SenOri const & indRO = indConOri.second;
+
+					// compute goodness of git for this sensor
+					double const rmse
+						{ rmseBasisErrorBetween2(boxRO, indRO) };
+++rmseCount;
+					PairConId const currPairConId{ boxConId, indConId };
+
+					// ErrPairCon = std::pair<double, PairConId>;
+					ErrPairCon & maxErrPairCon = (*ptMaxErrPairCons)[ndxEPCs++];
+					double & maxRMSE = maxErrPairCon.first;
+					PairConId & savePairConId = maxErrPairCon.second;
+					if (firstPass)
+					{
+						maxRMSE = rmse;
+						savePairConId = currPairConId;
+					}
+					else
+					{
+						maxRMSE = std::max(rmse, maxRMSE);
+						assertExit
+							((savePairConId == currPairConId), "pairConId");
+					}
+				}
+			}
+
+			firstPass = false;
+
+		} // senKey
+std::cout << "    rmseCount: " << om::commaNumber(rmseCount) << '\n';
+	}
+
 } // [om]
 
 
@@ -441,14 +527,23 @@ std::vector<ConventionOffset> const indConOffs
 
 		// Compare ROs between Box and Ind frames for each sensor
 
+		// list of sensor ROs to compare between Box and Ind frames
 		std::set<SenKey> const senKeys
 			{ keys::commonBetween(boxConROs, indConROs) };
 
+		// for processing remove the sensor used to form the ROs
+		// since it will always have identity relative orientation.
+		std::set<SenKey> useSenKeys{ senKeys };
+		useSenKeys.erase(useSenKey);
+
+		// Comparisons: per sensor {pair(boxCID,indCID), rmse}
+		// per sensor: 55296(box) * 1152(ind) = 64M cases
 		std::size_t const boxNumCons
 			{ 2u * boxConOffs.size() * boxConAngs.size() };
 		std::size_t const indNumCons
 			{ 2u * indConOffs.size() * indConAngs.size() };
 		std::size_t const pairNumCons{ boxNumCons * indNumCons };
+
 std::cout << " boxNumCons: " << boxNumCons << '\n';
 std::cout << " indNumCons: " << indNumCons << '\n';
 std::cout << "pairNumCons: " << om::commaNumber(pairNumCons) << '\n';
@@ -457,80 +552,9 @@ std::cout << "pairNumCons: " << om::commaNumber(pairNumCons) << '\n';
 		// using ErrPairCon = std::pair<double, PairConId>;
 		std::vector<ErrPairCon> maxErrPairCons;
 		maxErrPairCons.resize(pairNumCons);
-		ErrPairCon const zeroErrPairCon{ 0., { 0u, 0u } };
-		std::fill(maxErrPairCons.begin(), maxErrPairCons.end(), zeroErrPairCon);
 
-		// Comparisons: per sensor {pair(boxCID,indCID), rmse}
-		// per sensor: 55296(box) * 1152(ind) = 64M cases
-
-std::size_t rmseCount{ 0u };
 		om::Timer timeRMSEs{ "Time for RMSE computations" };
-		bool firstPass{ true };
-		for (std::set<SenKey>::const_iterator itKey{senKeys.cbegin()}
-			; senKeys.cend() != itKey ; ++itKey)
-		{
-			std::size_t ndxEPCs{ 0u };
-			SenKey const & senKey = *itKey;
-
-			// skip the sensor used to define RO base since all these
-			// RO values should be equal to identity (within numeric tolerance)
-			if (senKey == useSenKey)
-			{
-				continue;
-			}
-
-			using ItRO = std::map<SenKey, std::vector<ConOri> >::const_iterator;
-			ItRO const itBoxRO{ boxConROs.find(senKey) };
-			std::vector<ConOri> const & boxConOris = itBoxRO->second;
-
-std::cout << "Key:" << ' ' << senKey << ' ' << senKey << std::endl;
-
-			ItRO const itIndRO{ indConROs.find(senKey) };
-			std::vector<ConOri> const & indConOris = itIndRO->second;
-
-			// Loop over all box conventions (e.g. up to 55296)
-			// E.g. 55296 cases for full orientation convention coverage
-std::cout << "boxConOris.size: " << boxConOris.size() << '\n';
-std::cout << "indConOris.size: " << indConOris.size() << '\n';
-			for (ConOri const & boxConOri : boxConOris)
-			{
-				ConNumId const & boxConId = boxConOri.first;
-				SenOri const & boxRO = boxConOri.second;
-
-				// Loop over all ind conventions
-				// Up to 55296 for full convention, or 1152 if for angle only
-				for (ConOri const & indConOri : indConOris)
-				{
-					ConNumId const & indConId = indConOri.first;
-					SenOri const & indRO = indConOri.second;
-
-					// compute goodness of git for this sensor
-					double const rmse
-						{ rmseBasisErrorBetween2(boxRO, indRO) };
-++rmseCount;
-					PairConId const currPairConId{ boxConId, indConId };
-
-					// ErrPairCon = std::pair<double, PairConId>;
-					ErrPairCon & maxErrPairCon = maxErrPairCons[ndxEPCs++];
-					double & maxRMSE = maxErrPairCon.first;
-					PairConId & savePairConId = maxErrPairCon.second;
-					if (firstPass)
-					{
-						maxRMSE = rmse;
-						savePairConId = currPairConId;
-					}
-					else
-					{
-						maxRMSE = std::max(rmse, maxRMSE);
-						assertExit
-							((savePairConId == currPairConId), "pairConId");
-					}
-				}
-			}
-
-			firstPass = false;
-
-		} // senKey
+		computeMaxErrors(useSenKeys, boxConROs, indConROs, &maxErrPairCons);
 		timeRMSEs.stop();
 
 		// loop over results: expect:
@@ -632,7 +656,6 @@ std::cout << "  No. indAngs: " << indNumAng << '\n';
 std::cout << "  No.     ind: " << indNumCon << '\n';
 std::cout << "  No.   2xind: " << indNumTot << '\n';
 std::cout << "  No. all tot: " << om::commaNumber(allNumTot) << '\n';
-std::cout << "    rmseCount: " << om::commaNumber(rmseCount) << '\n';
 
 std::cout << '\n';
 std::cout << "maxEPCBest:"
