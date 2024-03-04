@@ -40,8 +40,76 @@
 #include <sstream>
 
 
+namespace keys
+{
+	//! Return keys from map (same sorted order as in map).
+	template< typename Key, typename Value >
+	inline
+	std::set<Key>
+	from
+		( std::map<Key, Value> const & aMap
+		)
+	{
+		std::set<Key> keys;
+		std::transform
+			( aMap.cbegin(), aMap.cend()
+			, std::inserter(keys, keys.end())
+			, [] (typename std::map<Key, Value>::value_type const & pair)
+				{ return pair.first; }
+			);
+		return keys;
+	}
+
+	//! Keys in common between both maps
+	template< typename Key, typename Value >
+	inline
+	std::set<Key>
+	commonBetween
+		( std::map<Key, Value> const & map1
+		, std::map<Key, Value> const & map2
+		)
+	{
+		std::set<Key> const keys1{ from(map1) };
+		std::set<Key> const keys2{ from(map2) };
+		std::set<Key> keysBoth;
+		std::set_intersection
+			( keys1.cbegin(), keys1.cend()
+			, keys2.cbegin(), keys2.cend()
+			, std::inserter(keysBoth, keysBoth.end())
+			);
+		return keysBoth;
+	}
+
+	//! Check if both maps have identical keys
+	template< typename Key, typename Value >
+	inline
+	bool
+	allMatch
+		( std::map<Key, Value> const & map1
+		, std::map<Key, Value> const & map2
+		)
+	{
+		bool same{ map1.size() == map2.size() };
+		if (same)
+		{
+			std::set<Key> const keys1{ from(map1) };
+			std::set<Key> const keys2{ from(map2) };
+			std::set<Key> keysBoth;
+			std::set_intersection
+				( keys1.cbegin(), keys1.cend()
+				, keys2.cbegin(), keys2.cend()
+				, std::inserter(keysBoth, keysBoth.end())
+				);
+			same = (map1.size() == keysBoth.size());
+		}
+		return same;
+	}
+
+} // [keys]
+
 namespace
 {
+	//! If mustBeTrue is not true, put msg to std::cerr and exit().
 	inline
 	void
 	assertExit
@@ -57,7 +125,43 @@ namespace
 		}
 	}
 
-	//! High precision timer
+	//! String for number using local for separating 1000's grouping
+	inline
+	std::string
+	commaNumber
+		( std::size_t const & num
+		)
+	{
+		std::stringstream ss;
+		ss.imbue(std::locale(""));
+		ss << std::fixed << num ;
+		return  ss.str();
+	}
+
+	//! String containing info on map and member vector sizes
+	template <typename Key, typename PairType>
+	inline
+	std::string
+	infoStringSizes
+		( std::map<Key, std::vector<PairType> > const keyPairs
+		, std::string const & name
+		)
+	{
+		std::ostringstream oss;
+		oss
+			<< name
+			<< " NumKeys: " << keyPairs.size()
+			<< " VectorSizes: "
+			;
+		for (typename std::map<Key, std::vector<PairType> >::value_type
+			const & keyPair : keyPairs)
+		{
+			oss << ' ' << keyPair.second.size();
+		}
+		return oss.str();
+	}
+
+	//! \brief High precision timer
 	struct Timer
 	{
 		std::string theName{};
@@ -107,17 +211,6 @@ namespace
 			<< ' '
 			<< tmr.theName
 			;
-		return ostrm;
-	}
-
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, std::pair<std::size_t, std::size_t> const & pair
-		)
-	{
-		ostrm << pair.first << ' ' << pair.second;
 		return ostrm;
 	}
 
@@ -194,6 +287,17 @@ namespace om
 
 namespace
 {
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::pair<std::size_t, std::size_t> const & pair
+		)
+	{
+		ostrm << pair.first << ' ' << pair.second;
+		return ostrm;
+	}
+
 	inline
 	std::ostream &
 	operator<<
@@ -342,114 +446,6 @@ namespace om
 		return roSenConOris;
 	}
 
-	//! Return keys from map (same sorted order as in map).
-	template< typename Key, typename Value >
-	inline
-	std::set<Key>
-	keysFrom
-		( std::map<Key, Value> const & aMap
-		)
-	{
-		std::set<Key> keys;
-		std::transform
-			( aMap.cbegin(), aMap.cend()
-			, std::inserter(keys, keys.end())
-			, [] (typename std::map<Key, Value>::value_type const & pair)
-				{ return pair.first; }
-			);
-		return keys;
-	}
-
-	//! Keys in common between both maps
-	template< typename Key, typename Value >
-	inline
-	std::set<Key>
-	keysInCommon
-		( std::map<Key, Value> const & map1
-		, std::map<Key, Value> const & map2
-		)
-	{
-		std::set<Key> const keys1{ keysFrom(map1) };
-		std::set<Key> const keys2{ keysFrom(map2) };
-		std::set<Key> keysBoth;
-		std::set_intersection
-			( keys1.cbegin(), keys1.cend()
-			, keys2.cbegin(), keys2.cend()
-			, std::inserter(keysBoth, keysBoth.end())
-			);
-		return keysBoth;
-	}
-
-	//! Check if both maps have identical keys
-	template< typename Key, typename Value >
-	inline
-	bool
-	allKeysMatch
-		( std::map<Key, Value> const & map1
-		, std::map<Key, Value> const & map2
-		)
-	{
-		bool same{ map1.size() == map2.size() };
-		if (same)
-		{
-			std::set<Key> const keys1{ keysFrom(map1) };
-			std::set<Key> const keys2{ keysFrom(map2) };
-			std::set<Key> keysBoth;
-			std::set_intersection
-				( keys1.cbegin(), keys1.cend()
-				, keys2.cbegin(), keys2.cend()
-				, std::inserter(keysBoth, keysBoth.end())
-				);
-			same = (map1.size() == keysBoth.size());
-		}
-		return same;
-	}
-
-	template< typename Key, typename Value >
-	inline
-	void
-	assertMatchingKeys
-		( std::map<Key, Value> const & map1
-		, std::map<Key, Value> const & map2
-		)
-	{
-		assertExit(allKeysMatch(map1, map2));
-	}
-
-	//! String for number using local for separating 1000's grouping
-	inline
-	std::string
-	commaNumber
-		( std::size_t const & num
-		)
-	{
-		std::stringstream ss;
-		ss.imbue(std::locale(""));
-		ss << std::fixed << num ;
-		return  ss.str();
-	}
-
-	template <typename PairType>
-	inline
-	void
-	showSizes
-		( std::map<SenKey, std::vector<PairType> > const keyPairs
-		, std::string const & name
-		)
-	{
-		std::cout
-			<< name
-			<< " NumKeys: " << keyPairs.size()
-			<< " Vectors: "
-			;
-		for (typename std::map<SenKey, std::vector<PairType> >::value_type
-			const & keyPair : keyPairs)
-		{
-			std::cout << ' ' << keyPair.second.size();
-		}
-		std::cout << std::endl;
-	}
-
 } // [om]
 
 
@@ -469,7 +465,7 @@ namespace
 		// Load Parameter Groups for two sensors in Ind frame
 		std::map<SenKey, ParmGroup> const & indPGs{ sim::indPGs() };
 
-		assertMatchingKeys(boxPGs, indPGs);
+		assertExit(keys::allMatch(boxPGs, indPGs));
 
 		// Use this sensor as reference for Relative Orientations
 		// SenKey const useSenKey("SimSen2");
@@ -512,7 +508,8 @@ std::vector<ConventionOffset> const indConOffs
 
 		// Compare ROs between Box and Ind frames for each sensor
 
-		std::set<SenKey> const senKeys{ keysInCommon(boxConROs, indConROs) };
+		std::set<SenKey> const senKeys
+			{ keys::commonBetween(boxConROs, indConROs) };
 
 		std::size_t const boxNumCons
 			{ 2u * boxConOffs.size() * boxConAngs.size() };
@@ -669,11 +666,11 @@ std::cout << "sorting" << std::endl;
 
 std::cout << '\n';
 std::cout << "Box:\n";
-showSizes(boxConOris, "boxConOris");
-showSizes(boxConROs, " boxConROs");
+std::cout << infoStringSizes(boxConOris, "boxConOris") << '\n';
+std::cout << infoStringSizes(boxConROs, " boxConROs") << '\n';
 std::cout << "Ind:\n";
-showSizes(indConOris, "indConOris");
-showSizes(indConROs, " indConROs");
+std::cout << infoStringSizes(indConOris, "indConOris") << '\n';
+std::cout << infoStringSizes(indConROs, " indConROs") << '\n';
 
 std::size_t const boxNumOff{ boxConOffs.size() };
 std::size_t const boxNumAng{ boxConAngs.size() };
