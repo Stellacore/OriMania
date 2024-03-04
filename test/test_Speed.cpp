@@ -42,6 +42,21 @@
 
 namespace
 {
+	inline
+	void
+	assertExit
+		( bool const & mustBeTrue
+		, std::string const & msg = {}
+		)
+	{
+		if (! mustBeTrue)
+		{
+			std::cerr << "Assert Error!\n";
+			std::cerr << msg << std::endl;
+			exit(18);
+		}
+	}
+
 	//! High precision timer
 	struct Timer
 	{
@@ -92,6 +107,17 @@ namespace
 			<< ' '
 			<< tmr.theName
 			;
+		return ostrm;
+	}
+
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::pair<std::size_t, std::size_t> const & pair
+		)
+	{
+		ostrm << pair.first << ' ' << pair.second;
 		return ostrm;
 	}
 
@@ -146,13 +172,40 @@ namespace sim
 
 namespace om
 {
+	using ConNumId = std::size_t;
 
-	using ConOri = std::pair<Convention, SenOri>;
+using ConOri = std::pair<ConNumId, SenOri>;
 
-	using ConRMSE = std::pair<Convention, double>;
+using ConRMSE = std::pair<ConNumId, double>;
 
-	using ErrCon = std::pair<double, Convention>;
+using ErrCon = std::pair<double, ConNumId>;
 
+	using PairConId = std::pair<ConNumId, ConNumId>;
+
+	using ErrPairCon = std::pair<double, PairConId>;
+
+} // [om]
+
+namespace
+{
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::ErrPairCon const & epc
+		)
+	{
+		using engabra::g3::io::fixed;
+		double const & err = epc.first;
+		om::PairConId const & pairConId = epc.second;
+		ostrm << fixed(err) << "  " << pairConId;
+		return ostrm;
+	}
+
+} // [anon}
+
+namespace om
+{
 
 	/*! \brief All orientations associated with offset and angle conventions.
 	 *
@@ -209,8 +262,10 @@ namespace om
 				Convention const convRT{ boxConOff, boxConAng, RotTran };
 
 				// Append convention/orientations
-				conOris.emplace_back(std::make_pair(convTR, oriTR));
-				conOris.emplace_back(std::make_pair(convRT, oriRT));
+				conOris.emplace_back
+					(std::make_pair(convTR.numberEncoding(), oriTR));
+				conOris.emplace_back
+					(std::make_pair(convRT.numberEncoding(), oriRT));
 			}
 		}
 
@@ -244,13 +299,11 @@ namespace om
 		)
 	{
 		std::map<SenKey, std::vector<ConOri> > roSenConOris;
-int cnt{ 0 };
 		if (! eoConOris.empty())
 		{
 			// Use first sensor as reference
 			std::map<SenKey, std::vector<ConOri> >::const_iterator
 				const itUse{ eoConOris.find(useKey) };
-std::cout << "### Using key: " << useKey << std::endl;
 
 			std::vector<ConOri> const & oriUses = itUse->second;
 			for (std::map<SenKey, std::vector<ConOri> >::const_iterator
@@ -259,24 +312,19 @@ std::cout << "### Using key: " << useKey << std::endl;
 				SenKey const & senKey = itAny->first;
 				std::vector<ConOri> const & oriAnys = itAny->second;
 				std::size_t const numOri{ oriUses.size() };
-				if (! (numOri == oriAnys.size()))
-				{
-					std::cerr << "Error in array sizes!" << std::endl;
-					exit(10);
-				}
+				assertExit((numOri == oriAnys.size())
+					, "Error in eoConOris array sizes");
 
-std::cout << "### computing key: " << senKey << std::endl;
 				std::vector<ConOri> conROs;
 				conROs.reserve(numOri);
 				for (std::size_t nn{0u} ; nn < numOri ; ++nn)
 				{
-					Convention const & conv = itUse->second[nn].first;
+					ConNumId const & convNumId = itUse->second[nn].first;
 					SenOri const & oriUseWrtRef = itUse->second[nn].second;
 					SenOri const & oriAnyWrtRef = itAny->second[nn].second;
 					SenOri const oriRefWrtUse{ inverse(oriUseWrtRef) };
 					SenOri const oriAnyWrtUse{ oriAnyWrtRef * oriRefWrtUse };
-					ConOri const conRO{ conv, oriAnyWrtUse };
-++cnt;
+					ConOri const conRO{ convNumId, oriAnyWrtUse };
 					conROs.emplace_back(conRO);
 				}
 				roSenConOris.emplace_hint
@@ -285,7 +333,6 @@ std::cout << "### computing key: " << senKey << std::endl;
 					);
 			}
 		}
-std::cout << "=== ro cnt: " << cnt << '\n';
 		return roSenConOris;
 	}
 
@@ -352,18 +399,6 @@ std::cout << "=== ro cnt: " << cnt << '\n';
 		return same;
 	}
 
-	inline
-	void
-	assertExit
-		( bool const & mustBeTrue
-		)
-	{
-		if (! mustBeTrue)
-		{
-			exit(18);
-		}
-	}
-
 	template< typename Key, typename Value >
 	inline
 	void
@@ -377,6 +412,7 @@ std::cout << "=== ro cnt: " << cnt << '\n';
 
 static std::size_t rmseCount{ 0u };
 
+	/*
 	inline
 	std::map<SenKey, std::vector<ConRMSE> >
 	rmseDifferencesBetween
@@ -397,21 +433,21 @@ static std::size_t rmseCount{ 0u };
 			std::vector<ConOri> const & conOri1s = it1->second;
 			std::vector<ConOri> const & conOri2s = it2->second;
 			std::size_t const numCons{ conOri1s.size() };
-			assertExit(numCons == conOri2s.size());
+			assertExit((numCons == conOri2s.size()), "numCons/conOri2s");
 			std::vector<ConRMSE> conRMSEs;
 			conRMSEs.reserve(numCons);
 			for (std::size_t nn{0u} ; nn < numCons ; ++nn)
 			{
 				// access convention data
-				Convention const & con1 = conOri1s[nn].first;
+				ConNumId const & conNumId1 = conOri1s[nn].first;
 				SenOri const & ori1 = conOri1s[nn].second;
-				Convention const & con2 = conOri2s[nn].first;
+				ConNumId const & conNumId2 = conOri2s[nn].first;
 				SenOri const & ori2 = conOri2s[nn].second;
-				assertExit(con1 == con2);
+				assertExit((conNumId1 == conNumId2), "conNumId[12]");
 
 				double const rmse{ rmseBasisErrorBetween(ori1, ori2) };
 ++rmseCount;
-				ConRMSE const conRMSE{ con1, rmse };
+				ConRMSE const conRMSE{ conNumId1, rmse };
 				conRMSEs.emplace_back(conRMSE);
 			}
 			keyConRMSEs.emplace_hint
@@ -420,6 +456,7 @@ static std::size_t rmseCount{ 0u };
 
 		return keyConRMSEs;
 	}
+	*/
 
 	//! For each convention, find the (sensor with) largest RMSE value.
 	inline
@@ -447,7 +484,7 @@ static std::size_t rmseCount{ 0u };
 		std::size_t const numSen{ ptConRMSEs.size() };
 
 		// safety check that all conventions data have same sizes
-		assertExit(! ptConRMSEs.empty());
+		assertExit((! ptConRMSEs.empty()), "ptConRMSEs.empty()");
 		std::size_t minNumCons{ ptConRMSEs.front()->size() };
 		for (std::size_t nSen{1u} ; nSen < numSen ; ++nSen)
 		{
@@ -462,12 +499,12 @@ static std::size_t rmseCount{ 0u };
 
 		for (std::size_t nCon{0u} ; nCon < minNumCons ; ++nCon)
 		{
-			Convention const & conv0 = (*(ptConRMSEs[0]))[nCon].first;
+			ConNumId const & conv0 = (*(ptConRMSEs[0]))[nCon].first;
 			double maxRMSE{ 0. }; // should match ROs with self
 			for (std::size_t nSen{0u} ; nSen < numSen ; ++nSen)
 			{
-				Convention const & conv2 = (*(ptConRMSEs[nSen]))[nCon].first;
-				assertExit(conv2 == conv0);
+				ConNumId const & conv2 = (*(ptConRMSEs[nSen]))[nCon].first;
+				assertExit((conv2 == conv0), "conv[02]");
 				double const & rmse = (*(ptConRMSEs[nSen]))[nCon].second;
 				if (maxRMSE < rmse)
 				{
@@ -497,17 +534,19 @@ static std::size_t rmseCount{ 0u };
 	inline
 	void
 	showSizes
-		( std::map<SenKey, std::vector<PairType> > const senConOris
+		( std::map<SenKey, std::vector<PairType> > const keyPairs
 		, std::string const & name
 		)
 	{
-		std::cout << name << "<SenKey,vector<ConOri>:sizes:"
-			<< " NumSen: " << senConOris.size()
+		std::cout
+			<< name
+			<< " NumKeys: " << keyPairs.size()
+			<< " Vectors: "
 			;
 		for (typename std::map<SenKey, std::vector<PairType> >::value_type
-			const & senConOri : senConOris)
+			const & keyPair : keyPairs)
 		{
-			std::cout << ' ' << senConOri.second.size();
+			std::cout << ' ' << keyPair.second.size();
 		}
 		std::cout << std::endl;
 	}
@@ -550,8 +589,10 @@ namespace
 
 		// Conventions to try for Ind frame
 		Timer timeIndEOs{ "Time for Ind orientation construction" };
-		std::vector<ConventionOffset> const indConOffs
-			{ ConventionOffset::allConventions() };
+//		std::vector<ConventionOffset> const indConOffs
+//			{ ConventionOffset::allConventions() };
+std::vector<ConventionOffset> const indConOffs
+	{ ConventionOffset{ ThreeSigns{ 1, 1, 1 }, ThreeIndices{ 0, 1, 2 } } };
 		std::vector<ConventionAngle> const indConAngs
 			{ ConventionAngle::allConventions() };
 		std::map<SenKey, std::vector<ConOri> > const indConOris
@@ -570,30 +611,144 @@ namespace
 		timeIndROs.stop();
 		timeROs.stop();
 
-showSizes(boxConOris, "boxConOris");
-showSizes(indConOris, "indConOris");
-showSizes(boxConROs, " boxConROs");
-showSizes(indConROs, " indConROs");
+		// Compare ROs between Box and Ind frames for each sensor
 
-//
-// TODO - need to use combination of boxCon and indCon (not assume they match)
-//
+		std::set<SenKey> const senKeys{ keysInCommon(boxConROs, indConROs) };
 
-		// Compute RMSE difference statistic between Relative orientations
+		std::size_t const boxNumCons
+			{ 2u * boxConOffs.size() * boxConAngs.size() };
+		std::size_t const indNumCons
+			{ 2u * indConOffs.size() * indConAngs.size() };
+		std::size_t const pairNumCons{ boxNumCons * indNumCons };
+std::cout << " boxNumCons: " << boxNumCons << '\n';
+std::cout << " indNumCons: " << indNumCons << '\n';
+std::cout << "pairNumCons: " << commaNumber(pairNumCons) << '\n';
+		
+		// using PairConId = std::pair<ConNumId, ConNumId>;
+		// using ErrPairCon = std::pair<double, PairConId>;
+		std::vector<ErrPairCon> maxErrPairCons;
+		maxErrPairCons.resize(pairNumCons);
+		ErrPairCon const zeroErrPairCon{ 0., { 0u, 0u } };
+		std::fill(maxErrPairCons.begin(), maxErrPairCons.end(), zeroErrPairCon);
+
+		// Comparisons: per sensor {pair(boxCID,indCID), rmse}
+		// per sensor: 55296(box) * 1152(ind) = 64M cases
+
 		Timer timeRMSEs{ "Time for RMSE computations" };
-		std::map<SenKey, std::vector<ConRMSE> > const keyConRMSEs
-			{ rmseDifferencesBetween(boxConROs, indConROs) };
+		bool firstPass{ true };
+		for (std::set<SenKey>::const_iterator itKey{senKeys.cbegin()}
+			; senKeys.cend() != itKey ; ++itKey)
+		{
+			std::size_t ndxEPCs{ 0u };
+			SenKey const & senKey = *itKey;
+
+			// skip the sensor used to define RO base since all these
+			// RO values should be equal to identity (within numeric tolerance)
+			if (senKey == useSenKey)
+			{
+				continue;
+			}
+
+			using ItRO = std::map<SenKey, std::vector<ConOri> >::const_iterator;
+			ItRO const itBoxRO{ boxConROs.find(senKey) };
+			std::vector<ConOri> const & boxConOris = itBoxRO->second;
+
+std::cout << "Key:" << ' ' << senKey << ' ' << senKey << std::endl;
+
+			ItRO const itIndRO{ indConROs.find(senKey) };
+			std::vector<ConOri> const & indConOris = itIndRO->second;
+
+			// Loop over all box conventions (e.g. up to 55296)
+			// E.g. 55296 cases for full orientation convention coverage
+std::cout << "boxConOris.size: " << boxConOris.size() << '\n';
+std::cout << "indConOris.size: " << indConOris.size() << '\n';
+			for (ConOri const & boxConOri : boxConOris)
+			{
+				ConNumId const & boxConId = boxConOri.first;
+				SenOri const & boxRO = boxConOri.second;
+
+				// Loop over all ind conventions
+				// Up to 55296 for full convention, or 1152 if for angle only
+				for (ConOri const & indConOri : indConOris)
+				{
+					ConNumId const & indConId = indConOri.first;
+					SenOri const & indRO = indConOri.second;
+
+					// compute goodness of git for this sensor
+					double const rmse
+						{ rmseBasisErrorBetween(boxRO, indRO) };
+					PairConId const currPairConId{ boxConId, indConId };
+
+					// ErrPairCon = std::pair<double, PairConId>;
+					ErrPairCon & maxErrPairCon = maxErrPairCons[ndxEPCs++];
+					double & maxRMSE = maxErrPairCon.first;
+					PairConId & savePairConId = maxErrPairCon.second;
+					if (firstPass)
+					{
+						maxRMSE = rmse;
+						savePairConId = currPairConId;
+					}
+					else
+					{
+						maxRMSE = std::max(rmse, maxRMSE);
+						assertExit
+							((savePairConId == currPairConId), "pairConId");
+					}
+				}
+			}
+
+			firstPass = false;
+
+		} // senKey
 		timeRMSEs.stop();
 
-		// Determine maximum RMSE errors per convention
-		std::vector<ErrCon> errCons
-			{ conventionMaxRMSEs(keyConRMSEs) };
+		// loop over results: expect:
+		// -- near zero err should have same conventions while
+		// -- larger errors should have different conventions
+		for (ErrPairCon const & maxErrPairCon : maxErrPairCons)
+		{
+			double const & gotErr = maxErrPairCon.first;
+			ConNumId const & cid1 = maxErrPairCon.second.first;
+			ConNumId const & cid2 = maxErrPairCon.second.second;
+			using namespace engabra::g3;
+			constexpr double expErr{ 0. };
+			if (cid1 == cid2)
+			{
+				if (! nearlyEqualsAbs(gotErr, expErr))
+				{
+					oss << "Failure of cid1==cid2 (zero)error test\n";
+					oss << "exp: " << expErr << '\n';
+					oss << "got: " << gotErr << '\n';
+					oss << "cid1: " << cid1 << '\n';
+					oss << "cid2: " << cid2 << '\n';
+					break;
+				}
+			}
+			else
+			{
+				if (  nearlyEqualsAbs(gotErr, expErr))
+				{
+					oss << "Failure of cid1!=cid2 (large)error test\n";
+					oss << "exp: " << expErr << '\n';
+					oss << "got: " << gotErr << '\n';
+					oss << "cid1: " << cid1 << '\n';
+					oss << "cid2: " << cid2 << '\n';
+					break;
+				}
+			}
+		}
 
+
+std::cout << "sorting" << std::endl;
+		Timer timeSort{ "Time for sorting results" };
 		// put smallest errors at front
-		std::sort(errCons.begin(), errCons.end());
+		std::sort(maxErrPairCons.begin(), maxErrPairCons.end());
+		timeSort.stop();
 
-		double const & gotErrMin = errCons.front().first;
-		double const & gotErrMax = errCons.back().first;
+		ErrPairCon const & maxEPCBest = maxErrPairCons.front();
+		ErrPairCon const & maxEPCLast = maxErrPairCons.back();
+		double const & gotErrMin = maxEPCBest.first;
+		double const & gotErrMax = maxEPCLast.first;
 		if (gotErrMax < gotErrMin)
 		{
 			using engabra::g3::io::fixed;
@@ -611,10 +766,13 @@ showSizes(indConROs, " indConROs");
 			oss << "got: " << fixed(gotErrMin) << '\n';
 		}
 
-
-std::cout << "boxConOris.size: " << boxConOris.size() << '\n';
-std::cout << "indConOris.size: " << indConOris.size() << '\n';
-std::cout << "rmseCount: " << rmseCount << '\n';
+std::cout << '\n';
+std::cout << "Box:\n";
+showSizes(boxConOris, "boxConOris");
+showSizes(boxConROs, " boxConROs");
+std::cout << "Ind:\n";
+showSizes(indConOris, "indConOris");
+showSizes(indConROs, " indConROs");
 
 std::size_t const boxNumOff{ boxConOffs.size() };
 std::size_t const boxNumAng{ boxConAngs.size() };
@@ -626,6 +784,7 @@ std::size_t const indNumCon{ indNumOff * indNumAng };
 std::size_t const indNumTot{ 2u * indNumCon };
 std::size_t const allNumTot{ boxNumTot * indNumTot };
 
+std::cout << '\n';
 std::cout << "Conventions:\n";
 std::cout << "  No. boxOffs: " << boxNumOff << '\n';
 std::cout << "  No. boxAngs: " << boxNumAng << '\n';
@@ -636,125 +795,26 @@ std::cout << "  No. indAngs: " << indNumAng << '\n';
 std::cout << "  No.     ind: " << indNumCon << '\n';
 std::cout << "  No.   2xind: " << indNumTot << '\n';
 std::cout << "  No. all tot: " << commaNumber(allNumTot) << '\n';
-
-/*
-std::set<SenKey> const senKeys{ keysInCommon(boxConROs, indConROs) };
-std::cout << "Common Keys: ";
-for (SenKey const & senKey : senKeys)
-{
-	std::cout << ' ' << senKey;
-}
-std::cout << std::endl;
-
-for (std::size_t nn{0u} ; nn < 9u ; ++nn)
-{
-	ErrCon const & errCon = errCons[nn];
-	using namespace engabra::g3;
-	std::cout
-		<< " err/conv:"
-		<< ' ' << io::fixed(errCon.first)
-		<< ' ' << errCon.second
-		<< '\n';
-}
-
-std::cout << "Box PGs:\n";
-for (std::map<SenKey, ParmGroup>::value_type const & boxPG : boxPGs)
-{
-	std::cout << boxPG.first << " " << boxPG.second << '\n';
-}
-
-std::cout << "Ind PGs:\n";
-for (std::map<SenKey, ParmGroup>::value_type const & indPG : indPGs)
-{
-	std::cout << indPG.first << " " << indPG.second << '\n';
-}
+std::cout << "    rmseCount: " << commaNumber(rmseCount) << '\n';
 
 std::cout << '\n';
-std::cout << "boxConOris: " << boxConOris.size() << '\n';
-std::cout << "indConOris: " << indConOris.size() << '\n';
-for (std::map<SenKey, std::vector<ConOri> >::value_type
-	const & boxConOri : boxConOris)
-{
-	std::cout << "...:"
-		<< " " << boxConOri.first
-		<< " " << boxConOri.second.size() << '\n';
-}
-for (std::map<SenKey, std::vector<ConOri> >::value_type
-	const & indConOri : indConOris)
-{
-	std::cout << "...:"
-		<< " " << indConOri.first
-		<< " " << indConOri.second.size() << '\n';
-	for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-	{
-		std::cout << "ori:"
-			<< "    " << indConOri.second[nn].first << '\n'
-			<< "    " << indConOri.second[nn].second << '\n'
-			;
-	}
-}
+std::cout << "maxEPCBest:"
+	<< ' ' << engabra::g3::io::fixed(maxEPCBest.first)
+	<< ' ' << maxEPCBest.second
+	<< '\n';
+std::cout << "maxEPCLast:"
+	<< ' ' << engabra::g3::io::fixed(maxEPCLast.first)
+	<< ' ' << maxEPCLast.second
+	<< '\n';
 
-std::cout << '\n';
-std::cout << "boxConROs: " << boxConROs.size() << '\n';
-for (std::map<SenKey, std::vector<ConOri> >::value_type
-	const & boxConOri : boxConROs)
-{
-	if (useSenKey == boxConOri.first)
-		{ std::cout << "###:"; }
-	else
-		{ std::cout << "...:"; }
-	std::cout
-		<< " " << boxConOri.first
-		<< " " << boxConOri.second.size() << '\n';
-	for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-	{
-		std::cout << " RO:"
-			<< "    " << boxConOri.second[nn].first.numberEncoding()
-			<< "    " << boxConOri.second[nn].second << '\n'
-			;
-	}
-}
-std::cout << "indConROs: " << indConROs.size() << '\n';
-for (std::map<SenKey, std::vector<ConOri> >::value_type
-	const & indConOri : indConROs)
-{
-	if (useSenKey == indConOri.first)
-		{ std::cout << "###:"; }
-	else
-		{ std::cout << "...:"; }
-	std::cout
-		<< " " << indConOri.first
-		<< " " << indConOri.second.size() << '\n';
-	for (std::size_t nn{0u} ; nn < 3u ; ++nn)
-	{
-		std::cout << " RO:"
-			<< "    " << indConOri.second[nn].first.numberEncoding()
-			<< "    " << indConOri.second[nn].second << '\n'
-			;
-	}
-}
+		std::cout << '\n';
+		for (std::size_t nn{0u} ; nn < 7u ; ++nn)
+		{
+			ErrPairCon const & epc = maxErrPairCons[nn];
+			std::cout << "ErrPairCon[" << std::setw(6) << nn << "]:"
+				<< ' ' << epc << '\n';
+		}
 
-
-std::cout << "sizeof(ConOri): " << sizeof(ConOri) << '\n';
-
-std::cout << "\nRMSEs:\n";
-for (std::map<SenKey, std::vector<ConRMSE> >::value_type
-	const & keyConRMSE : keyConRMSEs)
-{
-	std::vector<ConRMSE> const & conRMSEs = keyConRMSE.second;
-	std::cout << keyConRMSE.first << '\n';
-	for (std::size_t nn{0u} ; nn < 7u ; ++nn)
-	{
-		using engabra::g3::io::fixed;
-		std::cout
-			<< "   rmse:"
-			<< " " << fixed(conRMSEs[nn].second)
-			<< " " << conRMSEs[nn].first
-			<< '\n';
-	}
-	std::cout << "   rmse: ...\n";
-}
-*/
 
 std::cout << timeBoxEOs << std::endl;
 std::cout << timeIndEOs << std::endl;
@@ -762,7 +822,7 @@ std::cout << timeBoxROs << std::endl;
 std::cout << timeIndROs << std::endl;
 std::cout << timeROs << std::endl;
 std::cout << timeRMSEs << std::endl;
-
+std::cout << timeSort << std::endl;
 std::cout << std::endl;
 
 
