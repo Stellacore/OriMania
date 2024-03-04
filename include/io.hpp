@@ -97,6 +97,13 @@ namespace om
 // Descriptive strings for various items
 //
 
+
+	//! String for number using local for separating 1000's grouping
+	std::string
+	commaNumber
+		( std::size_t const & num
+		);
+
 	//! String with of FitNdxPair data with associated Convention
 	std::string
 	infoString

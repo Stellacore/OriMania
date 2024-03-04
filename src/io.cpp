@@ -29,6 +29,8 @@
 
 #include "io.hpp"
 
+#include <locale>
+
 
 namespace om
 {
@@ -249,6 +251,17 @@ loadParmGroups
 	}
 
 	return pgs;
+}
+
+std::string
+commaNumber
+	( std::size_t const & num
+	)
+{
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	ss << std::fixed << num ;
+	return  ss.str();
 }
 
 std::string

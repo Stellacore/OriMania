@@ -35,7 +35,6 @@
 
 #include <iomanip>
 #include <iostream>
-#include <locale>
 #include <set>
 #include <sstream>
 
@@ -123,19 +122,6 @@ namespace
 			std::cerr << msg << std::endl;
 			exit(18);
 		}
-	}
-
-	//! String for number using local for separating 1000's grouping
-	inline
-	std::string
-	commaNumber
-		( std::size_t const & num
-		)
-	{
-		std::stringstream ss;
-		ss.imbue(std::locale(""));
-		ss << std::fixed << num ;
-		return  ss.str();
 	}
 
 	//! String containing info on map and member vector sizes
@@ -465,7 +451,7 @@ std::vector<ConventionOffset> const indConOffs
 		std::size_t const pairNumCons{ boxNumCons * indNumCons };
 std::cout << " boxNumCons: " << boxNumCons << '\n';
 std::cout << " indNumCons: " << indNumCons << '\n';
-std::cout << "pairNumCons: " << commaNumber(pairNumCons) << '\n';
+std::cout << "pairNumCons: " << om::commaNumber(pairNumCons) << '\n';
 		
 		// using PairConId = std::pair<ConNumId, ConNumId>;
 		// using ErrPairCon = std::pair<double, PairConId>;
@@ -645,8 +631,8 @@ std::cout << "  No. indOffs: " << indNumOff << '\n';
 std::cout << "  No. indAngs: " << indNumAng << '\n';
 std::cout << "  No.     ind: " << indNumCon << '\n';
 std::cout << "  No.   2xind: " << indNumTot << '\n';
-std::cout << "  No. all tot: " << commaNumber(allNumTot) << '\n';
-std::cout << "    rmseCount: " << commaNumber(rmseCount) << '\n';
+std::cout << "  No. all tot: " << om::commaNumber(allNumTot) << '\n';
+std::cout << "    rmseCount: " << om::commaNumber(rmseCount) << '\n';
 
 std::cout << '\n';
 std::cout << "maxEPCBest:"
