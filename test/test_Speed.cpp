@@ -503,10 +503,16 @@ namespace
 
 		// Conventions to try for Ind frame
 		om::Timer timeIndEOs{ "Time for Ind orientation construction" };
-//		std::vector<ConventionOffset> const indConOffs
-//			{ ConventionOffset::allConventions() };
-std::vector<ConventionOffset> const indConOffs
-	{ ConventionOffset{ ThreeSigns{ 1, 1, 1 }, ThreeIndices{ 0, 1, 2 } } };
+//		#define UseAll
+		#ifdef UseAll
+		// Requires about 74 GB for maxErrPairCons array below
+		std::vector<ConventionOffset> const indConOffs
+			{ ConventionOffset::allConventions() };
+		#else
+		std::vector<ConventionOffset> const indConOffs
+			{ ConventionOffset{ThreeSigns{ 1, 1, 1 }, ThreeIndices{ 0, 1, 2 }}
+			};
+		#endif
 		std::vector<ConventionAngle> const indConAngs
 			{ ConventionAngle::allConventions() };
 		std::map<SenKey, std::vector<ConOri> > const indConOris
@@ -544,10 +550,22 @@ std::vector<ConventionOffset> const indConOffs
 			{ 2u * indConOffs.size() * indConAngs.size() };
 		std::size_t const pairNumCons{ boxNumCons * indNumCons };
 
-std::cout << " boxNumCons: " << boxNumCons << '\n';
-std::cout << " indNumCons: " << indNumCons << '\n';
-std::cout << "pairNumCons: " << om::commaNumber(pairNumCons) << '\n';
-		
+		constexpr bool showInfo{ true };
+		if (showInfo)
+		{
+			constexpr char nl{ '\n' };
+			std::cout << " boxNumCons: " << boxNumCons << nl;
+			std::cout << " indNumCons: " << indNumCons << nl;
+			std::cout << "pairNumCons: " << om::commaNumber(pairNumCons) << nl;
+			std::size_t const elemSize{ sizeof(ErrPairCon) };
+			std::size_t const vecSize{ elemSize * pairNumCons };
+			std::cout << nl;
+			std::cout << "ErrPairCon:\n";
+			std::cout << "   elemSize: " << elemSize << nl;
+			std::cout << "    vecSize: " << om::commaNumber(vecSize) << nl;
+			std::cout << nl;
+		}
+
 		// using PairConId = std::pair<ConNumId, ConNumId>;
 		// using ErrPairCon = std::pair<double, PairConId>;
 		std::vector<ErrPairCon> maxErrPairCons;
@@ -593,14 +611,10 @@ std::cout << "pairNumCons: " << om::commaNumber(pairNumCons) << '\n';
 			}
 		}
 
-
-std::cout << "sorting" << std::endl;
-
-		// sort to put smallest errors at front
-
 		// [DoxyExampleTime]
 
 		om::Timer timeSort{ "Time for sorting results" };
+		// sort to put smallest errors at front
 		std::sort(maxErrPairCons.begin(), maxErrPairCons.end());
 		timeSort.stop();
 
@@ -627,63 +641,67 @@ std::cout << "sorting" << std::endl;
 			oss << "got: " << fixed(gotErrMin) << '\n';
 		}
 
-std::cout << '\n';
-std::cout << "Box:\n";
-std::cout << infoStringSizes(boxConOris, "boxConOris") << '\n';
-std::cout << infoStringSizes(boxConROs, " boxConROs") << '\n';
-std::cout << "Ind:\n";
-std::cout << infoStringSizes(indConOris, "indConOris") << '\n';
-std::cout << infoStringSizes(indConROs, " indConROs") << '\n';
-
-std::size_t const boxNumOff{ boxConOffs.size() };
-std::size_t const boxNumAng{ boxConAngs.size() };
-std::size_t const boxNumCon{ boxNumOff * boxNumAng };
-std::size_t const boxNumTot{ 2u * boxNumCon };
-std::size_t const indNumOff{ indConOffs.size() };
-std::size_t const indNumAng{ indConAngs.size() };
-std::size_t const indNumCon{ indNumOff * indNumAng };
-std::size_t const indNumTot{ 2u * indNumCon };
-std::size_t const allNumTot{ boxNumTot * indNumTot };
-
-std::cout << '\n';
-std::cout << "Conventions:\n";
-std::cout << "  No. boxOffs: " << boxNumOff << '\n';
-std::cout << "  No. boxAngs: " << boxNumAng << '\n';
-std::cout << "  No.     box: " << boxNumCon << '\n';
-std::cout << "  No.   2xbox: " << boxNumTot << '\n';
-std::cout << "  No. indOffs: " << indNumOff << '\n';
-std::cout << "  No. indAngs: " << indNumAng << '\n';
-std::cout << "  No.     ind: " << indNumCon << '\n';
-std::cout << "  No.   2xind: " << indNumTot << '\n';
-std::cout << "  No. all tot: " << om::commaNumber(allNumTot) << '\n';
-
-std::cout << '\n';
-std::cout << "maxEPCBest:"
-	<< ' ' << engabra::g3::io::fixed(maxEPCBest.first)
-	<< ' ' << maxEPCBest.second
-	<< '\n';
-std::cout << "maxEPCLast:"
-	<< ' ' << engabra::g3::io::fixed(maxEPCLast.first)
-	<< ' ' << maxEPCLast.second
-	<< '\n';
-
-		std::cout << '\n';
-		for (std::size_t nn{0u} ; nn < 7u ; ++nn)
+		if (showInfo)
 		{
-			ErrPairCon const & epc = maxErrPairCons[nn];
-			std::cout << "ErrPairCon[" << std::setw(6) << nn << "]:"
-				<< ' ' << epc << '\n';
+			constexpr char nl{ '\n' };
+			std::cout << nl;
+			std::cout << "Box:\n";
+			std::cout << infoStringSizes(boxConOris, "boxConOris") << nl;
+			std::cout << infoStringSizes(boxConROs, " boxConROs") << nl;
+			std::cout << "Ind:\n";
+			std::cout << infoStringSizes(indConOris, "indConOris") << nl;
+			std::cout << infoStringSizes(indConROs, " indConROs") << nl;
+
+			std::size_t const boxNumOff{ boxConOffs.size() };
+			std::size_t const boxNumAng{ boxConAngs.size() };
+			std::size_t const boxNumCon{ boxNumOff * boxNumAng };
+			std::size_t const boxNumTot{ 2u * boxNumCon };
+			std::size_t const indNumOff{ indConOffs.size() };
+			std::size_t const indNumAng{ indConAngs.size() };
+			std::size_t const indNumCon{ indNumOff * indNumAng };
+			std::size_t const indNumTot{ 2u * indNumCon };
+			std::size_t const allNumTot{ boxNumTot * indNumTot };
+
+			std::cout << nl;
+			std::cout << "Conventions:\n";
+			std::cout << "  No. boxOffs: " << boxNumOff << nl;
+			std::cout << "  No. boxAngs: " << boxNumAng << nl;
+			std::cout << "  No.     box: " << boxNumCon << nl;
+			std::cout << "  No.   2xbox: " << boxNumTot << nl;
+			std::cout << "  No. indOffs: " << indNumOff << nl;
+			std::cout << "  No. indAngs: " << indNumAng << nl;
+			std::cout << "  No.     ind: " << indNumCon << nl;
+			std::cout << "  No.   2xind: " << indNumTot << nl;
+			std::cout << "  No. all tot: " << om::commaNumber(allNumTot) << nl;
+
+			std::cout << nl;
+			std::cout << "maxEPCBest:"
+				<< ' ' << engabra::g3::io::fixed(maxEPCBest.first)
+				<< ' ' << maxEPCBest.second
+				<< nl;
+			std::cout << "maxEPCLast:"
+				<< ' ' << engabra::g3::io::fixed(maxEPCLast.first)
+				<< ' ' << maxEPCLast.second
+				<< nl;
+
+			std::cout << nl;
+			for (std::size_t nn{0u} ; nn < 7u ; ++nn)
+			{
+				ErrPairCon const & epc = maxErrPairCons[nn];
+				std::cout << "ErrPairCon[" << std::setw(6) << nn << "]:"
+					<< ' ' << epc << nl;
+			}
+
+			std::cout << nl;
+			std::cout << timeBoxEOs << nl;
+			std::cout << timeIndEOs << nl;
+			std::cout << timeBoxROs << nl;
+			std::cout << timeIndROs << nl;
+			std::cout << timeROs << nl;
+			std::cout << timeRMSEs << nl;
+			std::cout << timeSort << nl;
+			std::cout << std::endl;
 		}
-
-
-std::cout << timeBoxEOs << std::endl;
-std::cout << timeIndEOs << std::endl;
-std::cout << timeBoxROs << std::endl;
-std::cout << timeIndROs << std::endl;
-std::cout << timeROs << std::endl;
-std::cout << timeRMSEs << std::endl;
-std::cout << timeSort << std::endl;
-std::cout << std::endl;
 
 
 	}
