@@ -135,6 +135,16 @@ namespace sim
 		  "\n Angles:    SimSen2 .25 .5 .75"
 		  "\n Distances: SimSen3 .1 .2 .3"
 		  "\n Angles:    SimSen3 .7 .6 .5"
+		/*
+		  "\n Distances: SimSen4 1.1 1.2 1.3"
+		  "\n Angles:    SimSen4 .7 .6 .5"
+		  "\n Distances: SimSen5 1.1 1.2 1.3"
+		  "\n Angles:    SimSen5 .7 .6 .5"
+		  "\n Distances: SimSen6 1.1 1.2 1.3"
+		  "\n Angles:    SimSen6 .7 .6 .5"
+		  "\n Distances: SimSen7 1.1 1.2 1.3"
+		  "\n Angles:    SimSen7 .7 .6 .5"
+		*/
 		);
 	/*
 	static std::string const sFileContentIndPG
@@ -174,11 +184,7 @@ namespace om
 {
 	using ConNumId = std::size_t;
 
-using ConOri = std::pair<ConNumId, SenOri>;
-
-using ConRMSE = std::pair<ConNumId, double>;
-
-using ErrCon = std::pair<double, ConNumId>;
+	using ConOri = std::pair<ConNumId, SenOri>;
 
 	using PairConId = std::pair<ConNumId, ConNumId>;
 
@@ -410,113 +416,6 @@ namespace om
 		assertExit(allKeysMatch(map1, map2));
 	}
 
-static std::size_t rmseCount{ 0u };
-
-	/*
-	inline
-	std::map<SenKey, std::vector<ConRMSE> >
-	rmseDifferencesBetween
-		( std::map<SenKey, std::vector<ConOri> > const & keyConOri1s
-		, std::map<SenKey, std::vector<ConOri> > const & keyConOri2s
-		)
-	{
-		std::map<SenKey, std::vector<ConRMSE> > keyConRMSEs;
-
-		// keys common to both maps
-		std::set<SenKey> const senKeys
-			{ keysInCommon(keyConOri1s, keyConOri2s) };
-		for (SenKey const & senKey : senKeys)
-		{
-			using Iter = std::map<SenKey, std::vector<ConOri> >::const_iterator;
-			Iter const it1{ keyConOri1s.find(senKey) };
-			Iter const it2{ keyConOri2s.find(senKey) };
-			std::vector<ConOri> const & conOri1s = it1->second;
-			std::vector<ConOri> const & conOri2s = it2->second;
-			std::size_t const numCons{ conOri1s.size() };
-			assertExit((numCons == conOri2s.size()), "numCons/conOri2s");
-			std::vector<ConRMSE> conRMSEs;
-			conRMSEs.reserve(numCons);
-			for (std::size_t nn{0u} ; nn < numCons ; ++nn)
-			{
-				// access convention data
-				ConNumId const & conNumId1 = conOri1s[nn].first;
-				SenOri const & ori1 = conOri1s[nn].second;
-				ConNumId const & conNumId2 = conOri2s[nn].first;
-				SenOri const & ori2 = conOri2s[nn].second;
-				assertExit((conNumId1 == conNumId2), "conNumId[12]");
-
-				double const rmse{ rmseBasisErrorBetween(ori1, ori2) };
-++rmseCount;
-				ConRMSE const conRMSE{ conNumId1, rmse };
-				conRMSEs.emplace_back(conRMSE);
-			}
-			keyConRMSEs.emplace_hint
-				(keyConRMSEs.end(), std::make_pair(senKey, conRMSEs));
-		}
-
-		return keyConRMSEs;
-	}
-	*/
-
-	//! For each convention, find the (sensor with) largest RMSE value.
-	inline
-	std::vector<ErrCon>
-	conventionMaxRMSEs
-		( std::map<SenKey, std::vector<ConRMSE> > const & keyConRMSEs
-		)
-	{
-		std::vector<ErrCon> errCons;
-
-		// organize pointers into data structures
-		std::vector<SenKey> senKeys;
-		std::vector<std::vector<ConRMSE> const *> ptConRMSEs;
-
-		senKeys.reserve(keyConRMSEs.size());
-		ptConRMSEs.reserve(keyConRMSEs.size());
-
-		for (std::map<SenKey, std::vector<ConRMSE> >::value_type
-			const & keyConRMSE : keyConRMSEs)
-		{
-			senKeys.emplace_back(keyConRMSE.first);
-			ptConRMSEs.emplace_back( &(keyConRMSE.second) );
-		}
-
-		std::size_t const numSen{ ptConRMSEs.size() };
-
-		// safety check that all conventions data have same sizes
-		assertExit((! ptConRMSEs.empty()), "ptConRMSEs.empty()");
-		std::size_t minNumCons{ ptConRMSEs.front()->size() };
-		for (std::size_t nSen{1u} ; nSen < numSen ; ++nSen)
-		{
-			std::size_t const conSize{ ptConRMSEs[nSen]->size() };
-			if (conSize < minNumCons)
-			{
-				minNumCons = conSize;
-			}
-		}
-
-		errCons.reserve(minNumCons);
-
-		for (std::size_t nCon{0u} ; nCon < minNumCons ; ++nCon)
-		{
-			ConNumId const & conv0 = (*(ptConRMSEs[0]))[nCon].first;
-			double maxRMSE{ 0. }; // should match ROs with self
-			for (std::size_t nSen{0u} ; nSen < numSen ; ++nSen)
-			{
-				ConNumId const & conv2 = (*(ptConRMSEs[nSen]))[nCon].first;
-				assertExit((conv2 == conv0), "conv[02]");
-				double const & rmse = (*(ptConRMSEs[nSen]))[nCon].second;
-				if (maxRMSE < rmse)
-				{
-					maxRMSE = rmse;
-				}
-			}
-			errCons.emplace_back( std::make_pair(maxRMSE, conv0));
-		}
-
-		return errCons;
-	}
-
 	//! String for number using local for separating 1000's grouping
 	inline
 	std::string
@@ -634,6 +533,7 @@ std::cout << "pairNumCons: " << commaNumber(pairNumCons) << '\n';
 		// Comparisons: per sensor {pair(boxCID,indCID), rmse}
 		// per sensor: 55296(box) * 1152(ind) = 64M cases
 
+std::size_t rmseCount{ 0u };
 		Timer timeRMSEs{ "Time for RMSE computations" };
 		bool firstPass{ true };
 		for (std::set<SenKey>::const_iterator itKey{senKeys.cbegin()}
@@ -676,7 +576,8 @@ std::cout << "indConOris.size: " << indConOris.size() << '\n';
 
 					// compute goodness of git for this sensor
 					double const rmse
-						{ rmseBasisErrorBetween(boxRO, indRO) };
+						{ rmseBasisErrorBetween2(boxRO, indRO) };
+++rmseCount;
 					PairConId const currPairConId{ boxConId, indConId };
 
 					// ErrPairCon = std::pair<double, PairConId>;
