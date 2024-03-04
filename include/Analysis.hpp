@@ -48,7 +48,88 @@ Example:
 
 namespace om
 {
-	/*! Statistic: how much basis vectors change under 'ori' transform.
+	//! A collection of 3 vectors
+	using Triad = std::array<engabra::g3::Vector, 3u>;
+
+	//! Triad of orthonormal (dextral) basis vectors
+	constexpr Triad sBasisTriad
+		{ engabra::g3::e1
+		, engabra::g3::e2
+		, engabra::g3::e3
+		};
+
+	//! Transform each vector in triFrom via ori.
+	inline
+	Triad
+	triadTransformed
+		( SenOri const & ori
+		, Triad const & triFrom
+		)
+	{
+		Triad tryInto;
+		tryInto[0] = ori(triFrom[0]);
+		tryInto[1] = ori(triFrom[1]);
+		tryInto[2] = ori(triFrom[2]);
+		return tryInto;
+	}
+
+	//! Transformed standard basis
+	inline
+	Triad
+	basisTransformed
+		( SenOri const & ori
+		)
+	{
+		return triadTransformed(ori, sBasisTriad);
+	}
+
+	//! Root mean square error in components of (triB - triA).
+	inline
+	double
+	rmseDiff
+		( Triad const & triA
+		, Triad const & triB
+		)
+	{
+		// Sum of (sum of) squared components
+		double const sse
+			{ engabra::g3::magSq(triB[0] - triA[0]) // sse of 3 components
+			+ engabra::g3::magSq(triB[1] - triA[1]) // sse of 3 components
+			+ engabra::g3::magSq(triB[2] - triA[2]) // sse of 3 components
+			};
+		// Statistical degrees of freedom
+		constexpr double numComp{ 9. }; // 9 total components being compared
+		constexpr double numParm{ 6. }; // 3 offset and 3 translation freedoms
+		constexpr double statDof{ numComp - numParm }; // add to residual
+		return std::sqrt((1./statDof) * sse); // estimated component error
+	}
+
+	/*! \brief Different implementation of rmseBasisErrorBetween1.
+	 *
+	 * With current (2024.03.03) Rigibra library, this implementation
+	 * is a bit faster (takes about 15/24 ~ 60% or so of the time)
+	 */
+	inline
+	double
+	rmseBasisErrorBetween2
+		( SenOri const & ori1wX
+		, SenOri const & ori2wX
+		)
+	{
+		double rmse{ engabra::g3::null<double>() };
+		using namespace engabra::g3;
+		using namespace rigibra;
+		if (isValid(ori1wX) && isValid(ori2wX))
+		{
+			Triad const tri1{ basisTransformed(ori1wX) };
+			Triad const tri2{ basisTransformed(ori2wX) };
+			rmse = rmseDiff(tri1, tri2);
+		}
+		return rmse;
+	}
+
+
+	/*! \brief Statistic: how much basis vectors change under 'ori' transform.
 	 *
 	 * The three basis vectors, {e1,e2,e3}, are transformed by ori and
 	 * the results are subtracted from the originals. This difference
@@ -91,7 +172,7 @@ namespace om
 		return rmse;
 	}
 
-	/*! Statistic representing error between ori{1,2}wX. 
+	/*! \brief Statistic representing error between ori{1,2}wX. 
 	 *
 	 * Computation involves determining the relative orientation
 	 * \arg Ro2w1 = ori2wX * inverse(ori1wX)
@@ -110,7 +191,7 @@ namespace om
 	 */
 	inline
 	double
-	rmseBasisErrorBetween
+	rmseBasisErrorBetween1
 		( SenOri const & ori1wX
 		, SenOri const & ori2wX
 		)
@@ -199,7 +280,7 @@ namespace om
 					SenOri const roBox
 						{ relativeOrientationFor(pg1, pg2, convention) };
 					double const fitError
-						{ rmseBasisErrorBetween(roBox, relOri) };
+						{ rmseBasisErrorBetween2(roBox, relOri) };
 					sumFitErrors[cNdx] += fitError;
 				}
 			}
