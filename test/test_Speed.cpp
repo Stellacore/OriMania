@@ -28,6 +28,7 @@
 */
 
 
+#include "Combo.hpp"
 #include "Convention.hpp"
 #include "io.hpp"
 #include "ParmGroup.hpp"
@@ -208,10 +209,6 @@ namespace sim
 
 namespace om
 {
-	using ConNumId = std::size_t;
-
-	using ConOri = std::pair<ConNumId, SenOri>;
-
 	using PairConId = std::pair<ConNumId, ConNumId>;
 
 	using ErrPairCon = std::pair<double, PairConId>;
@@ -250,93 +247,9 @@ namespace
 namespace om
 {
 
-	/*! \brief All orientations associated with offset and angle conventions.
-	 *
-	 * Creates orientations that:
-	 * \arg use ParmGroup values
-	 * \arg combinatorially combine offsets and angles
-	 * \arg include "false" translations associated with order differences
-	 *
-	 * The OrderTR is addressed by computating an equivalent domain expression
-	 * for a translation vector computed from range expression and (inverse)
-	 * attitude. E.g. orientations are produced as
-	 * \arg <offsetTR, angle> -- for TranRot order where offsetRT is the
-	 * offset formed by the ParmGroup and boxConOff convention.
-	 * \arg <offsetRT, angle> -- for RotTran order where offsetRT is a
-	 * transformed version of offsetTR.
-	 */
-	inline
-	std::vector<ConOri>
-	conventionOrientationPairsFor
-		( std::vector<ConventionOffset> const & boxConOffs
-		, std::vector<ConventionAngle> const & boxConAngs
-		, ParmGroup const & parmGroup
-		)
-	{
-		std::vector<ConOri> conOris;
-		// combinations of offsets and angles for each of two OrderTR's
-		std::size_t const numOris
-			{ boxConAngs.size() * boxConOffs.size() * 2u };
-		conOris.reserve(numOris);
-
-		// combinatorially evaluate all convention/orientations
-		for (ConventionAngle const & boxConAng : boxConAngs)
-		{
-			// compute the attitude for this angle convention
-			// domain: X
-			//  range: Y
-			rigibra::Attitude const attYwX{ boxConAng.attitudeFor(parmGroup) };
-			rigibra::Attitude const attXwY{ inverse(attYwX) };
-
-			for (ConventionOffset const & boxConOff : boxConOffs)
-			{
-				// compute offset for each order convention
-				using namespace engabra::g3;
-				Vector const trans{ boxConOff.offsetFor(parmGroup) };
-
-				// Translate then Rotate (offset is in domain, 'X')
-				Vector const & tTR = trans;
-				SenOri const oriTR{ tTR, attYwX };
-				Convention const convTR{ boxConOff, boxConAng, TranRot };
-
-				// Rotate then Translate (offset is in range, 'Y')
-				Vector const tRT{ attXwY(trans) };
-				SenOri const oriRT{ tRT, attYwX };
-				Convention const convRT{ boxConOff, boxConAng, RotTran };
-
-				// Append convention/orientations
-				conOris.emplace_back
-					(std::make_pair(convTR.numberEncoding(), oriTR));
-				conOris.emplace_back
-					(std::make_pair(convRT.numberEncoding(), oriRT));
-			}
-		}
-
-		return conOris;
-	}
-
-	//! Collection of conventionOrientationPairsFor() by sensor key.
-	inline
-	std::map<SenKey, std::vector<ConOri> >
-	conventionOrientationsFor
-		( std::vector<ConventionOffset> const & boxConOffs
-		, std::vector<ConventionAngle> const & boxConAngs
-		, std::map<SenKey, ParmGroup> const & parmGroups
-		)
-	{
-		std::map<SenKey, std::vector<ConOri> > conOris;
-		for (std::map<SenKey, ParmGroup>::value_type
-			const & parmGroup : parmGroups)
-		{
-			conOris[parmGroup.first] = conventionOrientationPairsFor
-				(boxConOffs, boxConAngs, parmGroup.second);
-		}
-		return conOris;
-	}
-
 	//! Convention and orientations *RELATIVE TO FIRST Sensor* 
 	std::map<SenKey, std::vector<ConOri> >
-	conventionROsWrtFirst
+	conventionROsWrtUseKey
 		( std::map<SenKey, std::vector<ConOri> > const & eoConOris
 		, SenKey const & useKey
 		)
@@ -523,11 +436,11 @@ namespace
 		om::Timer timeROs{ "Time for relative orientations" };
 		om::Timer timeBoxROs{ "Time for Box relative orientations" };
 		std::map<SenKey, std::vector<ConOri> > const boxConROs
-			{ conventionROsWrtFirst(boxConOris, useSenKey) };
+			{ conventionROsWrtUseKey(boxConOris, useSenKey) };
 		timeBoxROs.stop();
 		om::Timer timeIndROs{ "Time for Ind relative orientations" };
 		std::map<SenKey, std::vector<ConOri> > const indConROs
-			{ conventionROsWrtFirst(indConOris, useSenKey) };
+			{ conventionROsWrtUseKey(indConOris, useSenKey) };
 		timeIndROs.stop();
 		timeROs.stop();
 
