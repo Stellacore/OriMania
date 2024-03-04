@@ -45,6 +45,7 @@ set(mainProgs
 	test_Permute # manage permutations of transformations
 	test_ParmGroup # manipulation of parameter groupings into orientations
 	test_Rotation # limited support for rotation conversions
+	test_Speed # solve simple case - useful for timing tests
 
 	)
 
