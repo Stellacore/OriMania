@@ -76,7 +76,7 @@ namespace om
 			( ParmGroup const & parmGroup
 			) const;
 
-		/*! Assign a number to each convention (for easy tracking))
+		/*! \brief Assign a number to each convention (for easy tracking))
 		 *
 		 * Number of index values is less than
 		 * \arg 5832 = 8(signs) * 27(offNdxOrder)
@@ -128,7 +128,7 @@ namespace om
 		allConventions
 			();
 
-		/*! Assign a number to each convention (for easy tracking))
+		/*! \brief Assign a number to each convention (for easy tracking))
 		 *
 		 * Number of index values is less than
 		 * \arg 5832 = 8(signs) * 27(angNdxOrder) * 27(bivNdxOrder)
