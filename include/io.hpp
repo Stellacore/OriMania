@@ -98,7 +98,7 @@ namespace om
 //
 
 
-	//! String for number using local for separating 1000's grouping
+	//! String for number using locale for separating 1000's grouping
 	std::string
 	commaNumber
 		( std::size_t const & num
