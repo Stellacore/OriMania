@@ -567,13 +567,13 @@ ConventionString :: from
 	)
 {
 	std::string const strOffSigns
-		{ stringFrom(convention.theConvAng.theAngSigns) };
-	std::string const strOffNdxs
-		{ stringFrom(convention.theConvAng.theAngIndices) };
-	std::string const strAngSigns
 		{ stringFrom(convention.theConvOff.theOffSigns) };
-	std::string const strAngNdxs
+	std::string const strOffNdxs
 		{ stringFrom(convention.theConvOff.theOffIndices) };
+	std::string const strAngSigns
+		{ stringFrom(convention.theConvAng.theAngSigns) };
+	std::string const strAngNdxs
+		{ stringFrom(convention.theConvAng.theAngIndices) };
 	std::string const strBivNdxs
 		{ stringFrom(convention.theConvAng.theBivIndices) };
 	std::string const strOrder
