@@ -40,7 +40,7 @@
 namespace om
 {
 
-	/*! Classic photogrammetric convention from smaller rotations.
+	/*! \brief Classic photogrammetric convention from smaller rotations.
 	 *
 	 * Algorithm is simplification that assumes rotations are small enough
 	 * to stay away from gimbals lock. (i.e., that phi rotation magnitude

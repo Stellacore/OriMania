@@ -283,6 +283,16 @@ namespace
 			oss << "exp: " << expUniq << '\n';
 			oss << "got: " << uniqNdxs.size() << '\n';
 		}
+
+		constexpr std::size_t expMaxNdx{ 216u }; // 8*27
+		std::size_t const gotMaxNdx
+			{ *( std::max_element(uniqNdxs.cbegin(), uniqNdxs.cend()) ) };
+		if (! (gotMaxNdx < expMaxNdx))
+		{
+			oss << "Failure of offset max index value test\n";
+			oss << "exp: " << expMaxNdx << '\n';
+			oss << "got: " << gotMaxNdx << '\n';
+		}
 	}
 
 	//! Check Convention Angle index generation
@@ -317,6 +327,16 @@ namespace
 			oss << "Failure of unique angle index test\n";
 			oss << "exp: " << expUniq << '\n';
 			oss << "got: " << uniqNdxs.size() << '\n';
+		}
+
+		constexpr std::size_t expMaxNdx{ 5832 }; // 8*27*27
+		std::size_t const gotMaxNdx
+			{ *( std::max_element(uniqNdxs.cbegin(), uniqNdxs.cend()) ) };
+		if (! (gotMaxNdx < expMaxNdx))
+		{
+			oss << "Failure of offset max index value test\n";
+			oss << "exp: " << expMaxNdx << '\n';
+			oss << "got: " << gotMaxNdx << '\n';
 		}
 	}
 }

@@ -97,6 +97,13 @@ namespace om
 // Descriptive strings for various items
 //
 
+
+	//! String for number using locale for separating 1000's grouping
+	std::string
+	commaNumber
+		( std::size_t const & num
+		);
+
 	//! String with of FitNdxPair data with associated Convention
 	std::string
 	infoString
@@ -120,6 +127,30 @@ namespace om
 		, std::size_t const & showNumBeg = 8u
 		, std::size_t const & showNumEnd = 2u
 		);
+
+	//! String containing info on map and member vector sizes
+	template <typename Key, typename PairType>
+	inline
+	std::string
+	infoStringSizes
+		( std::map<Key, std::vector<PairType> > const keyPairs
+		, std::string const & name
+		)
+	{
+		std::ostringstream oss;
+		oss
+			<< name
+			<< " NumKeys: " << keyPairs.size()
+			<< " VectorSizes: "
+			;
+		for (typename std::map<Key, std::vector<PairType> >::value_type
+			const & keyPair : keyPairs)
+		{
+			oss << ' ' << keyPair.second.size();
+		}
+		return oss.str();
+	}
+
 
 } // [om]
 
@@ -278,6 +309,33 @@ namespace
 		)
 	{
 		ostrm << trialResult.infoString();
+		return ostrm;
+	}
+
+	//! Useful for PairConId - {box,ind} Convention::NumericEncoding() pairs.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::pair<std::size_t, std::size_t> const & pair
+		)
+	{
+		ostrm << pair.first << ' ' << pair.second;
+		return ostrm;
+	}
+
+	//! Put (RMSE) RO error and {box,ind} Convention.numberEncoding() to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::ErrPairCon const & epc
+		)
+	{
+		using engabra::g3::io::fixed;
+		double const & err = epc.first;
+		om::PairConId const & pairConId = epc.second;
+		ostrm << fixed(err) << "  " << pairConId;
 		return ostrm;
 	}
 

@@ -35,20 +35,119 @@ Example:
 */
 
 
+#include "assert.hpp"
+#include "Combo.hpp"
 #include "Convention.hpp"
 #include "Orientation.hpp"
 
 #include <Engabra>
 #include <Rigibra>
 
+#include <algorithm>
 #include <map>
+#include <set>
 #include <vector>
 
 
 
 namespace om
 {
-	//! Statistic representing error between ori{1,2}.
+	//! A collection of 3 vectors
+	using Triad = std::array<engabra::g3::Vector, 3u>;
+
+	//! Triad of orthonormal (dextral) basis vectors
+	constexpr Triad sBasisTriad
+		{ engabra::g3::e1
+		, engabra::g3::e2
+		, engabra::g3::e3
+		};
+
+	//! Transform each vector in triFrom via ori.
+	inline
+	Triad
+	triadTransformed
+		( SenOri const & ori
+		, Triad const & triFrom
+		)
+	{
+		Triad tryInto;
+		tryInto[0] = ori(triFrom[0]);
+		tryInto[1] = ori(triFrom[1]);
+		tryInto[2] = ori(triFrom[2]);
+		return tryInto;
+	}
+
+	//! Transformed standard basis
+	inline
+	Triad
+	basisTransformed
+		( SenOri const & ori
+		)
+	{
+		return triadTransformed(ori, sBasisTriad);
+	}
+
+	//! Root mean square error in components of (triB - triA).
+	inline
+	double
+	rmseDiff
+		( Triad const & triA
+		, Triad const & triB
+		)
+	{
+		// Sum of (sum of) squared components
+		double const sse
+			{ engabra::g3::magSq(triB[0] - triA[0]) // sse of 3 components
+			+ engabra::g3::magSq(triB[1] - triA[1]) // sse of 3 components
+			+ engabra::g3::magSq(triB[2] - triA[2]) // sse of 3 components
+			};
+		// Statistical degrees of freedom
+		constexpr double numComp{ 9. }; // 9 total components being compared
+		constexpr double numParm{ 6. }; // 3 offset and 3 translation freedoms
+		constexpr double statDof{ numComp - numParm }; // add to residual
+		return std::sqrt((1./statDof) * sse); // estimated component error
+	}
+
+	/*! \brief Different implementation of rmseBasisErrorBetween1.
+	 *
+	 * With current (2024.03.03) Rigibra library, this implementation
+	 * is a bit faster (takes about 15/24 ~ 60% or so of the time)
+	 */
+	inline
+	double
+	rmseBasisErrorBetween2
+		( SenOri const & ori1wX
+		, SenOri const & ori2wX
+		)
+	{
+		double rmse{ engabra::g3::null<double>() };
+		using namespace engabra::g3;
+		using namespace rigibra;
+		if (isValid(ori1wX) && isValid(ori2wX))
+		{
+			Triad const tri1{ basisTransformed(ori1wX) };
+			Triad const tri2{ basisTransformed(ori2wX) };
+			rmse = rmseDiff(tri1, tri2);
+		}
+		return rmse;
+	}
+
+
+	/*! \brief Statistic: how much basis vectors change under 'ori' transform.
+	 *
+	 * The three basis vectors, {e1,e2,e3}, are transformed by ori and
+	 * the results are subtracted from the originals. This difference
+	 * represents the *combined* effect of rotation and translation.
+	 *
+	 * The RMSE statistic is computed as:
+	 * \arg sum the squares of the (3) components of (3) difference vectors
+	 * \arg divided this by the (3=9(mea)-6(dof)) statistical freedoms
+	 * \arg take the square root.
+	 *
+	 * Note: for a pure rotation, this is eqivalent to the columns
+	 * of the difference matrix of rotation matrix less identity
+	 * matrix - but here, translation effects are also included).
+	 */
 	inline
 	double
 	basisTransformRMSE
@@ -61,12 +160,11 @@ namespace om
 		{
 			// transform orthogonal basis and sum square resulting differences
 			Vector const got1{ ori(e1) };
-			Vector const got2{ ori(e1) };
-			Vector const got3{ ori(e1) };
+			Vector const got2{ ori(e2) };
+			Vector const got3{ ori(e3) };
 			double const eSq1{ magSq(got1 - e1) };
 			double const eSq2{ magSq(got2 - e2) };
 			double const eSq3{ magSq(got3 - e3) };
-
 			// Statistical degrees of freedom
 			constexpr double numComp{ 9. }; // 9 components being compared
 			constexpr double numParm{ 6. }; // 3 offsets and three translations
@@ -78,10 +176,26 @@ namespace om
 		return rmse;
 	}
 
-	//! Statistic representing error between ori{1,2}. 
+	/*! \brief Statistic representing error between ori{1,2}wX. 
+	 *
+	 * Computation involves determining the relative orientation
+	 * \arg Ro2w1 = ori2wX * inverse(ori1wX)
+	 * 
+	 * The returned statistic is the error associated with transformation
+	 * of the basis vectors through the relative orientation - i.e.
+	 * the value of basisTransformRMSE() called with the Ro2w1 transform.
+	 *
+	 * If the two input orientations are about the same, then the
+	 * relative orientation is near identity. In that case, the basis
+	 * vectors transform almost into themselves, such that
+	 * \arg the more similar ori1wX and ori2wX
+	 * \arg the more close to identity is Ro2w1
+	 * \arg the more similar the transformed basis vectors are to original
+	 * \arg and the smaller is the reported RMSE value.
+	 */
 	inline
 	double
-	rmseBasisErrorBetween
+	rmseBasisErrorBetween1
 		( SenOri const & ori1wX
 		, SenOri const & ori2wX
 		)
@@ -170,7 +284,7 @@ namespace om
 					SenOri const roBox
 						{ relativeOrientationFor(pg1, pg2, convention) };
 					double const fitError
-						{ rmseBasisErrorBetween(roBox, relOri) };
+						{ rmseBasisErrorBetween2(roBox, relOri) };
 					sumFitErrors[cNdx] += fitError;
 				}
 			}
@@ -500,6 +614,126 @@ namespace om
 		//
 
 		return trialResults;
+	}
+
+//
+// Functions for combinations of precomputed orientations.
+//
+
+	//! Convention numberEncoding() values for {box,ind} relative orientation.
+	using PairConId = std::pair<ConNumId, ConNumId>;
+
+	//! Orientation agreement error associated with {box,ind} Convention pair.
+	using ErrPairCon = std::pair<double, PairConId>;
+
+
+	/*! \brief Compute max error for each convention (across all sensors).
+	 *
+	 * For each sensor in \a useSenKeys, use corresponding ConOri
+	 * instances to compute a metric of fit for that specific 
+	 * Convention value.
+	 *
+	 * Note: All input vector<ConOri> are assumed to be in sync
+	 * with each other (same size vector and matching Convention value
+	 * in each position of the vectors).
+	 *
+	 * for each vector<ConOri> index, the orientation from \a boxConROs
+	 * and the orientation from \a indConROs are compared. Each is
+	 * used to transform basis vector triad. The two triad results are
+	 * then compared to determine an RMSE distance metric. This metric
+	 * is interpreted as the "difference" between the two RO values.
+	 *
+	 * For each Convention, computation determines the maxium RMSE
+	 * value across all sensors (that are identified in useSenKeys).
+	 *
+	 * Results are placed into the std::vector<ErrPairCon> which is
+	 * assumed to already have space allocated. The return vector must
+	 * have storage space for number of elements equal to product of
+	 * the number of elements:
+	 * \arg boxConROs.second().size() * indConROs.second().size()
+	 *
+	 * \note \a ptMaxErrPairCons size MUST be preallocated by consumer
+	 * code. For example, if
+	 * \arg boxConRO.size() == 55296
+	 * \arg indConRO.size() == 1152
+	 *
+	 * Then the return size must be
+	 * \arg ptMaxErrPairCons->resize(55296u * 1152u);
+	 */
+	inline
+	void
+	computeMaxErrors
+		( std::set<SenKey> const & useSenKeys
+			//!< Sensor Keys to process
+		, std::map<SenKey, std::vector<ConOri> > const & boxConROs
+			//!< Orientation of each sensor in (Black)Box frame
+		, std::map<SenKey, std::vector<ConOri> > const & indConROs
+			//!< Orientation of each sensor in Ind(ependent) frame
+		, std::vector<ErrPairCon> * const ptMaxErrPairCons
+			//!< Data space in which to place results
+		)
+	{
+		// initialize result structure to zero values
+		ErrPairCon const zeroErrPairCon{ 0., { 0u, 0u } };
+		std::fill
+			( ptMaxErrPairCons->begin(), ptMaxErrPairCons->end()
+			, zeroErrPairCon
+			);
+
+		bool firstPass{ true };
+		for (std::set<SenKey>::const_iterator itKey{useSenKeys.cbegin()}
+			; useSenKeys.cend() != itKey ; ++itKey)
+		{
+			std::size_t ndxEPCs{ 0u };
+			SenKey const & senKey = *itKey;
+
+			using ItRO = std::map<SenKey, std::vector<ConOri> >::const_iterator;
+			ItRO const itBoxRO{ boxConROs.find(senKey) };
+			std::vector<ConOri> const & boxConOris = itBoxRO->second;
+
+			ItRO const itIndRO{ indConROs.find(senKey) };
+			std::vector<ConOri> const & indConOris = itIndRO->second;
+
+			// Loop over all box conventions (e.g. up to 55296)
+			// E.g. 55296 cases for full orientation convention coverage
+			for (ConOri const & boxConOri : boxConOris)
+			{
+				ConNumId const & boxConId = boxConOri.first;
+				SenOri const & boxRO = boxConOri.second;
+
+				// Loop over all ind conventions
+				// Up to 55296 for full convention, or 1152 if for angle only
+				for (ConOri const & indConOri : indConOris)
+				{
+					ConNumId const & indConId = indConOri.first;
+					SenOri const & indRO = indConOri.second;
+
+					// compute goodness of git for this sensor
+					double const rmse
+						{ rmseBasisErrorBetween2(boxRO, indRO) };
+					PairConId const currPairConId{ boxConId, indConId };
+
+					// ErrPairCon = std::pair<double, PairConId>;
+					ErrPairCon & maxErrPairCon = (*ptMaxErrPairCons)[ndxEPCs++];
+					double & maxRMSE = maxErrPairCon.first;
+					PairConId & savePairConId = maxErrPairCon.second;
+					if (firstPass)
+					{
+						maxRMSE = rmse;
+						savePairConId = currPairConId;
+					}
+					else
+					{
+						maxRMSE = std::max(rmse, maxRMSE);
+						assertExit
+							((savePairConId == currPairConId), "pairConId");
+					}
+				}
+			}
+
+			firstPass = false;
+
+		} // senKey
 	}
 
 

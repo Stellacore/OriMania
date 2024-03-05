@@ -61,14 +61,14 @@ namespace num
 		  === 24
 	*/
 
-	constexpr std::int64_t sIdBase{ 100 }; // for easy human interpretation
-	constexpr std::int64_t sPad   { 1000000000000 };
-	constexpr std::int64_t sOffSgn{   10000000000 };
-	constexpr std::int64_t sOffNdx{     100000000 };
-	constexpr std::int64_t sAngSgn{       1000000 };
-	constexpr std::int64_t sAngNdx{         10000 };
-	constexpr std::int64_t sBivNdx{           100 };
-	constexpr std::int64_t sOrder {             1 };
+	constexpr om::ConNumId sIdBase{ 100 }; // for easy human interpretation
+	constexpr om::ConNumId sPad   { 1000000000000 };
+	constexpr om::ConNumId sOffSgn{   10000000000 };
+	constexpr om::ConNumId sOffNdx{     100000000 };
+	constexpr om::ConNumId sAngSgn{       1000000 };
+	constexpr om::ConNumId sAngNdx{         10000 };
+	constexpr om::ConNumId sBivNdx{           100 };
+	constexpr om::ConNumId sOrder {             1 };
 
 } // [num]
 
@@ -79,39 +79,39 @@ namespace num
 
 	//! Convert transform order to numeric values (e.g. for sorting) [0,1]
 	inline
-	std::int64_t
+	om::ConNumId
 	numberFor
 		( om::OrderTR const & order
 		)
 	{
-		return static_cast<std::int64_t>(order);
+		return static_cast<om::ConNumId>(order);
 	}
 
 	//! Convert sign collection to numeric values (e.g. for sorting) [0,7]
 	inline
-	std::int64_t
+	om::ConNumId
 	numberFor
 		( om::ThreeSigns const & signs
 		)
 	{
 		return
-			( 4u * (static_cast<std::int64_t>(1u + signs[0]) / 2u)
-			+ 2u * (static_cast<std::int64_t>(1u + signs[1]) / 2u)
-			+ 1u * (static_cast<std::int64_t>(1u + signs[2]) / 2u)
+			( 4u * (static_cast<om::ConNumId>(1u + signs[0]) / 2u)
+			+ 2u * (static_cast<om::ConNumId>(1u + signs[1]) / 2u)
+			+ 1u * (static_cast<om::ConNumId>(1u + signs[2]) / 2u)
 			);
 	}
 
 	//! Convert index collection to numeric values (e.g. for sorting) [0,26]
 	inline
-	std::int64_t
+	om::ConNumId
 	numberFor
 		( om::ThreeIndices const & indices
 		)
 	{
 		return
-			( 9u * static_cast<std::int64_t>(indices[0])
-			+ 3u * static_cast<std::int64_t>(indices[1])
-			+ 1u * static_cast<std::int64_t>(indices[2])
+			( 9u * static_cast<om::ConNumId>(indices[0])
+			+ 3u * static_cast<om::ConNumId>(indices[1])
+			+ 1u * static_cast<om::ConNumId>(indices[2])
 			);
 	}
 
@@ -119,7 +119,7 @@ namespace num
 	inline
 	om::ThreeSigns
 	threeSignsFor
-		( std::int64_t const numId
+		( om::ConNumId const numId
 		)
 	{
 		constexpr std::array<om::ThreeSigns, 8u> asInts
@@ -139,7 +139,7 @@ namespace num
 	inline
 	om::ThreeIndices
 	threeIndicesFor
-		( std::int64_t const numId
+		( om::ConNumId const numId
 		)
 	{
 		using TI = om::ThreeIndices;
@@ -161,7 +161,7 @@ namespace num
 	inline
 	om::OrderTR
 	orderFor
-		( std::int64_t const numId
+		( om::ConNumId const numId
 		)
 	{
 		constexpr std::array<om::OrderTR, 3u> orders
@@ -432,31 +432,31 @@ Convention :: allConventions
 // static
 Convention
 Convention :: fromNumberEncoding
-	( std::int64_t const & numId
+	( ConNumId const & numId
 	)
 {
-	std::int64_t curr{ numId };
+	ConNumId curr{ numId };
 
-	std::int64_t digOrder{ curr % num::sIdBase };
+	ConNumId digOrder{ curr % num::sIdBase };
 	curr = curr / num::sIdBase;
 
-	std::int64_t digBivNdx{ curr % num::sIdBase };
+	ConNumId digBivNdx{ curr % num::sIdBase };
 	curr = curr / num::sIdBase;
 
-	std::int64_t digAngNdx{ curr % num::sIdBase };
+	ConNumId digAngNdx{ curr % num::sIdBase };
 	curr = curr / num::sIdBase;
 
-	std::int64_t digAngSgn{ curr % num::sIdBase };
+	ConNumId digAngSgn{ curr % num::sIdBase };
 	curr = curr / num::sIdBase;
 
-	std::int64_t digOffNdx{ curr % num::sIdBase };
+	ConNumId digOffNdx{ curr % num::sIdBase };
 	curr = curr / num::sIdBase;
 
-	std::int64_t digOffSgn{ curr % num::sIdBase };
+	ConNumId digOffSgn{ curr % num::sIdBase };
 	curr = curr / num::sIdBase;
 
 	// should be 1
-	// std::int64_t digPad{ curr % num::sIdBase };
+	// ConNumId digPad{ curr % num::sIdBase };
 	// curr = curr / num::sIdBase;
 
 	return Convention
@@ -469,11 +469,11 @@ Convention :: fromNumberEncoding
 		};
 }
 
-std::int64_t
+ConNumId
 Convention :: numberEncoding
 	() const
 {
-	std::int64_t numId{ -1 };;
+	ConNumId numId{ -1 };;
 	if (isValid())
 	{
 		numId = 
