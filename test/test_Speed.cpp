@@ -247,51 +247,6 @@ namespace
 namespace om
 {
 
-	//! Convention and orientations *RELATIVE TO FIRST Sensor* 
-	std::map<SenKey, std::vector<ConOri> >
-	conventionROsWrtUseKey
-		( std::map<SenKey, std::vector<ConOri> > const & eoConOris
-		, SenKey const & useKey
-		)
-	{
-		std::map<SenKey, std::vector<ConOri> > roSenConOris;
-		if (! eoConOris.empty())
-		{
-			// Use first sensor as reference
-			std::map<SenKey, std::vector<ConOri> >::const_iterator
-				const itUse{ eoConOris.find(useKey) };
-
-			std::vector<ConOri> const & oriUses = itUse->second;
-			for (std::map<SenKey, std::vector<ConOri> >::const_iterator
-				itAny{eoConOris.cbegin()} ; eoConOris.cend() != itAny ; ++itAny)
-			{
-				SenKey const & senKey = itAny->first;
-				std::vector<ConOri> const & oriAnys = itAny->second;
-				std::size_t const numOri{ oriUses.size() };
-				assertExit((numOri == oriAnys.size())
-					, "Error in eoConOris array sizes");
-
-				std::vector<ConOri> conROs;
-				conROs.reserve(numOri);
-				for (std::size_t nn{0u} ; nn < numOri ; ++nn)
-				{
-					ConNumId const & convNumId = itUse->second[nn].first;
-					SenOri const & oriUseWrtRef = itUse->second[nn].second;
-					SenOri const & oriAnyWrtRef = itAny->second[nn].second;
-					SenOri const oriRefWrtUse{ inverse(oriUseWrtRef) };
-					SenOri const oriAnyWrtUse{ oriAnyWrtRef * oriRefWrtUse };
-					ConOri const conRO{ convNumId, oriAnyWrtUse };
-					conROs.emplace_back(conRO);
-				}
-				roSenConOris.emplace_hint
-					( roSenConOris.end()
-					, std::make_pair(senKey, conROs)
-					);
-			}
-		}
-		return roSenConOris;
-	}
-
 	/*! \brief TODO
 	 *
 	 */

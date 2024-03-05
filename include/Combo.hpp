@@ -50,6 +50,88 @@ namespace om
 	//! Convention and associated 3D Orientation>
 	using ConOri = std::pair<ConNumId, SenOri>;
 
+
+	/*! \brief Convention and orientations *RELATIVE TO 'USE'* sensor.
+	 *
+	 * For each SenKey, the vector of input orientation data (e.g.
+	 * Sensor orientations with respect to (wrt) 'X', is converted
+	 * into a vector of relative orientations - orientation wrt
+	 * frame 'U' where the 'U' frame is defined as the sensor frame
+	 * associated with sensor \a useKey.
+	 *
+	 * For example If the input vector<ConOri> contains orientations,
+	 * \arg Orientation Sen1 wrt 'X'
+	 * \arg Orientation Sen2 wrt 'X'
+	 * \arg Orientation Sen3 wrt 'X'
+	 * \arg ...
+	 *
+	 * and the useKey is "Sen2", then the return orientations will be
+	 * \arg Orientation Sen1wrt2
+	 * \arg Orientation Sen2wrt2 == Identity
+	 * \arg Orientation Sen3wrt2
+	 * \arg ...
+	 *
+	 * The Convention values in the returned vector<ConOri> items
+	 * are copied from input to output without change.
+	 */
+	std::map<SenKey, std::vector<ConOri> >
+	conventionROsWrtUseKey
+		( std::map<SenKey, std::vector<ConOri> > const & eoConOris
+		, SenKey const & useKey
+		)
+	{
+		std::map<SenKey, std::vector<ConOri> > roSenConOris;
+		if (! eoConOris.empty())
+		{
+			// find 'use' sensor to use as base for all relative orientations.
+			std::map<SenKey, std::vector<ConOri> >::const_iterator
+				const itBase{ eoConOris.find(useKey) };
+
+			// Process each relative orientation in turn
+			// Includes processing of base sensor (into identity ROs)
+			std::vector<ConOri> const & oriBases = itBase->second;
+			for (std::map<SenKey, std::vector<ConOri> >::const_iterator
+				  itFree{eoConOris.cbegin()}
+				; eoConOris.cend() != itFree
+				; ++itFree)
+			{
+				SenKey const & senKey = itFree->first;
+				std::vector<ConOri> const & oriFrees = itFree->second;
+
+				// enforce that data sizes are compatible
+				std::size_t const numOri{ oriBases.size() };
+				if (! (numOri == oriFrees.size()))
+				{
+					std::cerr << "\nFATAL! Error in eoConOris sizes!\n\n";
+					std::cerr << "oriBases: " << oriBases.size() << '\n';
+					std::cerr << "oriFrees: " << oriFrees.size() << '\n';
+					roSenConOris.clear();
+					break;
+				}
+
+				// Compute RO geometry for each item in return vector<ConOri>
+				std::vector<ConOri> conROs;
+				conROs.reserve(numOri);
+				for (std::size_t nn{0u} ; nn < numOri ; ++nn)
+				{
+					ConNumId const & convNumId = itBase->second[nn].first;
+					SenOri const & oriBaseWrtRef = itBase->second[nn].second;
+					SenOri const & oriFreeWrtRef = itFree->second[nn].second;
+					SenOri const oriRefWrtBase{ inverse(oriBaseWrtRef) };
+					SenOri const oriFreeWrtBase{ oriFreeWrtRef*oriRefWrtBase };
+					ConOri const conRO{ convNumId, oriFreeWrtBase };
+					conROs.emplace_back(conRO);
+				}
+				roSenConOris.emplace_hint
+					( roSenConOris.end()
+					, std::make_pair(senKey, conROs)
+					);
+			}
+		}
+		return roSenConOris;
+	}
+
+
 	/*! \brief All orientations associated with offset and angle conventions.
 	 *
 	 * Creates orientations that:
@@ -124,7 +206,7 @@ namespace om
 	 * Note that ConOri is std::pair<ConNumId, SenOri> where ConNumId
 	 * is the value from Convention::numberEncoding(), and SenOri is
 	 * the 3D orientation (both location and attitude) that is generated
-	 * from the ParmGroup for this Sensor Key (from the #parmGroups
+	 * from the ParmGroup for this Sensor Key (from the \a parmGroups
 	 * input arguments.
 	 * 
 	 * The two convention arguments (conOffs, conAngs) are combined
