@@ -74,6 +74,7 @@ namespace om
 	 * The Convention values in the returned vector<ConOri> items
 	 * are copied from input to output without change.
 	 */
+	inline
 	std::map<SenKey, std::vector<ConOri> >
 	conventionROsWrtUseKey
 		( std::map<SenKey, std::vector<ConOri> > const & eoConOris

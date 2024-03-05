@@ -288,6 +288,33 @@ namespace
 		return ostrm;
 	}
 
+	//! Useful for PairConId - {box,ind} Convention::NumericEncoding() pairs.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, std::pair<std::size_t, std::size_t> const & pair
+		)
+	{
+		ostrm << pair.first << ' ' << pair.second;
+		return ostrm;
+	}
+
+	//! Put (RMSE) RO error and {box,ind} Convention.numberEncoding() to stream.
+	inline
+	std::ostream &
+	operator<<
+		( std::ostream & ostrm
+		, om::ErrPairCon const & epc
+		)
+	{
+		using engabra::g3::io::fixed;
+		double const & err = epc.first;
+		om::PairConId const & pairConId = epc.second;
+		ostrm << fixed(err) << "  " << pairConId;
+		return ostrm;
+	}
+
 
 } // [anon]
 

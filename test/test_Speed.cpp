@@ -28,6 +28,7 @@
 */
 
 
+#include "Analysis.hpp"
 #include "Combo.hpp"
 #include "Convention.hpp"
 #include "io.hpp"
@@ -109,22 +110,6 @@ namespace keys
 
 namespace
 {
-	//! If mustBeTrue is not true, put msg to std::cerr and exit().
-	inline
-	void
-	assertExit
-		( bool const & mustBeTrue
-		, std::string const & msg = {}
-		)
-	{
-		if (! mustBeTrue)
-		{
-			std::cerr << "Assert Error!\n";
-			std::cerr << msg << std::endl;
-			exit(18);
-		}
-	}
-
 	//! String containing info on map and member vector sizes
 	template <typename Key, typename PairType>
 	inline
@@ -206,134 +191,6 @@ namespace sim
 	}
 
 } // [sim]
-
-namespace om
-{
-	using PairConId = std::pair<ConNumId, ConNumId>;
-
-	using ErrPairCon = std::pair<double, PairConId>;
-
-} // [om]
-
-namespace
-{
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, std::pair<std::size_t, std::size_t> const & pair
-		)
-	{
-		ostrm << pair.first << ' ' << pair.second;
-		return ostrm;
-	}
-
-	inline
-	std::ostream &
-	operator<<
-		( std::ostream & ostrm
-		, om::ErrPairCon const & epc
-		)
-	{
-		using engabra::g3::io::fixed;
-		double const & err = epc.first;
-		om::PairConId const & pairConId = epc.second;
-		ostrm << fixed(err) << "  " << pairConId;
-		return ostrm;
-	}
-
-} // [anon}
-
-namespace om
-{
-
-	/*! \brief TODO
-	 *
-	 */
-	inline
-	void
-	computeMaxErrors
-		( std::set<SenKey> const & useSenKeys
-			//!< Sensor Keys to process
-		, std::map<SenKey, std::vector<ConOri> > const & boxConROs
-			//!< Orientation of each sensor in (Black)Box frame
-		, std::map<SenKey, std::vector<ConOri> > const & indConROs
-			//!< Orientation of each sensor in Ind(ependent) frame
-		, std::vector<ErrPairCon> * const ptMaxErrPairCons
-			//!< Data space in which to place results
-		)
-	{
-		// initialize result structure to zero values
-		ErrPairCon const zeroErrPairCon{ 0., { 0u, 0u } };
-		std::fill
-			( ptMaxErrPairCons->begin(), ptMaxErrPairCons->end()
-			, zeroErrPairCon
-			);
-
-std::size_t rmseCount{ 0u };
-		bool firstPass{ true };
-		for (std::set<SenKey>::const_iterator itKey{useSenKeys.cbegin()}
-			; useSenKeys.cend() != itKey ; ++itKey)
-		{
-			std::size_t ndxEPCs{ 0u };
-			SenKey const & senKey = *itKey;
-
-			using ItRO = std::map<SenKey, std::vector<ConOri> >::const_iterator;
-			ItRO const itBoxRO{ boxConROs.find(senKey) };
-			std::vector<ConOri> const & boxConOris = itBoxRO->second;
-
-std::cout << "Key:" << ' ' << senKey << ' ' << senKey << std::endl;
-
-			ItRO const itIndRO{ indConROs.find(senKey) };
-			std::vector<ConOri> const & indConOris = itIndRO->second;
-
-			// Loop over all box conventions (e.g. up to 55296)
-			// E.g. 55296 cases for full orientation convention coverage
-std::cout << "boxConOris.size: " << boxConOris.size() << '\n';
-std::cout << "indConOris.size: " << indConOris.size() << '\n';
-			for (ConOri const & boxConOri : boxConOris)
-			{
-				ConNumId const & boxConId = boxConOri.first;
-				SenOri const & boxRO = boxConOri.second;
-
-				// Loop over all ind conventions
-				// Up to 55296 for full convention, or 1152 if for angle only
-				for (ConOri const & indConOri : indConOris)
-				{
-					ConNumId const & indConId = indConOri.first;
-					SenOri const & indRO = indConOri.second;
-
-					// compute goodness of git for this sensor
-					double const rmse
-						{ rmseBasisErrorBetween2(boxRO, indRO) };
-++rmseCount;
-					PairConId const currPairConId{ boxConId, indConId };
-
-					// ErrPairCon = std::pair<double, PairConId>;
-					ErrPairCon & maxErrPairCon = (*ptMaxErrPairCons)[ndxEPCs++];
-					double & maxRMSE = maxErrPairCon.first;
-					PairConId & savePairConId = maxErrPairCon.second;
-					if (firstPass)
-					{
-						maxRMSE = rmse;
-						savePairConId = currPairConId;
-					}
-					else
-					{
-						maxRMSE = std::max(rmse, maxRMSE);
-						assertExit
-							((savePairConId == currPairConId), "pairConId");
-					}
-				}
-			}
-
-			firstPass = false;
-
-		} // senKey
-std::cout << "    rmseCount: " << om::commaNumber(rmseCount) << '\n';
-	}
-
-} // [om]
 
 
 namespace
@@ -440,7 +297,8 @@ namespace
 		maxErrPairCons.resize(pairNumCons);
 
 		om::Timer timeRMSEs{ "Time for RMSE computations" };
-		computeMaxErrors(useSenKeys, boxConROs, indConROs, &maxErrPairCons);
+		om::computeMaxErrors
+			(useSenKeys, boxConROs, indConROs, &maxErrPairCons);
 		timeRMSEs.stop();
 
 		// loop over results: expect:
@@ -519,6 +377,8 @@ namespace
 			std::cout << "Ind:\n";
 			std::cout << infoStringSizes(indConOris, "indConOris") << nl;
 			std::cout << infoStringSizes(indConROs, " indConROs") << nl;
+			std::cout << "Out:\n";
+			std::cout << "maxErrPairCons: " << maxErrPairCons.size() << nl;
 
 			std::size_t const boxNumOff{ boxConOffs.size() };
 			std::size_t const boxNumAng{ boxConAngs.size() };

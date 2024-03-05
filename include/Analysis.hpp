@@ -35,13 +35,17 @@ Example:
 */
 
 
+#include "assert.hpp"
+#include "Combo.hpp"
 #include "Convention.hpp"
 #include "Orientation.hpp"
 
 #include <Engabra>
 #include <Rigibra>
 
+#include <algorithm>
 #include <map>
+#include <set>
 #include <vector>
 
 
@@ -610,6 +614,126 @@ namespace om
 		//
 
 		return trialResults;
+	}
+
+//
+// Functions for combinations of precomputed orientations.
+//
+
+	//! Convention numberEncoding() values for {box,ind} relative orientation.
+	using PairConId = std::pair<ConNumId, ConNumId>;
+
+	//! Orientation agreement error associated with {box,ind} Convention pair.
+	using ErrPairCon = std::pair<double, PairConId>;
+
+
+	/*! \brief Compute max error for each convention (across all sensors).
+	 *
+	 * For each sensor in \a useSenKeys, use corresponding ConOri
+	 * instances to compute a metric of fit for that specific 
+	 * Convention value.
+	 *
+	 * Note: All input vector<ConOri> are assumed to be in sync
+	 * with each other (same size vector and matching Convention value
+	 * in each position of the vectors).
+	 *
+	 * for each vector<ConOri> index, the orientation from \a boxConROs
+	 * and the orientation from \a indConROs are compared. Each is
+	 * used to transform basis vector triad. The two triad results are
+	 * then compared to determine an RMSE distance metric. This metric
+	 * is interpreted as the "difference" between the two RO values.
+	 *
+	 * For each Convention, computation determines the maxium RMSE
+	 * value across all sensors (that are identified in useSenKeys).
+	 *
+	 * Results are placed into the std::vector<ErrPairCon> which is
+	 * assumed to already have space allocated. The return vector must
+	 * have storage space for number of elements equal to product of
+	 * the number of elements:
+	 * \arg boxConROs.second().size() * indConROs.second().size()
+	 *
+	 * \note \a ptMaxErrPairCons size MUST be preallocated by consumer
+	 * code. For example, if
+	 * \arg boxConRO.size() == 55296
+	 * \arg indConRO.size() == 1152
+	 *
+	 * Then the return size must be
+	 * \arg ptMaxErrPairCons->resize(55296u * 1152u);
+	 */
+	inline
+	void
+	computeMaxErrors
+		( std::set<SenKey> const & useSenKeys
+			//!< Sensor Keys to process
+		, std::map<SenKey, std::vector<ConOri> > const & boxConROs
+			//!< Orientation of each sensor in (Black)Box frame
+		, std::map<SenKey, std::vector<ConOri> > const & indConROs
+			//!< Orientation of each sensor in Ind(ependent) frame
+		, std::vector<ErrPairCon> * const ptMaxErrPairCons
+			//!< Data space in which to place results
+		)
+	{
+		// initialize result structure to zero values
+		ErrPairCon const zeroErrPairCon{ 0., { 0u, 0u } };
+		std::fill
+			( ptMaxErrPairCons->begin(), ptMaxErrPairCons->end()
+			, zeroErrPairCon
+			);
+
+		bool firstPass{ true };
+		for (std::set<SenKey>::const_iterator itKey{useSenKeys.cbegin()}
+			; useSenKeys.cend() != itKey ; ++itKey)
+		{
+			std::size_t ndxEPCs{ 0u };
+			SenKey const & senKey = *itKey;
+
+			using ItRO = std::map<SenKey, std::vector<ConOri> >::const_iterator;
+			ItRO const itBoxRO{ boxConROs.find(senKey) };
+			std::vector<ConOri> const & boxConOris = itBoxRO->second;
+
+			ItRO const itIndRO{ indConROs.find(senKey) };
+			std::vector<ConOri> const & indConOris = itIndRO->second;
+
+			// Loop over all box conventions (e.g. up to 55296)
+			// E.g. 55296 cases for full orientation convention coverage
+			for (ConOri const & boxConOri : boxConOris)
+			{
+				ConNumId const & boxConId = boxConOri.first;
+				SenOri const & boxRO = boxConOri.second;
+
+				// Loop over all ind conventions
+				// Up to 55296 for full convention, or 1152 if for angle only
+				for (ConOri const & indConOri : indConOris)
+				{
+					ConNumId const & indConId = indConOri.first;
+					SenOri const & indRO = indConOri.second;
+
+					// compute goodness of git for this sensor
+					double const rmse
+						{ rmseBasisErrorBetween2(boxRO, indRO) };
+					PairConId const currPairConId{ boxConId, indConId };
+
+					// ErrPairCon = std::pair<double, PairConId>;
+					ErrPairCon & maxErrPairCon = (*ptMaxErrPairCons)[ndxEPCs++];
+					double & maxRMSE = maxErrPairCon.first;
+					PairConId & savePairConId = maxErrPairCon.second;
+					if (firstPass)
+					{
+						maxRMSE = rmse;
+						savePairConId = currPairConId;
+					}
+					else
+					{
+						maxRMSE = std::max(rmse, maxRMSE);
+						assertExit
+							((savePairConId == currPairConId), "pairConId");
+					}
+				}
+			}
+
+			firstPass = false;
+
+		} // senKey
 	}
 
 
