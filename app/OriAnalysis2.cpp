@@ -116,18 +116,25 @@ namespace rpt
 		std::ostringstream oss;
 		using namespace om;
 
+		// access Convention::numberEncoding() values
 		ConNumId const & boxConNumId = anEPC.second.first;
 		ConNumId const & indConNumId = anEPC.second.second;
-		Convention const boxConvention
+
+		// use to construct new Conventions
+		Convention const boxCon
 			{ Convention::fromNumberEncoding(boxConNumId) };
-		Convention const indConvention
+		Convention const indCon
 			{ Convention::fromNumberEncoding(indConNumId) };
-		oss << head << name << ':'
-			<< ' ' << engabra::g3::io::fixed(anEPC.first)
-			<< ' ' << anEPC.second
-			<< '\n';
-		oss << head << name << ".boxConvention: " << boxConvention << '\n';
-		oss << head << name << ".indConvention: " << indConvention << '\n';
+
+		// generate string representations for Conventions
+		ConventionString const boxConStr{ ConventionString::from(boxCon) };
+		ConventionString const indConStr{ ConventionString::from(indCon) };
+
+		oss << head << name
+			<< " " << engabra::g3::io::fixed(anEPC.first)
+			<< "  boxPGs: " << boxConStr.stringEncoding()
+			<< "  indPGs: " << indConStr.stringEncoding()
+			;
 
 		return oss.str();
 	}
@@ -287,36 +294,33 @@ main
 		ofsOut << "# " << "  No.   2xind: " << indNumTot << nl;
 		ofsOut << "# " << "  No. all tot: " << om::commaNumber(allNumTot) << nl;
 
-		ConNumId const & boxBestConNumId = maxEPCBest.second.first;
-		ConNumId const & indBestConNumId = maxEPCBest.second.second;
-		ofsOut << "# " << nl;
-		ofsOut << rpt::infoString(maxEPCBest, "maxEPCBest");
-		ofsOut << rpt::infoString(maxEPCLast, "maxEPCLast");
-
-		ofsOut << "# " << nl;
-constexpr std::size_t maxShowBest{ 10u };
-		for (std::size_t nn{0u} ; nn < maxShowBest ; ++nn)
-		{
-			ErrPairCon const & epc = maxErrPairCons[nn];
-			ofsOut << "# " << nl;
-			ofsOut << "# " << "ErrPairCon[" << std::setw(6) << nn << "]:"
-				<< ' ' << epc << nl;
-			ofsOut << rpt::infoString(epc, "epc");
-		}
-
 		ofsOut << "# " << nl;
 		ofsOut << "# " << timeRMSEs << nl;
 		ofsOut << "# " << timeSort << nl;
 		ofsOut << "# " << nl;
 
+		ConNumId const & boxBestConNumId = maxEPCBest.second.first;
+		ConNumId const & indBestConNumId = maxEPCBest.second.second;
+		ofsOut << "# " << nl;
+		ofsOut << rpt::infoString(maxEPCBest, "maxEPCBest") << nl;
+		ofsOut << rpt::infoString(maxEPCLast, "maxEPCLast") << nl;
+
 		ofsOut << nl;
 constexpr std::size_t maxShowSort{ 1000u };
-		ofsOut << "# Results - showing only first(best) " << maxShowSort << nl;
+		ofsOut << "# Results - showing only first(best)"
+			<< ' ' << maxShowSort
+			<< " of " << maxErrPairCons.size()
+			<< nl;
 		for (std::size_t nn{0u} ; nn < maxShowSort ; ++nn)
 		{
 			ErrPairCon const & maxErrPairCon = maxErrPairCons[nn];
-			ofsOut << maxErrPairCon << '\n';
-			ofsOut << rpt::infoString(maxErrPairCon, "maxErrPairCon");
+		//	ofsOut << "# " << maxErrPairCon << '\n';
+			ofsOut
+				<< rpt::infoString(maxErrPairCon, "", "")
+				<< "  "
+				<< ' ' << maxErrPairCon.second.first
+				<< ' ' << maxErrPairCon.second.second
+				<< '\n';
 		}
 		ofsOut << "# " << std::endl;
 
