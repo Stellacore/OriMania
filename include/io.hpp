@@ -128,6 +128,30 @@ namespace om
 		, std::size_t const & showNumEnd = 2u
 		);
 
+	//! String containing info on map and member vector sizes
+	template <typename Key, typename PairType>
+	inline
+	std::string
+	infoStringSizes
+		( std::map<Key, std::vector<PairType> > const keyPairs
+		, std::string const & name
+		)
+	{
+		std::ostringstream oss;
+		oss
+			<< name
+			<< " NumKeys: " << keyPairs.size()
+			<< " VectorSizes: "
+			;
+		for (typename std::map<Key, std::vector<PairType> >::value_type
+			const & keyPair : keyPairs)
+		{
+			oss << ' ' << keyPair.second.size();
+		}
+		return oss.str();
+	}
+
+
 } // [om]
 
 

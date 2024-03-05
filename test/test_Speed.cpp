@@ -32,6 +32,7 @@
 #include "Combo.hpp"
 #include "Convention.hpp"
 #include "io.hpp"
+#include "mapkey.hpp"
 #include "ParmGroup.hpp"
 #include "Timer.hpp"
 
@@ -41,98 +42,8 @@
 #include <sstream>
 
 
-namespace keys
-{
-	//! Return keys from map (same sorted order as in map).
-	template< typename Key, typename Value >
-	inline
-	std::set<Key>
-	from
-		( std::map<Key, Value> const & aMap
-		)
-	{
-		std::set<Key> keys;
-		std::transform
-			( aMap.cbegin(), aMap.cend()
-			, std::inserter(keys, keys.end())
-			, [] (typename std::map<Key, Value>::value_type const & pair)
-				{ return pair.first; }
-			);
-		return keys;
-	}
-
-	//! Keys in common between both maps
-	template< typename Key, typename Value >
-	inline
-	std::set<Key>
-	commonBetween
-		( std::map<Key, Value> const & map1
-		, std::map<Key, Value> const & map2
-		)
-	{
-		std::set<Key> const keys1{ from(map1) };
-		std::set<Key> const keys2{ from(map2) };
-		std::set<Key> keysBoth;
-		std::set_intersection
-			( keys1.cbegin(), keys1.cend()
-			, keys2.cbegin(), keys2.cend()
-			, std::inserter(keysBoth, keysBoth.end())
-			);
-		return keysBoth;
-	}
-
-	//! Check if both maps have identical keys
-	template< typename Key, typename Value >
-	inline
-	bool
-	allMatch
-		( std::map<Key, Value> const & map1
-		, std::map<Key, Value> const & map2
-		)
-	{
-		bool same{ map1.size() == map2.size() };
-		if (same)
-		{
-			std::set<Key> const keys1{ from(map1) };
-			std::set<Key> const keys2{ from(map2) };
-			std::set<Key> keysBoth;
-			std::set_intersection
-				( keys1.cbegin(), keys1.cend()
-				, keys2.cbegin(), keys2.cend()
-				, std::inserter(keysBoth, keysBoth.end())
-				);
-			same = (map1.size() == keysBoth.size());
-		}
-		return same;
-	}
-
-} // [keys]
-
 namespace
 {
-	//! String containing info on map and member vector sizes
-	template <typename Key, typename PairType>
-	inline
-	std::string
-	infoStringSizes
-		( std::map<Key, std::vector<PairType> > const keyPairs
-		, std::string const & name
-		)
-	{
-		std::ostringstream oss;
-		oss
-			<< name
-			<< " NumKeys: " << keyPairs.size()
-			<< " VectorSizes: "
-			;
-		for (typename std::map<Key, std::vector<PairType> >::value_type
-			const & keyPair : keyPairs)
-		{
-			oss << ' ' << keyPair.second.size();
-		}
-		return oss.str();
-	}
-
 } // [anon]
 
 namespace sim
@@ -209,7 +120,7 @@ namespace
 		// Load Parameter Groups for two sensors in Ind frame
 		std::map<SenKey, ParmGroup> const & indPGs{ sim::indPGs() };
 
-		assertExit(keys::allMatch(boxPGs, indPGs));
+		assertExit(mapkey::allMatch(boxPGs, indPGs));
 
 		// Use this sensor as reference for Relative Orientations
 		// SenKey const useSenKey("SimSen2");
@@ -260,7 +171,7 @@ namespace
 
 		// list of sensor ROs to compare between Box and Ind frames
 		std::set<SenKey> const senKeys
-			{ keys::commonBetween(boxConROs, indConROs) };
+			{ mapkey::commonBetween(boxConROs, indConROs) };
 
 		// for processing remove the sensor used to form the ROs
 		// since it will always have identity relative orientation.
