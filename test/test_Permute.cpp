@@ -40,6 +40,7 @@
 
 namespace
 {
+#if 0
 	//! Simulate contents of an indKeyPGs output file
 	std::string
 	indPGsFileTextOPK
@@ -95,7 +96,9 @@ namespace
 
 		return oss.str();
 	}
+#endif
 
+#if 0
 	//! Examples for documentation
 	void
 	test0
@@ -217,6 +220,7 @@ std::cout << '\n';
 		}
 
 	}
+#endif
 
 	//! Examples for documentation
 	void

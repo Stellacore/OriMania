@@ -28,7 +28,9 @@
 
 /*! \file
 \brief Contains code timing utilities.
+*/
 
+/*
 Example:
 \snippet test_Timer.cpp DoxyExampleTime
 

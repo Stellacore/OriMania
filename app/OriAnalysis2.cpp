@@ -299,8 +299,8 @@ main
 		ofsOut << "# " << timeSort << nl;
 		ofsOut << "# " << nl;
 
-		ConNumId const & boxBestConNumId = maxEPCBest.second.first;
-		ConNumId const & indBestConNumId = maxEPCBest.second.second;
+		// ConNumId const & boxBestConNumId = maxEPCBest.second.first;
+		// ConNumId const & indBestConNumId = maxEPCBest.second.second;
 		ofsOut << "# " << nl;
 		ofsOut << rpt::infoString(maxEPCBest, "maxEPCBest") << nl;
 		ofsOut << rpt::infoString(maxEPCLast, "maxEPCLast") << nl;
