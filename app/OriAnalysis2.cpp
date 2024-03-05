@@ -131,7 +131,7 @@ namespace rpt
 		ConventionString const indConStr{ ConventionString::from(indCon) };
 
 		oss << head << name
-			<< " " << engabra::g3::io::fixed(anEPC.first)
+			<< " " << engabra::g3::io::fixed(anEPC.first, 8u, 6u)
 			<< "  boxPGs: " << boxConStr.stringEncoding()
 			<< "  indPGs: " << indConStr.stringEncoding()
 			;
@@ -262,6 +262,27 @@ main
 	std::ofstream ofsOut(use.theOutPath);
 	{
 		constexpr char nl{ '\n' };
+
+		ofsOut << "# " << nl;
+		ofsOut << "# " << "boxParmGroups:\n";
+		for (std::map<SenKey, ParmGroup>::value_type
+			const & boxPG : boxPGs)
+		{
+			ofsOut << "# "
+				<< "  " << boxPG.first
+				<< " " << boxPG.second
+				<< nl;
+		}
+		ofsOut << "# " << "indParmGroups:\n";
+		for (std::map<SenKey, ParmGroup>::value_type
+			const & indPG : indPGs)
+		{
+			ofsOut << "# "
+				<< "  " << indPG.first
+				<< " " << indPG.second
+				<< nl;
+		}
+
 		ofsOut << "# " << nl;
 		ofsOut << "# " << "Box:\n";
 		ofsOut << "# " << infoStringSizes(boxConOris, "boxConOris") << nl;
@@ -274,25 +295,28 @@ main
 
 		std::size_t const boxNumOff{ boxConOffs.size() };
 		std::size_t const boxNumAng{ boxConAngs.size() };
-		std::size_t const boxNumCon{ boxNumOff * boxNumAng };
-		std::size_t const boxNumTot{ 2u * boxNumCon };
+		std::size_t const boxNumOrd{ 2u };
+		std::size_t const boxNumCon{ boxNumOff * boxNumAng * boxNumOrd };
+
 		std::size_t const indNumOff{ indConOffs.size() };
 		std::size_t const indNumAng{ indConAngs.size() };
-		std::size_t const indNumCon{ indNumOff * indNumAng };
-		std::size_t const indNumTot{ 2u * indNumCon };
-		std::size_t const allNumTot{ boxNumTot * indNumTot };
+		std::size_t const indNumOrd{ 2u };
+		std::size_t const indNumCon{ indNumOff * indNumAng * indNumOrd };
 
+		std::size_t const allNumCon{ boxNumCon * indNumCon };
+
+		using om::commaNumber;
 		ofsOut << "# " << nl;
 		ofsOut << "# " << "Conventions:\n";
 		ofsOut << "# " << "  No. boxOffs: " << boxNumOff << nl;
 		ofsOut << "# " << "  No. boxAngs: " << boxNumAng << nl;
-		ofsOut << "# " << "  No.     box: " << boxNumCon << nl;
-		ofsOut << "# " << "  No.   2xbox: " << boxNumTot << nl;
+		ofsOut << "# " << "  No. boxOrds: " << boxNumOrd << nl;
+		ofsOut << "# " << "  No.     box: " << commaNumber(boxNumCon) << nl;
 		ofsOut << "# " << "  No. indOffs: " << indNumOff << nl;
 		ofsOut << "# " << "  No. indAngs: " << indNumAng << nl;
-		ofsOut << "# " << "  No.     ind: " << indNumCon << nl;
-		ofsOut << "# " << "  No.   2xind: " << indNumTot << nl;
-		ofsOut << "# " << "  No. all tot: " << om::commaNumber(allNumTot) << nl;
+		ofsOut << "# " << "  No. indOrds: " << indNumOrd << nl;
+		ofsOut << "# " << "  No.     ind: " << commaNumber(indNumCon) << nl;
+		ofsOut << "# " << "  No.   total: " << commaNumber(allNumCon) << nl;
 
 		ofsOut << "# " << nl;
 		ofsOut << "# " << timeRMSEs << nl;
