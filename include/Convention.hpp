@@ -181,14 +181,20 @@ namespace om
 		allConventions
 			();
 
-		//! Construct an instance from numeric encoding.
+		/*! \brief Construct an instance from numeric encoding.
+		 *
+		 * \sa numberEncoding()
+		 */
 		static
 		Convention
 		fromNumberEncoding
 			( ConNumId const & numId
 			);
 
-		//! Assign a number to each convention (for easy tracking))
+		/*! \brief Assign a number to each convention (for easy tracking)).
+		 *
+		 * \sa fromNumberEncoding()
+		 */
 		ConNumId
 		numberEncoding
 			() const;
