@@ -32,7 +32,7 @@
 
 set(mainProgs
 
-	OriAnalysis # brute force solution for 3 angle sequence conventions
+	OriAnalysis1 # brute force solution for 3 angle sequence conventions
 	OriAnalysis2 # brute force solution for 3 angle sequence conventions
 
 	)
